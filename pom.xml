@@ -59,6 +59,54 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.7</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>one.util</groupId>
+			<artifactId>streamex</artifactId>
+			<version>0.6.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.5</version>
+		</dependency>
+
+		<!-- Apache POI inclusive -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.17</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.monitorjbl</groupId>
+			<artifactId>xlsx-streamer</artifactId>
+			<version>1.2.0</version>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
