@@ -8,7 +8,6 @@ import static com.lti.lifht.util.CommonUtil.getPrev;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -28,18 +27,20 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.lti.lifht.constant.CommonConstant;
-import com.lti.lifht.repository.AdminDao;
-import com.lti.lifht.repository.EntryDao;
-import com.lti.lifht.model.EntryRaw;
-import com.lti.lifht.model.Employee;
+import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryPair;
 import com.lti.lifht.model.EntryRange;
+import com.lti.lifht.model.EntryRaw;
+import com.lti.lifht.repository.AdminDao;
+import com.lti.lifht.repository.EntryDao;
 import com.lti.lifht.util.ExcelUtil;
 
 import one.util.streamex.StreamEx;
 
+@Service
 public class IOService {
 
 	private static final Logger logger = LoggerFactory.getLogger(IOService.class);
@@ -158,9 +159,9 @@ public class IOService {
 				// .filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
 				.collect(Collectors.toList());
 
-		List<Employee> employeeList = rows
+		List<EmployeeBean> employeeList = rows
 				.stream()
-				.map(row -> new Employee(row, HC_MAP))
+				.map(row -> new EmployeeBean(row, HC_MAP))
 				.collect(Collectors.toList());
 
 		adminDao.saveOrUpdateHeadCount(employeeList);
@@ -170,7 +171,7 @@ public class IOService {
 
 		List<String> psNumberList = adminService.getAllEmployees()
 				.stream()
-				.map(Employee::getPsNumber)
+				.map(EmployeeBean::getPsNumber)
 				.collect(Collectors.toList());
 
 		rows = rows
@@ -178,9 +179,9 @@ public class IOService {
 				.filter(row -> psNumberList.contains(row.get(ALC_MAP.get("psNumber"))))
 				.collect(Collectors.toList());
 
-		List<Employee> employeeList = rows
+		List<EmployeeBean> employeeList = rows
 				.stream()
-				.map(row -> new Employee(row, ALC_MAP))
+				.map(row -> new EmployeeBean(row, ALC_MAP))
 				.collect(Collectors.toList());
 
 		adminDao.saveOrUpdateProjectAllocation(employeeList);

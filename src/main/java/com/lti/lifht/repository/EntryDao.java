@@ -14,7 +14,7 @@ import com.lti.lifht.model.DateMultiPs;
 import com.lti.lifht.model.EntryRaw;
 import com.lti.lifht.model.RangeMultiPs;
 import com.lti.lifht.model.RangeSinglePs;
-import com.lti.lifht.model.Employee;
+import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDate;
 import com.lti.lifht.model.EntryPair;
 
@@ -156,7 +156,7 @@ public class EntryDao extends BaseDao {
 				entryDateList.add(new EntryDate(resultSet.getDate("date").toLocalDate(),
 						resultSet.getString("duration"), resultSet.getString("compliance"), resultSet.getString("filo"),
 						resultSet.getString("door"), resultSet.getString("number"),
-						new Employee(resultSet.getString("number"), resultSet.getString("name"),
+						new EmployeeBean(resultSet.getString("number"), resultSet.getString("name"),
 								resultSet.getString("bu"), resultSet.getString("email"))));
 			}
 
@@ -192,7 +192,7 @@ public class EntryDao extends BaseDao {
 				entryDateList.add(new EntryDate(rs.getDate("date"), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
 						rs.getTime("firstin").toLocalTime(), rs.getTime("lastout").toLocalTime(),
-						new Employee(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
+						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
 								rs.getString("email"))));
 			}
 
@@ -233,7 +233,7 @@ public class EntryDao extends BaseDao {
 			while (rs.next()) {
 				entryDateList.add(new EntryDate(rs.getDate("date").toLocalDate(), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
-						new Employee(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
+						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
 								rs.getString("email"))));
 			}
 
@@ -277,7 +277,7 @@ public class EntryDao extends BaseDao {
 			while (rs.next()) {
 				forAggregateList.add(new EntryDate(rs.getDate("date").toLocalDate(), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
-						new Employee(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
+						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
 								rs.getString("email"))));
 			}
 

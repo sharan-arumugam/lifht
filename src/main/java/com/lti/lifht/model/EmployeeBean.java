@@ -1,33 +1,43 @@
 package com.lti.lifht.model;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Employee {
+import com.lti.lifht.entity.Employee;
+import com.lti.lifht.entity.RoleMaster;
 
-	private static final Logger logger = LoggerFactory.getLogger(Employee.class);
+public class EmployeeBean {
+
+	private static final Logger logger = LoggerFactory.getLogger(EmployeeBean.class);
 
 	private String psNumber;
 	private String psName;
 	private String businessUnit;
 	private String manager;
-	private Boolean isAdmin;
 	private String email;
+	private List<String> roles;
 
-	public Employee() {
+	public EmployeeBean() {
 		super();
 	}
 
-	public Employee(String psNumber, String psName) {
-		super();
-		this.psNumber = psNumber;
-		this.psName = psName;
+	public EmployeeBean(Employee entity) {
+		psNumber = entity.getPsNumber();
+		psName = entity.getPsName();
+		businessUnit = entity.getBusinessUnit();
+		email = entity.getLtiMail();
+		roles = entity.getRoles()
+				.stream()
+				.map(RoleMaster::getRole)
+				.collect(Collectors.toList());
 	}
 
-	public Employee(String number, String name, String bu, String eml) {
+	public EmployeeBean(String number, String name, String bu, String eml) {
 		super();
 		psNumber = number;
 		psName = name;
@@ -35,7 +45,7 @@ public class Employee {
 		email = eml;
 	}
 
-	public Employee(Map<String, String> columnMap, Map<String, String> headerMap) {
+	public EmployeeBean(Map<String, String> columnMap, Map<String, String> headerMap) {
 		super();
 		Field[] fields = this.getClass().getDeclaredFields();
 		for (Field field : fields) {
@@ -47,7 +57,7 @@ public class Employee {
 		}
 	}
 
-	public Employee(String psNumber) {
+	public EmployeeBean(String psNumber) {
 		this.psNumber = psNumber;
 	}
 
@@ -91,12 +101,12 @@ public class Employee {
 		this.email = email;
 	}
 
-	public Boolean getIsAdmin() {
-		return isAdmin;
+	public List<String> getRoles() {
+		return roles;
 	}
 
-	public void setIsAdmin(Boolean isAdmin) {
-		this.isAdmin = isAdmin;
+	public void setRoles(List<String> roles) {
+		this.roles = roles;
 	}
 
 }

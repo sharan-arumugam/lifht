@@ -17,7 +17,7 @@ public class EntryDate {
 	private Duration duration;
 	private Duration compliance;
 	private String psNumber;
-	private Employee employee;
+	private EmployeeBean employee;
 	private LocalTime firstIn;
 	private LocalTime lastOut;
 	private Duration filo;
@@ -69,7 +69,7 @@ public class EntryDate {
 	}
 
 	public EntryDate(LocalDate date, String duration, String compliance, String filo, String door, String psNumber,
-			Employee employee) {
+			EmployeeBean employee) {
 		super();
 		this.swipeDate = date;
 		this.swipeDoor = door;
@@ -81,7 +81,7 @@ public class EntryDate {
 	}
 
 	public EntryDate(Date date, String duration, String compliance, String filo, String door, String psNumber,
-			LocalTime firstIn, LocalTime lastOut, Employee employee) {
+			LocalTime firstIn, LocalTime lastOut, EmployeeBean employee) {
 		super();
 		this.swipeDate = date.toLocalDate();
 		this.swipeDoor = door;
@@ -146,11 +146,11 @@ public class EntryDate {
 		this.psNumber = psNumber;
 	}
 
-	public Employee getEmployee() {
+	public EmployeeBean getEmployee() {
 		return employee;
 	}
 
-	public void setEmployee(Employee employee) {
+	public void setEmployee(EmployeeBean employee) {
 		this.employee = employee;
 	}
 
