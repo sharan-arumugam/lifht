@@ -15,7 +15,7 @@ public class EntryRange {
 	private Duration compliance;
 	private String swipeDoor;
 	private String psNumber;
-	private Employee employee;
+	private EmployeeBean employee;
 	private Duration filo;
 
 	public Duration getFilo() {
@@ -42,7 +42,7 @@ public class EntryRange {
 	public EntryRange(LocalDate from, LocalDate to, Duration durationSum, Duration complianceSum, Duration filoSum,
 			String door,
 			String psNumber,
-			Employee employee) {
+			EmployeeBean employee) {
 		super();
 		this.fromDate = from;
 		this.toDate = to;
@@ -98,11 +98,11 @@ public class EntryRange {
 		this.psNumber = psNumber;
 	}
 
-	public Employee getEmployee() {
+	public EmployeeBean getEmployee() {
 		return employee;
 	}
 
-	public void setEmployee(Employee employee) {
+	public void setEmployee(EmployeeBean employee) {
 		this.employee = employee;
 	}
 

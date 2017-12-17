@@ -1,44 +1,21 @@
 package com.lti.lifht.repository;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lti.lifht.model.Employee;
+import com.lti.lifht.model.EmployeeBean;
 
 public class AdminDao extends BaseDao {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdminDao.class);
 	private static final StringBuilder sql = new StringBuilder();
 
-	public List<Employee> getAllEmployees() {
+	//public List<EmployeeBean> getAllEmployees() {}
 
-		List<Employee> employeePsList = null;
-		try {
-			sql.setLength(0);
-			sql.append("select ps_number, ps_name from employee");
-
-			PreparedStatement preparedStatement = prepareStatement(sql);
-			logger.info(preparedStatement.toString());
-			ResultSet rs = preparedStatement.executeQuery();
-
-			employeePsList = new ArrayList<>();
-			while (rs.next()) {
-				employeePsList.add(new Employee(rs.getString("ps_number"), rs.getString("ps_name")));
-			}
-		} catch (SQLException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		}
-		return employeePsList;
-	}
-
-	public void saveOrUpdateHeadCount(List<Employee> employeeList) {
+	public void saveOrUpdateHeadCount(List<EmployeeBean> employeeList) {
 
 		sql.setLength(0);
 
@@ -70,7 +47,7 @@ public class AdminDao extends BaseDao {
 		});
 	}
 
-	public void saveOrUpdateProjectAllocation(List<Employee> employeeList) {
+	public void saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList) {
 
 		sql.setLength(0);
 

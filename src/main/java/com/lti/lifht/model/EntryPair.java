@@ -19,7 +19,7 @@ public class EntryPair {
 	private LocalTime swipeOut;
 	private String swipeDoor;
 	private Duration duration;
-	private Employee employee;
+	private EmployeeBean employee;
 	private String psNumber;
 
 	public EntryPair() {
@@ -28,14 +28,14 @@ public class EntryPair {
 
 	public EntryPair(EntryRaw entry) {
 		super();
-		employee = new Employee(entry.getPsNumber());
+		employee = new EmployeeBean(entry.getPsNumber());
 		psNumber = entry.getPsNumber();
 		swipeDate = entry.getSwipeDate();
 		swipeDoor = entry.getSwipeDoor();
 	}
 
 	public EntryPair(LocalDate swipeDate, LocalTime swipeIn, LocalTime swipeOut, String swipeDoor,
-			Duration duration, Employee employee) {
+			Duration duration, EmployeeBean employee) {
 		super();
 		this.swipeDate = swipeDate;
 		this.swipeIn = swipeIn;
@@ -56,7 +56,7 @@ public class EntryPair {
 	}
 
 	public EntryPair(Date date, Time swipeIn, Time swipeOut, String duration, String door, String psNumber,
-			Employee employee) {
+			EmployeeBean employee) {
 		this.swipeDate = date.toLocalDate();
 		this.swipeIn = swipeIn.toLocalTime();
 		this.swipeOut = swipeOut.toLocalTime();
@@ -121,11 +121,11 @@ public class EntryPair {
 		this.duration = duration;
 	}
 
-	public Employee getEmployee() {
+	public EmployeeBean getEmployee() {
 		return employee;
 	}
 
-	public void setEmployee(Employee employee) {
+	public void setEmployee(EmployeeBean employee) {
 		this.employee = employee;
 	}
 

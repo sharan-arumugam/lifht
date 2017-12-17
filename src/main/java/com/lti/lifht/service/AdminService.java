@@ -10,25 +10,34 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import com.lti.lifht.repository.AdminDao;
-import com.lti.lifht.repository.EntryDao;
 import com.lti.lifht.model.DateMultiPs;
-import com.lti.lifht.model.RangeMultiPs;
-import com.lti.lifht.model.RangeSinglePs;
-import com.lti.lifht.model.Employee;
+import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDate;
 import com.lti.lifht.model.EntryPair;
 import com.lti.lifht.model.EntryRange;
+import com.lti.lifht.model.RangeMultiPs;
+import com.lti.lifht.model.RangeSinglePs;
+import com.lti.lifht.repository.EmployeeRepository;
+import com.lti.lifht.repository.EntryDao;
 
+@Service
 public class AdminService {
 
+	@Autowired
+	EmployeeRepository repo;
+
 	private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
-	private static final AdminDao dao = new AdminDao();
 	private static final EntryDao entryDao = new EntryDao();
 
-	public List<Employee> getAllEmployees() {
-		return dao.getAllEmployees();
+	public List<EmployeeBean> getAllEmployees() {
+		return repo
+				.findAll()
+				.stream()
+				.map(EmployeeBean::new)
+				.collect(Collectors.toList());
 	}
 
 	public List<EntryDate> getAllEntryDate() {
@@ -59,7 +68,7 @@ public class AdminService {
 							.findAny()
 							.orElse("Invalid");
 
-					Employee employee = groupedList.stream()
+					EmployeeBean employee = groupedList.stream()
 							.map(EntryDate::getEmployee)
 							.findAny()
 							.orElse(null);

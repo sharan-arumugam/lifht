@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.lti.lifht.model.RangeSinglePs;
-import com.lti.lifht.model.Employee;
+import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDate;
 import com.lti.lifht.model.EntryPair;
 
@@ -60,7 +60,7 @@ public class EmployeeDao extends BaseDao {
 						rs.getString("duration"),
 						rs.getString("door"),
 						rs.getString("number"),
-						new Employee(
+						new EmployeeBean(
 								rs.getString("number"),
 								rs.getString("name"),
 								rs.getString("bu"),
@@ -104,7 +104,7 @@ public class EmployeeDao extends BaseDao {
 						rs.getString("filo"),
 						rs.getString("door"),
 						rs.getString("number"),
-						new Employee(
+						new EmployeeBean(
 								rs.getString("number"),
 								rs.getString("name"),
 								rs.getString("bu"),
