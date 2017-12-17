@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <link rel='icon' href='./libs/images/favicon.ico' type='image/x-icon' />
+    <link rel='stylesheet' href='./libs/bootstrap/css/bootstrap.min.css' />
+    <link rel='stylesheet' href='./libs/bootstrap/css/bootstrap-calender.css' />
+    <link rel='stylesheet' href='./libs/dataTable/dataTable.css' />
+    <link rel='stylesheet' href='./libs/css/custom.css' />
+    <link rel='icon' href='./assests/images/LTI_favicon.gif' type='image/gif' sizes='16x16'>
+    <title>Floor Hour Tracker</title>
+  </head>
+  <body data-page="ADMIN">
+    <header class='header'>
+      <img src='./assests/images/logo.png' alt=''>
+    </header>
+    <div class='container'>
+      <div class='row'>
+        <h1 class='mainheading'>
+          LTI Floor Hour Tracker
+        </h1>
+        <div class='col-md-12 col-sm-12 col-xs-12'>
+          <div class='row'>
+            <div class='col-md-3 col-sm-12 col-xs-12 input-field'>
+              <div class='user-dropdown'>
+                <input class='form-control' type='text' name='user-select' value='' placeholder='Select Staff'>
+                <div class='staff-list'>
+                  <div class='staff-each'>
+                    <input id='checkbox-all' type='checkbox' name='' value='all' />
+                    <label for='checkbox-all'>Select All</label>
+                  </div>
+                </div>
+                <span class="error">Please select any option</span>
+              </div>
+            </div>
+            <div class='col-md-3 col-sm-12 col-xs-12 input-field'>
+              <div class='input-group date from-date' data-provide='datepicker'>
+                  <input type='text' class='form-control' id='from-date-admin' placeholder='From Date'>
+                  <div class='input-group-addon'>
+                      <span class='glyphicon glyphicon-calendar'></span>
+                  </div>
+              </div>
+              <span class="error">Please select from date</span>
+            </div>
+            <div class='col-md-3 col-sm-12 col-xs-12 input-field'>
+              <div class='input-group date to-date' data-provide='datepicker'>
+                  <input type='text' class='form-control' id='to-date-admin' placeholder='To Date'>
+                  <div class='input-group-addon'>
+                      <span class='glyphicon glyphicon-calendar'></span>
+                  </div>
+              </div>
+              <span class="error">Please select to date</span>
+            </div>
+            <div class='col-md-3 col-sm-12 col-xs-12 input-field'>
+              <button id='submit-admin-form' class='btn btn-info' type='button' name='button'>Submit</button>
+            </div>
+            <div class='col-md-12 col-sm-12 col-xs-12 report'>
+              <div>
+                <h4 class='report-title report-title-admin'>
+                  Title
+                </h4>
+                <a href="#" class="download-xl btn btn-default" type="button" name="button">Download Excel</a>
+              </div>
+              <table id="result-table" class='table table-responsive'>
+                <thead>
+                  <tr>
+                    <td>Name</td>
+                    <td>Date</td>
+                    <td>In Time (8hrs)</td>
+                    <td>Out Time Hrs</td>
+                    <td>Filo</td>
+                    <td></td>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+              <!--High Charts-->
+              <div id='container' class='col-md-12 col-sm-12 col-xs-12'></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--Detail Report-->
+    <div id='admin-detail' class='modal fade' role='dialog'>
+      <div class='modal-dialog'>
+
+        <!-- Modal content-->
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <button type='button' class='close' data-dismiss='modal'>&times;</button>
+            <h4 class='modal-title'>Detail Report for 22/11/2017</h4>
+          </div>
+          <div class='modal-body'>
+            <table class='table table-responsive table-bordered table-striped table-hover'>
+              <tbody>
+                <tr>
+                  <td>SL No.</td>
+                  <td>In</td>
+                  <td>Out</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>9:00</td>
+                  <td>10:30</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>11:00</td>
+                  <td>17:30</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>18:00</td>
+                  <td>19:30</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class='modal-footer'>
+              <div class='report-summary-text'>
+                Total Time in: 7 Hrs
+              </div>
+              <div class='report-summary-text'>
+                Total Time out: 1 Hr
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </body>
+  <script type='text/javascript' src='./libs/js/jquery.min.js'></script>
+  <script type='text/javascript' src='./libs/bootstrap/js/bootstrap.min.js'></script>
+  <script type='text/javascript' src='./libs/bootstrap/js/bootstrap-datepicker.js'></script>
+  <script type='text/javascript' src='./libs/charts/highcharts.js'></script>
+  <script type='text/javascript' src='./libs/charts/exporting.js'></script>
+  <script type='text/javascript' src='./libs/dataTable/dataTable.js'></script>
+  <script type='text/javascript' src='./libs/js/custom.js'></script>
+</html>

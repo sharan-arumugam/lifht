@@ -1,0 +1,47 @@
+.form-box {
+  background: #f5f5f5;
+  margin-top: 100px;
+  box-shadow: 20px 20px 50px grey;
+  padding: 20px;
+}
+.admin{
+  text-align: center;
+  margin-top: 40px;
+}
+img {
+  width:100%;
+
+}
+.circle{
+  width: 100px;
+  height: 100px;
+  background-color: #FAFAFA;
+  border-radius: 50px;
+  margin: auto;
+  padding: 15px 10px 10px 10px;
+  text-align: center;
+}
+.form-inputs {
+  text-align: center;
+}
+.form-inputs input{
+  margin-bottom: 15px;
+  width: 100%;
+  display: inline;
+}
+.form-inputs input:last-of-type {
+  margin-bottom: 10px;
+}
+.button-div{
+  text-align : center;
+}
+#error {
+  margin-bottom: 15px;
+  text-align: left;
+  color: red;
+  line-height: 1;
+  visibility: hidden;
+}
+#error-1 {
+  display: none;
+}
