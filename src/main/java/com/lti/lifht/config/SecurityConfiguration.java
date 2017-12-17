@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.lti.lifht.repository.EmployeeRepository;
+import static com.lti.lifht.constant.PathConstant.LOGIN;
+import static com.lti.lifht.constant.PathConstant.LOGOUT;
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
@@ -30,7 +32,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.anyRequest().authenticated()
 				.and().formLogin().permitAll()
 				.and().logout()
-				.logoutUrl("/logout").logoutSuccessUrl("/login");
+				.logoutUrl(LOGOUT).logoutSuccessUrl(LOGIN);
 	}
 
 	@Override
