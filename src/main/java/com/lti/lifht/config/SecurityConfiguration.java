@@ -12,7 +12,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.lti.lifht.repository.EmployeeRepository;
-import static com.lti.lifht.constant.PatternConstant.PATTERN_SECURE;
+import static com.lti.lifht.constant.PathConstant.LOGIN;
+import static com.lti.lifht.constant.PathConstant.LOGOUT;
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
@@ -25,14 +26,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.csrf().disable()
+		http
+				.csrf().disable()
 				.authorizeRequests()
-				.antMatchers(PATTERN_SECURE).authenticated()
-				.anyRequest().permitAll()
-				.and()
-				.formLogin()
-				// .loginPage("page")
-				.permitAll();
+				.anyRequest().authenticated()
+				.and().formLogin().permitAll()
+				.and().logout()
+				.logoutUrl(LOGOUT).logoutSuccessUrl(LOGIN);
 	}
 
 	@Override
