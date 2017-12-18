@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.lti.lifht.model.EntryRaw;
-import com.lti.lifht.model.EntryPair;
+import com.lti.lifht.model.EntryPairBean;
 
 public class CommonUtil {
 
@@ -223,7 +223,7 @@ public class CommonUtil {
 	 * @param end
 	 * @return
 	 */
-	public static long between(EntryPair entry) {
+	public static long between(EntryPairBean entry) {
 		if (entry == null) {
 			return 0;
 		}

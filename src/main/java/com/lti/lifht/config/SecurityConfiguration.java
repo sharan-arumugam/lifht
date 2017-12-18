@@ -18,7 +18,6 @@ import com.lti.lifht.repository.EmployeeRepository;
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
-@EnableJpaRepositories(basePackageClasses = EmployeeRepository.class)
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 

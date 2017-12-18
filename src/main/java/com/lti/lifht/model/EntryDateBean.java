@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit;
 
 import com.lti.lifht.util.CommonUtil;
 
-public class EntryDate {
+public class EntryDateBean {
 
 	private static StringBuilder builder = new StringBuilder();
 
@@ -57,7 +57,7 @@ public class EntryDate {
 		this.compliance = compliance;
 	}
 
-	public EntryDate(String psNumber, LocalDate date, String door, Duration durationSum, LocalTime firstIn,
+	public EntryDateBean(String psNumber, LocalDate date, String door, Duration durationSum, LocalTime firstIn,
 			LocalTime lastOut) {
 		super();
 		this.swipeDate = date;
@@ -68,7 +68,7 @@ public class EntryDate {
 		this.lastOut = lastOut;
 	}
 
-	public EntryDate(LocalDate date, String duration, String compliance, String filo, String door, String psNumber,
+	public EntryDateBean(LocalDate date, String duration, String compliance, String filo, String door, String psNumber,
 			EmployeeBean employee) {
 		super();
 		this.swipeDate = date;
@@ -80,7 +80,7 @@ public class EntryDate {
 		this.employee = employee;
 	}
 
-	public EntryDate(Date date, String duration, String compliance, String filo, String door, String psNumber,
+	public EntryDateBean(Date date, String duration, String compliance, String filo, String door, String psNumber,
 			LocalTime firstIn, LocalTime lastOut, EmployeeBean employee) {
 		super();
 		this.swipeDate = date.toLocalDate();
@@ -94,7 +94,7 @@ public class EntryDate {
 		this.employee = employee;
 	}
 
-	public EntryDate(String psNumber, String door, Duration durationSum, Duration complianceSum) {
+	public EntryDateBean(String psNumber, String door, Duration durationSum, Duration complianceSum) {
 		super();
 		this.swipeDoor = door;
 		this.duration = durationSum;

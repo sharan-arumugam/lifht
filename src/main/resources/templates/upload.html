@@ -3,11 +3,28 @@
 <body>
 
 	<h2>Upload</h2>
-
+	
+	<form method="POST" action="/io/import/swipe-data"
+		enctype="multipart/form-data">
+		<label> Swipe data: <input type="file" name="swipe-data" /><br />
+		</label> <input type="submit" value="Submit" />
+	</form>
+	
+	<br />
+	<br />
+	
 	<form method="POST" action="/io/import/head-count"
 		enctype="multipart/form-data">
-		<label> Headcount file: <input type="file" name="head-count" /><br />
-			<br />
+		<label> Head-count: <input type="file" name="head-count" /><br />
+		</label> <input type="submit" value="Submit" />
+	</form>
+	
+	<br />
+	<br />
+
+	<form method="POST" action="/io/import/project-allocation"
+		enctype="multipart/form-data">
+		<label> Project allocation: <input type="file" name="project-allocation" /><br />
 		</label> <input type="submit" value="Submit" />
 	</form>
 

@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 import com.lti.lifht.model.DateMultiPs;
 import com.lti.lifht.model.EmployeeBean;
-import com.lti.lifht.model.EntryDate;
-import com.lti.lifht.model.EntryPair;
+import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.EntryPairBean;
 import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.RangeMultiPs;
 import com.lti.lifht.model.RangeSinglePs;
@@ -40,23 +40,15 @@ public class AdminService {
 				.collect(Collectors.toList());
 	}
 
-	public List<EmployeeBean> getFirstNamesLike() {
-		return repo
-				.getFirstNamesLike("Anna")
-				.stream()
-				.map(EmployeeBean::new)
-				.collect(Collectors.toList());
-	}
-
-	public List<EntryDate> getAllEntryDate() {
+	public List<EntryDateBean> getAllEntryDate() {
 		return entryDao.getAllEntryDate();
 	}
 
-	public List<EntryDate> getRangeSingle(RangeSinglePs request) {
+	public List<EntryDateBean> getRangeSingle(RangeSinglePs request) {
 		return entryDao.getPsEntryDate(request);
 	}
 
-	public List<EntryDate> getDateMulti(DateMultiPs request) {
+	public List<EntryDateBean> getDateMulti(DateMultiPs request) {
 		return entryDao.getPsListEntryDate(request);
 	}
 
@@ -65,40 +57,40 @@ public class AdminService {
 		logger.info(request.toString());
 
 		List<EntryRange> aggregateList = new ArrayList<>();
-		List<EntryDate> psListForAggregate = entryDao.getPsListForAggregate(request);
+		List<EntryDateBean> psListForAggregate = entryDao.getPsListForAggregate(request);
 
 		psListForAggregate.stream()
-				.collect(Collectors.groupingBy(EntryDate::getPsNumber))
+				.collect(Collectors.groupingBy(EntryDateBean::getPsNumber))
 				.forEach((psNumber, groupedList) -> {
 
 					String door = groupedList.stream()
-							.map(EntryDate::getSwipeDoor)
+							.map(EntryDateBean::getSwipeDoor)
 							.findAny()
 							.orElse("Invalid");
 
 					EmployeeBean employee = groupedList.stream()
-							.map(EntryDate::getEmployee)
+							.map(EntryDateBean::getEmployee)
 							.findAny()
 							.orElse(null);
 
 					Duration durationSum = groupedList.stream()
 							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
 							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
-							.map(EntryDate::getDuration)
+							.map(EntryDateBean::getDuration)
 							.reduce(Duration::plus)
 							.orElse(Duration.ofMillis(0));
 
 					Duration complianceSum = groupedList.stream()
 							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
 							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
-							.map(EntryDate::getCompliance)
+							.map(EntryDateBean::getCompliance)
 							.reduce(Duration::plus)
 							.orElse(Duration.ofMillis(0));
 
 					Duration filoSum = groupedList.stream()
 							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
 							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
-							.map(EntryDate::getFilo)
+							.map(EntryDateBean::getFilo)
 							.reduce(Duration::plus)
 							.orElse(Duration.ofMillis(0));
 
@@ -118,45 +110,7 @@ public class AdminService {
 				.collect(Collectors.toList());
 	}
 
-	public void saveOrUpdateEntryDate() {
-		List<EntryPair> pairList = getAllPairs();
-		List<EntryDate> entryDateList = new ArrayList<>();
-
-		pairList.stream()
-				.collect(Collectors.groupingBy(EntryPair::getSwipeDate))
-				.forEach((date, psList) -> {
-
-					psList.stream()
-							.collect(Collectors.groupingBy(EntryPair::getPsNumber))
-							.forEach((psNumber, groupedList) -> {
-
-								LocalTime firstIn = groupedList.stream()
-										.findFirst()
-										.get()
-										.getSwipeIn();
-
-								LocalTime lastOut = groupedList.stream()
-										.reduce((current, next) -> next)
-										.get()
-										.getSwipeOut();
-
-								String door = groupedList.stream()
-										.map(EntryPair::getSwipeDoor)
-										.findAny()
-										.orElse("Invalid");
-
-								Duration durationSum = groupedList.stream()
-										.map(EntryPair::getDuration)
-										.reduce(Duration::plus)
-										.orElse(Duration.ofMillis(0));
-
-								entryDateList.add(new EntryDate(psNumber, date, door, durationSum, firstIn, lastOut));
-							});
-				});
-		entryDao.saveOrUpdateDate(entryDateList);
-	}
-
-	public List<EntryPair> getAllPairs() {
+	public List<EntryPairBean> getAllPairs() {
 		return entryDao.getAllPairs();
 	}
 }

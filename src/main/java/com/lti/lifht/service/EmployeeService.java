@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import com.lti.lifht.repository.EmployeeDao;
 import com.lti.lifht.model.RangeSinglePs;
-import com.lti.lifht.model.EntryDate;
-import com.lti.lifht.model.EntryPair;
+import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.EntryPairBean;
 
 public class EmployeeService {
 
@@ -28,12 +28,12 @@ public class EmployeeService {
 		return self;
 	}
 
-	public List<EntryPair> getForDate(RangeSinglePs request) {
+	public List<EntryPairBean> getForDate(RangeSinglePs request) {
 		logger.info(request.toString());
 		return dao.getForDate(request);
 	}
 
-	public List<EntryDate> getForRange(RangeSinglePs request) {
+	public List<EntryDateBean> getForRange(RangeSinglePs request) {
 		logger.info(request.toString());
 		return dao.getForRange(request);
 	}

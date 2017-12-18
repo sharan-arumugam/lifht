@@ -3,7 +3,11 @@ package com.lti.lifht.repository;
 import java.util.List;
 
 import com.lti.lifht.entity.Employee;
+import com.lti.lifht.model.EmployeeBean;
 
 public interface EmployeeRepositoryCustom {
-	List<Employee> getFirstNamesLike(String name);
+
+	void saveOrUpdateHeadCount(List<EmployeeBean> employeeList);
+
+	void saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList);
 }
