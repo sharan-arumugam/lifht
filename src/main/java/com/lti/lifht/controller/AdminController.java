@@ -27,6 +27,11 @@ public class AdminController {
 		return service.getAllEmployees();
 	}
 
+	@GetMapping("/like")
+	public List<EmployeeBean> getLike() {
+		return service.getFirstNamesLike();
+	}
+
 	// @POST
 	// @Path("/swipe/range-single-ps")
 	// @Consumes(MediaType.APPLICATION_JSON)
