@@ -8,6 +8,8 @@ import static com.lti.lifht.util.CommonUtil.getPrev;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -27,15 +29,17 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.lti.lifht.constant.CommonConstant;
 import com.lti.lifht.model.EmployeeBean;
-import com.lti.lifht.model.EntryPair;
+import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.EntryPairBean;
 import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.EntryRaw;
-import com.lti.lifht.repository.AdminDao;
-import com.lti.lifht.repository.EntryDao;
+import com.lti.lifht.repository.EmployeeRepository;
+import com.lti.lifht.repository.EntryPairRepository;
 import com.lti.lifht.util.ExcelUtil;
 
 import one.util.streamex.StreamEx;
@@ -44,9 +48,12 @@ import one.util.streamex.StreamEx;
 public class IOService {
 
 	private static final Logger logger = LoggerFactory.getLogger(IOService.class);
-	private static final EntryDao entryDao = new EntryDao();
-	private static final AdminDao adminDao = new AdminDao();
-	private static final AdminService adminService = new AdminService();
+
+	@Autowired
+	EmployeeRepository employeeRepo;
+
+	@Autowired
+	EntryPairRepository entryPairRepo;
 
 	public void saveOrUpdateRawEntry(List<Map<String, String>> entries) {
 
@@ -121,12 +128,12 @@ public class IOService {
 		Consumer<Integer> addToFilteredList = index -> filteredList.add(entryList.get(index));
 
 		// parse EntryRaw to EntryPair
-		BiFunction<EntryRaw, EntryRaw, EntryPair> toEntryPair = (current, next) -> {
+		BiFunction<EntryRaw, EntryRaw, EntryPairBean> toEntryPair = (current, next) -> {
 			if (timeNotNull.test(current, next)
 					&& validRow.test(current, next)
 					&& doorPair.test(current, next)) {
 
-				EntryPair pair = new EntryPair(current);
+				EntryPairBean pair = new EntryPairBean(current);
 				pair.setSwipeIn(current.getSwipeTime());
 				pair.setSwipeOut(next.getSwipeTime());
 				return pair;
@@ -142,35 +149,79 @@ public class IOService {
 				.forEach(addToFilteredList);
 
 		// map to pairs
-		List<EntryPair> pairList = StreamEx.of(filteredList)
+		List<EntryPairBean> pairList = StreamEx.of(filteredList)
 				.sorted(byPsNumDateTime)
 				.nonNull()
 				.pairMap(toEntryPair)
 				.nonNull()
 				.collect(Collectors.toList());
 
-		entryDao.saveOrUpdatePair(pairList);
-		adminService.saveOrUpdateEntryDate();
+		entryPairRepo.saveOrUpdatePair(pairList);
+		saveOrUpdateEntryDate();
+	}
+
+	public void saveOrUpdateEntryDate() {
+
+		List<EntryPairBean> pairList = entryPairRepo
+				.findAll()
+				.stream()
+				.map(EntryPairBean::new)
+				.collect(Collectors.toList());
+
+		List<EntryDateBean> entryDateList = new ArrayList<>();
+
+		pairList.stream()
+				.collect(Collectors.groupingBy(EntryPairBean::getSwipeDate))
+				.forEach((date, psList) -> {
+
+					psList.stream()
+							.collect(Collectors.groupingBy(EntryPairBean::getPsNumber))
+							.forEach((psNumber, groupedList) -> {
+
+								LocalTime firstIn = groupedList.stream()
+										.findFirst()
+										.get()
+										.getSwipeIn();
+
+								LocalTime lastOut = groupedList.stream()
+										.reduce((current, next) -> next)
+										.get()
+										.getSwipeOut();
+
+								String door = groupedList.stream()
+										.map(EntryPairBean::getSwipeDoor)
+										.findAny()
+										.orElse("Invalid");
+
+								Duration durationSum = groupedList.stream()
+										.map(EntryPairBean::getDuration)
+										.reduce(Duration::plus)
+										.orElse(Duration.ofMillis(0));
+
+								entryDateList
+										.add(new EntryDateBean(psNumber, date, door, durationSum, firstIn, lastOut));
+							});
+				});
+
+		entryPairRepo.saveOrUpdateDate(entryDateList);
 	}
 
 	public void saveOrUpdateHeadCount(List<Map<String, String>> rows) {
 
-		rows = rows.stream()
-				// .filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
-				.collect(Collectors.toList());
-
-		List<EmployeeBean> employeeList = rows
+		List<EmployeeBean> offshoreList = rows
 				.stream()
+				.filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
 				.map(row -> new EmployeeBean(row, HC_MAP))
 				.collect(Collectors.toList());
 
-		adminDao.saveOrUpdateHeadCount(employeeList);
+		employeeRepo.saveOrUpdateHeadCount(offshoreList);
 	}
 
 	public void saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
 
-		List<String> psNumberList = adminService.getAllEmployees()
+		List<String> psNumberList = employeeRepo.findAll()
 				.stream()
+				.map(EmployeeBean::new)
 				.map(EmployeeBean::getPsNumber)
 				.collect(Collectors.toList());
 
@@ -184,20 +235,20 @@ public class IOService {
 				.map(row -> new EmployeeBean(row, ALC_MAP))
 				.collect(Collectors.toList());
 
-		adminDao.saveOrUpdateProjectAllocation(employeeList);
+		employeeRepo.saveOrUpdateProjectAllocation(employeeList);
 	}
 
 	public Object generateRangeMultiReport(List<EntryRange> entries, String[] reportHeaders) {
 		try {
 			Object file = ExcelUtil.toByteArray(createTable(entries.toArray(), reportHeaders));
-//			return Response.ok(file)
-//					.header("Content-Disposition",
-//							"attachment; filename=report-" + LocalDate.now().toString() + ".xlsx")
-//					.build();
+			// return Response.ok(file)
+			// .header("Content-Disposition",
+			// "attachment; filename=report-" + LocalDate.now().toString() + ".xlsx")
+			// .build();
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
-		return null;//Response.serverError().build();
+		return null;// Response.serverError().build();
 	}
 
 	public Workbook createTable(Object[] rowArr, String[] reportHeaders) throws FileNotFoundException, IOException {

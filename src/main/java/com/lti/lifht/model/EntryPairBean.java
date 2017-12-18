@@ -9,10 +9,11 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.lti.lifht.entity.EntryPair;
 import com.lti.lifht.model.EntryRaw;
 import com.lti.lifht.util.CommonUtil;
 
-public class EntryPair {
+public class EntryPairBean {
 
 	private LocalDate swipeDate;
 	private LocalTime swipeIn;
@@ -22,11 +23,20 @@ public class EntryPair {
 	private EmployeeBean employee;
 	private String psNumber;
 
-	public EntryPair() {
+	public EntryPairBean() {
 		super();
 	}
 
-	public EntryPair(EntryRaw entry) {
+	public EntryPairBean(EntryPair entity) {
+		super();
+		swipeDate = entity.getSwipeDate();
+		swipeIn = entity.getSwipeIn();
+		swipeOut = entity.getSwipeOut();
+		swipeDoor = entity.getSwipeDoor();
+		duration = entity.getDuration();
+	}
+
+	public EntryPairBean(EntryRaw entry) {
 		super();
 		employee = new EmployeeBean(entry.getPsNumber());
 		psNumber = entry.getPsNumber();
@@ -34,7 +44,7 @@ public class EntryPair {
 		swipeDoor = entry.getSwipeDoor();
 	}
 
-	public EntryPair(LocalDate swipeDate, LocalTime swipeIn, LocalTime swipeOut, String swipeDoor,
+	public EntryPairBean(LocalDate swipeDate, LocalTime swipeIn, LocalTime swipeOut, String swipeDoor,
 			Duration duration, EmployeeBean employee) {
 		super();
 		this.swipeDate = swipeDate;
@@ -45,7 +55,8 @@ public class EntryPair {
 		this.employee = employee;
 	}
 
-	public EntryPair(Date swipeDate, Time swipeIn, Time swipeOut, String swipeDoor, String duration, String psNumber) {
+	public EntryPairBean(Date swipeDate, Time swipeIn, Time swipeOut, String swipeDoor, String duration,
+			String psNumber) {
 		super();
 		this.swipeDate = swipeDate.toLocalDate();
 		this.swipeIn = swipeIn.toLocalTime();
@@ -55,7 +66,7 @@ public class EntryPair {
 		this.psNumber = psNumber;
 	}
 
-	public EntryPair(Date date, Time swipeIn, Time swipeOut, String duration, String door, String psNumber,
+	public EntryPairBean(Date date, Time swipeIn, Time swipeOut, String duration, String door, String psNumber,
 			EmployeeBean employee) {
 		this.swipeDate = date.toLocalDate();
 		this.swipeIn = swipeIn.toLocalTime();

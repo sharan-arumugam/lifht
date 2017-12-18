@@ -15,8 +15,8 @@ import com.lti.lifht.model.EntryRaw;
 import com.lti.lifht.model.RangeMultiPs;
 import com.lti.lifht.model.RangeSinglePs;
 import com.lti.lifht.model.EmployeeBean;
-import com.lti.lifht.model.EntryDate;
-import com.lti.lifht.model.EntryPair;
+import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.EntryPairBean;
 
 public class EntryDao extends BaseDao {
 
@@ -49,7 +49,7 @@ public class EntryDao extends BaseDao {
 		});
 	}
 
-	public void saveOrUpdatePair(List<EntryPair> pairList) {
+	public void saveOrUpdatePair(List<EntryPairBean> pairList) {
 
 		pairList.forEach(entry -> {
 
@@ -79,7 +79,7 @@ public class EntryDao extends BaseDao {
 
 	}
 
-	public void saveOrUpdateDate(List<EntryDate> entryDateList) {
+	public void saveOrUpdateDate(List<EntryDateBean> entryDateList) {
 
 		entryDateList.forEach(entry -> {
 
@@ -115,9 +115,9 @@ public class EntryDao extends BaseDao {
 		});
 	}
 
-	public List<EntryPair> getAllPairs() {
+	public List<EntryPairBean> getAllPairs() {
 
-		List<EntryPair> pairList = null;
+		List<EntryPairBean> pairList = null;
 
 		sql.setLength(0);
 		sql.append("SELECT swipe_date, swipe_in, swipe_out, swipe_door, duration, ps_number FROM entry_pair");
@@ -127,7 +127,7 @@ public class EntryDao extends BaseDao {
 
 			pairList = new ArrayList<>();
 			while (resultSet.next()) {
-				pairList.add(new EntryPair(resultSet.getDate("swipe_date"), resultSet.getTime("swipe_in"),
+				pairList.add(new EntryPairBean(resultSet.getDate("swipe_date"), resultSet.getTime("swipe_in"),
 						resultSet.getTime("swipe_out"), resultSet.getString("swipe_door"),
 						resultSet.getString("duration"), resultSet.getString("ps_number")));
 			}
@@ -138,9 +138,9 @@ public class EntryDao extends BaseDao {
 		return pairList;
 	}
 
-	public List<EntryDate> getAllEntryDate() {
+	public List<EntryDateBean> getAllEntryDate() {
 
-		List<EntryDate> entryDateList = null;
+		List<EntryDateBean> entryDateList = null;
 
 		sql.setLength(0);
 		sql.append("SELECT e.ps_name as name, e.business_unit as bu, e.email as email,")
@@ -153,7 +153,7 @@ public class EntryDao extends BaseDao {
 
 			entryDateList = new ArrayList<>();
 			while (resultSet.next()) {
-				entryDateList.add(new EntryDate(resultSet.getDate("date").toLocalDate(),
+				entryDateList.add(new EntryDateBean(resultSet.getDate("date").toLocalDate(),
 						resultSet.getString("duration"), resultSet.getString("compliance"), resultSet.getString("filo"),
 						resultSet.getString("door"), resultSet.getString("number"),
 						new EmployeeBean(resultSet.getString("number"), resultSet.getString("name"),
@@ -166,9 +166,9 @@ public class EntryDao extends BaseDao {
 		return entryDateList;
 	}
 
-	public List<EntryDate> getPsEntryDate(RangeSinglePs request) {
+	public List<EntryDateBean> getPsEntryDate(RangeSinglePs request) {
 
-		List<EntryDate> entryDateList = null;
+		List<EntryDateBean> entryDateList = null;
 
 		sql.setLength(0);
 		sql.append("SELECT e.ps_name as name, e.business_unit as bu, e.email as email,")
@@ -189,7 +189,7 @@ public class EntryDao extends BaseDao {
 
 			entryDateList = new ArrayList<>();
 			while (rs.next()) {
-				entryDateList.add(new EntryDate(rs.getDate("date"), rs.getString("duration"),
+				entryDateList.add(new EntryDateBean(rs.getDate("date"), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
 						rs.getTime("firstin").toLocalTime(), rs.getTime("lastout").toLocalTime(),
 						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
@@ -202,9 +202,9 @@ public class EntryDao extends BaseDao {
 		return entryDateList;
 	}
 
-	public List<EntryDate> getPsListEntryDate(DateMultiPs request) {
+	public List<EntryDateBean> getPsListEntryDate(DateMultiPs request) {
 
-		List<EntryDate> entryDateList = null;
+		List<EntryDateBean> entryDateList = null;
 
 		String psParams = request.getPsNumberList().stream().map(e -> "?").collect(Collectors.joining(","));
 
@@ -231,7 +231,7 @@ public class EntryDao extends BaseDao {
 
 			entryDateList = new ArrayList<>();
 			while (rs.next()) {
-				entryDateList.add(new EntryDate(rs.getDate("date").toLocalDate(), rs.getString("duration"),
+				entryDateList.add(new EntryDateBean(rs.getDate("date").toLocalDate(), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
 						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
 								rs.getString("email"))));
@@ -243,9 +243,9 @@ public class EntryDao extends BaseDao {
 		return entryDateList;
 	}
 
-	public List<EntryDate> getPsListForAggregate(RangeMultiPs request) {
+	public List<EntryDateBean> getPsListForAggregate(RangeMultiPs request) {
 
-		List<EntryDate> forAggregateList = null;
+		List<EntryDateBean> forAggregateList = null;
 
 		String psParams = request.getPsNumberList().stream().map(e -> "?").collect(Collectors.joining(","));
 
@@ -275,7 +275,7 @@ public class EntryDao extends BaseDao {
 
 			forAggregateList = new ArrayList<>();
 			while (rs.next()) {
-				forAggregateList.add(new EntryDate(rs.getDate("date").toLocalDate(), rs.getString("duration"),
+				forAggregateList.add(new EntryDateBean(rs.getDate("date").toLocalDate(), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
 						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
 								rs.getString("email"))));

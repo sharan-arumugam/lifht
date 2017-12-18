@@ -1,13 +1,12 @@
 package com.lti.lifht.controller;
 
+import static com.lti.lifht.util.ExcelUtil.autoParse;
 import static com.lti.lifht.util.ExcelUtil.parseXlsx;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,52 +20,29 @@ import com.lti.lifht.service.IOService;
 @RestController
 public class IOController {
 
-	private static final Logger logger = LoggerFactory.getLogger(IOController.class);
-
 	@Autowired
 	IOService service;
 
 	@PostMapping("/import/head-count")
-	public Object importHeadCount(@RequestParam("head-count") MultipartFile headCount) throws IOException {
+	public void importHeadCount(@RequestParam("head-count") MultipartFile headCount) throws IOException {
+
 		List<Map<String, String>> rows = parseXlsx.apply(headCount.getInputStream());
-		logger.info(rows.toString());
-		// service.saveOrUpdateHeadCount(rows);
-		return null;
+		service.saveOrUpdateHeadCount(rows);
 	}
 
-	// @POST
-	// @Path("/import/project-allocation")
-	// @Consumes(MediaType.MULTIPART_FORM_DATA)
-	// public Response importProjectAllocation(@FormDataParam("project-allocation")
-	// InputStream inputStream,
-	// @FormDataParam("project-allocation") FormDataContentDisposition metaData)
-	// throws IOException {
-	//
-	// List<Map<String, String>> rows = parseXlsx.apply(inputStream);
-	// service.saveOrUpdateProjectAllocation(rows);
-	//
-	// return null != rows && rows.size() > 0 ?
-	// Response.status(Status.ACCEPTED).build()
-	// : Response.status(Status.NOT_ACCEPTABLE).build();
-	//
-	// }
-	//
-	// @POST
-	// @Path("/import/swipe-data")
-	// @Consumes(MediaType.MULTIPART_FORM_DATA)
-	// public Response importSwipeData(@FormDataParam("swipe-data") InputStream
-	// inputStream,
-	// @FormDataParam("swipe-data") FormDataContentDisposition metaData) throws
-	// IOException {
-	//
-	// List<Map<String, String>> rows = autoParse.apply(metaData.getFileName(),
-	// inputStream);
-	// service.saveOrUpdateRawEntry(rows);
-	//
-	// return null != rows && rows.size() > 0 ?
-	// Response.status(Status.ACCEPTED).build()
-	// : Response.status(Status.NOT_ACCEPTABLE).build();
-	// }
+	@PostMapping("/import/project-allocation")
+	public void importAllocation(@RequestParam("project-allocation") MultipartFile allocation) throws IOException {
+
+		List<Map<String, String>> rows = parseXlsx.apply(allocation.getInputStream());
+		service.saveOrUpdateProjectAllocation(rows);
+	}
+
+	@PostMapping("/import/swipe-data")
+	public void importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData) throws IOException {
+		System.out.println(swipeData.getName() + " " + swipeData.getOriginalFilename());
+		List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(), swipeData.getInputStream());
+		service.saveOrUpdateRawEntry(rows);
+	}
 	//
 	// @GET
 	// @Path("/export/range-multi-ps")

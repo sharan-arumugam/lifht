@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import com.lti.lifht.model.RangeSinglePs;
 import com.lti.lifht.model.EmployeeBean;
-import com.lti.lifht.model.EntryDate;
-import com.lti.lifht.model.EntryPair;
+import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.EntryPairBean;
 
 public class EmployeeDao extends BaseDao {
 
@@ -33,9 +33,9 @@ public class EmployeeDao extends BaseDao {
 		return self;
 	}
 
-	public List<EntryPair> getForDate(RangeSinglePs request) {
+	public List<EntryPairBean> getForDate(RangeSinglePs request) {
 
-		List<EntryPair> entryPairList = null;
+		List<EntryPairBean> entryPairList = null;
 		sql.setLength(0);
 
 		sql.append("SELECT p.swipe_date as date, p.swipe_in as swipein, p.swipe_out as swipeout,")
@@ -53,7 +53,7 @@ public class EmployeeDao extends BaseDao {
 
 			entryPairList = new ArrayList<>();
 			while (rs.next()) {
-				entryPairList.add(new EntryPair(
+				entryPairList.add(new EntryPairBean(
 						rs.getDate("date"),
 						rs.getTime("swipein"),
 						rs.getTime("swipeout"),
@@ -73,9 +73,9 @@ public class EmployeeDao extends BaseDao {
 		return entryPairList;
 	}
 
-	public List<EntryDate> getForRange(RangeSinglePs request) {
+	public List<EntryDateBean> getForRange(RangeSinglePs request) {
 
-		List<EntryDate> dateList = null;
+		List<EntryDateBean> dateList = null;
 		sql.setLength(0);
 
 		sql.append("SELECT d.swipe_date as date, d.duration as duration, d.compliance as compliance,")
@@ -97,7 +97,7 @@ public class EmployeeDao extends BaseDao {
 			dateList = new ArrayList<>();
 
 			while (rs.next()) {
-				dateList.add(new EntryDate(
+				dateList.add(new EntryDateBean(
 						rs.getDate("date").toLocalDate(),
 						rs.getString("duration"),
 						rs.getString("compliance"),
