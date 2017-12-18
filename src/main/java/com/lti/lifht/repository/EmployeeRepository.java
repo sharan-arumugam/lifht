@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.lti.lifht.entity.Employee;
 
-public interface EmployeeRepository extends JpaRepository<Employee, String> {
+public interface EmployeeRepository extends JpaRepository<Employee, String>, EmployeeRepositoryCustom {
 
 	Optional<Employee> findByPsNumber(String psNumber);
 

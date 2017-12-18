@@ -40,6 +40,14 @@ public class AdminService {
 				.collect(Collectors.toList());
 	}
 
+	public List<EmployeeBean> getFirstNamesLike() {
+		return repo
+				.getFirstNamesLike("Anna")
+				.stream()
+				.map(EmployeeBean::new)
+				.collect(Collectors.toList());
+	}
+
 	public List<EntryDate> getAllEntryDate() {
 		return entryDao.getAllEntryDate();
 	}
