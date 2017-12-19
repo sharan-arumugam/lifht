@@ -29,11 +29,12 @@ public class EntryPairBean {
 
 	public EntryPairBean(EntryPair entity) {
 		super();
+		psNumber = entity.getPsNumber();
 		swipeDate = entity.getSwipeDate();
 		swipeIn = entity.getSwipeIn();
 		swipeOut = entity.getSwipeOut();
 		swipeDoor = entity.getSwipeDoor();
-		duration = entity.getDuration();
+		duration = Duration.ofMillis(entity.getDuration());
 	}
 
 	public EntryPairBean(EntryRaw entry) {
@@ -125,6 +126,7 @@ public class EntryPairBean {
 		if (duration != null) {
 			return duration;
 		}
+		System.out.println(duration);
 		return null != swipeIn && null != swipeOut ? Duration.between(swipeIn, swipeOut) : Duration.ofMillis(0);
 	}
 

@@ -12,8 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "entry_pair")
-public class EntryPair {
+@Table(name = "entry_date")
+public class EntryDate {
 
 	// "id"
 	// "ps_number"
@@ -35,17 +35,23 @@ public class EntryPair {
 	@Column(name = "swipe_date")
 	private LocalDate swipeDate;
 
-	@Column(name = "swipe_in")
-	private LocalTime swipeIn;
-
-	@Column(name = "swipe_out")
-	private LocalTime swipeOut;
-
 	@Column(name = "swipe_door")
 	private String swipeDoor;
 
 	@Column(name = "duration")
 	private long duration;
+
+	@Column(name = "compliance")
+	private long compliance;
+
+	@Column(name = "first_in")
+	private LocalTime firstIn;
+
+	@Column(name = "last_out")
+	private LocalTime lastOut;
+
+	@Column(name = "filo")
+	private long filo;
 
 	public int getId() {
 		return id;
@@ -71,22 +77,6 @@ public class EntryPair {
 		this.swipeDate = swipeDate;
 	}
 
-	public LocalTime getSwipeIn() {
-		return swipeIn;
-	}
-
-	public void setSwipeIn(LocalTime swipeIn) {
-		this.swipeIn = swipeIn;
-	}
-
-	public LocalTime getSwipeOut() {
-		return swipeOut;
-	}
-
-	public void setSwipeOut(LocalTime swipeOut) {
-		this.swipeOut = swipeOut;
-	}
-
 	public String getSwipeDoor() {
 		return swipeDoor;
 	}
@@ -101,6 +91,38 @@ public class EntryPair {
 
 	public void setDuration(long duration) {
 		this.duration = duration;
+	}
+
+	public long getCompliance() {
+		return compliance;
+	}
+
+	public void setCompliance(long compliance) {
+		this.compliance = compliance;
+	}
+
+	public LocalTime getFirstIn() {
+		return firstIn;
+	}
+
+	public void setFirstIn(LocalTime firstIn) {
+		this.firstIn = firstIn;
+	}
+
+	public LocalTime getLastOut() {
+		return lastOut;
+	}
+
+	public void setLastOut(LocalTime lastOut) {
+		this.lastOut = lastOut;
+	}
+
+	public long getFilo() {
+		return filo;
+	}
+
+	public void setFilo(long filo) {
+		this.filo = filo;
 	}
 
 }

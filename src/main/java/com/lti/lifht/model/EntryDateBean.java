@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
+import com.lti.lifht.entity.EntryDate;
 import com.lti.lifht.util.CommonUtil;
 
 public class EntryDateBean {
@@ -21,6 +22,22 @@ public class EntryDateBean {
 	private LocalTime firstIn;
 	private LocalTime lastOut;
 	private Duration filo;
+
+	public EntryDateBean() {
+
+	}
+
+	public EntryDateBean(EntryDate entity) {
+		super();
+		psNumber = entity.getPsNumber();
+		swipeDate = entity.getSwipeDate();
+		swipeDoor = entity.getSwipeDoor();
+		duration = Duration.ofMillis(entity.getDuration());
+		compliance = Duration.ofMillis(entity.getCompliance());
+		firstIn = entity.getFirstIn();
+		lastOut = entity.getLastOut();
+		filo = Duration.ofMillis(entity.getFilo());
+	}
 
 	public LocalTime getFirstIn() {
 		return firstIn;
