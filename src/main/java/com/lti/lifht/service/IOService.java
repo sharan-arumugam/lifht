@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.lti.lifht.constant.CommonConstant;
+import com.lti.lifht.entity.EntryPair;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
@@ -162,8 +163,9 @@ public class IOService {
 
 	public void saveOrUpdateEntryDate() {
 
-		List<EntryPairBean> pairList = entryPairRepo
-				.findAll()
+		List<EntryPair> entityList = entryPairRepo.findAll();
+
+		List<EntryPairBean> pairList = entityList
 				.stream()
 				.map(EntryPairBean::new)
 				.collect(Collectors.toList());
@@ -175,6 +177,7 @@ public class IOService {
 				.forEach((date, psList) -> {
 
 					psList.stream()
+							.filter(entry -> null != entry.getPsNumber())
 							.collect(Collectors.groupingBy(EntryPairBean::getPsNumber))
 							.forEach((psNumber, groupedList) -> {
 

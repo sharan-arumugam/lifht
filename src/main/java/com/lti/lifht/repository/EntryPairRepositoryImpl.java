@@ -22,7 +22,7 @@ public class EntryPairRepositoryImpl implements EntryPairRepositoryCustom {
 
 	@PersistenceContext
 	EntityManager entityManager;
-	
+
 	@Override
 	public void saveOrUpdatePair(List<EntryPairBean> pairList) {
 
@@ -40,7 +40,7 @@ public class EntryPairRepositoryImpl implements EntryPairRepositoryCustom {
 				insert.setParameter(2, entry.getSwipeIn().toString());
 				insert.setParameter(3, entry.getSwipeOut().toString());
 				insert.setParameter(4, entry.getSwipeDoor());
-				insert.setParameter(5, entry.getDuration().toString());
+				insert.setParameter(5, entry.getDuration().toMillis());
 				insert.setParameter(6, entry.getPsNumber());
 				insert.executeUpdate();
 
@@ -71,11 +71,11 @@ public class EntryPairRepositoryImpl implements EntryPairRepositoryCustom {
 
 				insert.setParameter(1, entry.getSwipeDate().toString());
 				insert.setParameter(2, entry.getSwipeDoor());
-				insert.setParameter(3, entry.getDuration().toString());
-				insert.setParameter(4, entry.getCompliance().toString());
+				insert.setParameter(3, entry.getDuration().toMillis());
+				insert.setParameter(4, entry.getCompliance().toMillis());
 				insert.setParameter(5, entry.getFirstIn().toString());
 				insert.setParameter(6, entry.getLastOut().toString());
-				insert.setParameter(7, entry.getFilo().toString());
+				insert.setParameter(7, entry.getFilo().toMillis());
 				insert.setParameter(8, entry.getPsNumber());
 				insert.executeUpdate();
 
