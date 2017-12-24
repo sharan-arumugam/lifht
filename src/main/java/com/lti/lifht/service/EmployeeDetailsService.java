@@ -17,19 +17,19 @@ import com.lti.lifht.repository.EmployeeRepository;
 @Service
 public class EmployeeDetailsService implements UserDetailsService {
 
-	@Autowired
-	private EmployeeRepository employeeRepository;
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
-	@Override
-	public UserDetails loadUserByUsername(String psNumber) throws UsernameNotFoundException {
+    @Override
+    public UserDetails loadUserByUsername(String psNumber) throws UsernameNotFoundException {
 
-		Optional<Employee> employee = employeeRepository.findByPsNumber(psNumber);
+        Optional<Employee> employee = employeeRepository.findByPsNumber(psNumber);
 
-		employee.orElseThrow(() -> new UsernameNotFoundException(MSG_PS_NOT_FOUND));
+        employee.orElseThrow(() -> new UsernameNotFoundException(MSG_PS_NOT_FOUND));
 
-		return employee
-				.map(EmployeeDetails::new)
-				.get();
-	}
+        return employee
+                .map(EmployeeDetails::new)
+                .get();
+    }
 
 }

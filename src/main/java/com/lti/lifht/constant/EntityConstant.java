@@ -13,6 +13,7 @@ public class EntityConstant {
 	public static final String APPLE_MANAGER = "apple_manager";
 	public static final String BUSINESS_UNIT = "business_unit";
 	public static final String IS_ACTIVE = "is_active";
+	public static final String RESET_TOKEN = "reset_token";
 
 	// role_master
 	public static final String ROLE_MASTER = "role_master";

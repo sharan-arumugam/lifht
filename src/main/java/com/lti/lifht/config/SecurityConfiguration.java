@@ -24,21 +24,22 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     SuccessHandler successHandler;
 
+    BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http.authorizeRequests().antMatchers("/resources/**").permitAll()
+        http.authorizeRequests()
+                .antMatchers("/password/**").permitAll()
                 .anyRequest().authenticated()
-                .and()
-                .csrf().disable()
-                .formLogin().permitAll().successHandler(successHandler)
-                .and()
-                .logout().logoutUrl(LOGOUT).logoutSuccessUrl(LOGIN);
+                .and().formLogin().permitAll().successHandler(successHandler)
+                .and().logout().logoutUrl(LOGOUT).logoutSuccessUrl(LOGIN)
+                .and().csrf().disable();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(employeeDetailsService)
-                .passwordEncoder(new BCryptPasswordEncoder(4));
+                .passwordEncoder(bCryptPasswordEncoder);
     }
 }
