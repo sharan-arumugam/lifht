@@ -23,141 +23,152 @@ import static com.lti.lifht.constant.EntityConstant.LTI_MAIL;
 import static com.lti.lifht.constant.EntityConstant.APPLE_MANAGER;
 import static com.lti.lifht.constant.EntityConstant.BUSINESS_UNIT;
 import static com.lti.lifht.constant.EntityConstant.IS_ACTIVE;
+import static com.lti.lifht.constant.EntityConstant.RESET_TOKEN;
 import static com.lti.lifht.constant.EntityConstant.ACCESS;
 
 @Entity
 @Table(name = EMPLOYEE)
 public class Employee {
 
-	@Id
-	@GeneratedValue(strategy = AUTO)
-	@Column(name = PS_NUMBER)
-	private String psNumber;
+    @Id
+    @GeneratedValue(strategy = AUTO)
+    @Column(name = PS_NUMBER)
+    private String psNumber;
 
-	@Column(name = PS_NAME)
-	private String psName;
+    @Column(name = PS_NAME)
+    private String psName;
 
-	@Column(name = DS_ID)
-	private String dsId;
+    @Column(name = DS_ID)
+    private String dsId;
 
-	@Column(name = PASSWORD)
-	private String password;
+    @Column(name = PASSWORD)
+    private String password;
 
-	@Column(name = APPLE_MAIL)
-	private String appleMail;
+    @Column(name = APPLE_MAIL)
+    private String appleMail;
 
-	@Column(name = LTI_MAIL)
-	private String ltiMail;
+    @Column(name = LTI_MAIL)
+    private String ltiMail;
 
-	@Column(name = APPLE_MANAGER)
-	private String appleManager;
+    @Column(name = APPLE_MANAGER)
+    private String appleManager;
 
-	@Column(name = BUSINESS_UNIT)
-	private String businessUnit;
+    @Column(name = BUSINESS_UNIT)
+    private String businessUnit;
 
-	@Column(name = IS_ACTIVE)
-	private boolean isActive;
+    @Column(name = IS_ACTIVE)
+    private boolean isActive;
 
-	@OneToMany(cascade = ALL, fetch = EAGER)
-	@JoinTable(name = ACCESS, joinColumns = @JoinColumn(name = PS_NUMBER))
-	private Set<RoleMaster> roles;
+    @Column(name = RESET_TOKEN)
+    private String resetToken;
 
-	public Employee() {
-		super();
-	}
+    @OneToMany(cascade = ALL, fetch = EAGER)
+    @JoinTable(name = ACCESS, joinColumns = @JoinColumn(name = PS_NUMBER))
+    private Set<RoleMaster> roles;
 
-	public Employee(Employee employee) {
-		super();
-		psNumber = employee.psNumber;
-		psName = employee.psName;
-		dsId = employee.dsId;
-		password = employee.password;
-		appleMail = employee.appleMail;
-		ltiMail = employee.ltiMail;
-		appleManager = employee.appleManager;
-		businessUnit = employee.businessUnit;
-		isActive = employee.isActive;
-		roles = employee.roles;
-	}
+    public Employee() {
+        super();
+    }
 
-	public String getPsNumber() {
-		return psNumber;
-	}
+    public Employee(Employee employee) {
+        super();
+        psNumber = employee.psNumber;
+        psName = employee.psName;
+        dsId = employee.dsId;
+        password = employee.password;
+        appleMail = employee.appleMail;
+        ltiMail = employee.ltiMail;
+        appleManager = employee.appleManager;
+        businessUnit = employee.businessUnit;
+        isActive = employee.isActive;
+        roles = employee.roles;
+    }
 
-	public void setPsNumber(String psNumber) {
-		this.psNumber = psNumber;
-	}
+    public String getPsNumber() {
+        return psNumber;
+    }
 
-	public String getPsName() {
-		return psName;
-	}
+    public void setPsNumber(String psNumber) {
+        this.psNumber = psNumber;
+    }
 
-	public void setPsName(String psName) {
-		this.psName = psName;
-	}
+    public String getPsName() {
+        return psName;
+    }
 
-	public String getDsId() {
-		return dsId;
-	}
+    public void setPsName(String psName) {
+        this.psName = psName;
+    }
 
-	public void setDsId(String dsId) {
-		this.dsId = dsId;
-	}
+    public String getDsId() {
+        return dsId;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public void setDsId(String dsId) {
+        this.dsId = dsId;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public String getAppleMail() {
-		return appleMail;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public void setAppleMail(String appleMail) {
-		this.appleMail = appleMail;
-	}
+    public String getAppleMail() {
+        return appleMail;
+    }
 
-	public String getLtiMail() {
-		return ltiMail;
-	}
+    public void setAppleMail(String appleMail) {
+        this.appleMail = appleMail;
+    }
 
-	public void setLtiMail(String ltiMail) {
-		this.ltiMail = ltiMail;
-	}
+    public String getLtiMail() {
+        return ltiMail;
+    }
 
-	public String getAppleManager() {
-		return appleManager;
-	}
+    public void setLtiMail(String ltiMail) {
+        this.ltiMail = ltiMail;
+    }
 
-	public void setAppleManager(String appleManager) {
-		this.appleManager = appleManager;
-	}
+    public String getAppleManager() {
+        return appleManager;
+    }
 
-	public String getBusinessUnit() {
-		return businessUnit;
-	}
+    public void setAppleManager(String appleManager) {
+        this.appleManager = appleManager;
+    }
 
-	public void setBusinessUnit(String businessUnit) {
-		this.businessUnit = businessUnit;
-	}
+    public String getBusinessUnit() {
+        return businessUnit;
+    }
 
-	public boolean isActive() {
-		return isActive;
-	}
+    public void setBusinessUnit(String businessUnit) {
+        this.businessUnit = businessUnit;
+    }
 
-	public void setActive(boolean isActive) {
-		this.isActive = isActive;
-	}
+    public boolean isActive() {
+        return isActive;
+    }
 
-	public Set<RoleMaster> getRoles() {
-		return roles;
-	}
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
+    }
 
-	public void setRoles(Set<RoleMaster> roles) {
-		this.roles = roles;
-	}
+    public String getResetToken() {
+        return resetToken;
+    }
 
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+
+    public Set<RoleMaster> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<RoleMaster> roles) {
+        this.roles = roles;
+    }
 }
