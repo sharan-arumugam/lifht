@@ -24,7 +24,8 @@ public class MailServiceImpl implements MailService {
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);
 
-        helper.setTo(psNumber + "@lntinfotech.com");
+        // helper.setTo(psNumber + "@lntinfotech.com");
+        helper.setTo("noreply.ltiodc@gmail.com");
         helper.setSubject("LTI ODC - reset password");
         helper.setText("reset link: " + appUrl + ":8080/password/reset?token=" + resetToken);
 
