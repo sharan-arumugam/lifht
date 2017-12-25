@@ -64,7 +64,7 @@ public class PasswordController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/reset", method = RequestMethod.GET)
+    @GetMapping("/reset")
     public ModelAndView resetPassword(ModelAndView modelAndView, @RequestParam("token") String token) {
 
         Optional<Employee> user = userService.findByResetToken(token);
@@ -84,12 +84,14 @@ public class PasswordController {
             RedirectAttributes redir) {
 
         Optional<Employee> user = userService.findByResetToken(requestParams.get("token"));
-
+        
         if (user.isPresent()) {
-
             Employee resetUser = user.get();
+
             resetUser.setPassword(bCryptPasswordEncoder.encode(requestParams.get("password")));
             resetUser.setResetToken(null);
+
+            userService.save(resetUser);
 
             redir.addFlashAttribute("successMessage", "password reset");
             modelAndView.setViewName("resetPassword");
