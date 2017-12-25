@@ -3,8 +3,11 @@ package com.lti.lifht.controller;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_ADMIN;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +36,11 @@ public class EmployeeController {
     @GetMapping("/all")
     @PreAuthorize(HAS_ROLE_ADMIN)
     public List<EmployeeBean> getAllEmployees() {
-        return service.getAllEmployees();
+        return service.getAllEmployees()
+                .stream()
+                .filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
+                .sorted(Comparator.comparing(EmployeeBean::getPsName))
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/swipe/date-single-ps")
@@ -57,7 +64,7 @@ public class EmployeeController {
     @PostMapping("/swipe/range-multi-ps")
     @PreAuthorize(HAS_ROLE_ADMIN)
     public List<EntryRange> getRangeMulti(@RequestBody RangeMultiPs request) {
-        return service.getRangeMulti(request);
+        return service.getRangeMulti(request, false);
     }
 
 }

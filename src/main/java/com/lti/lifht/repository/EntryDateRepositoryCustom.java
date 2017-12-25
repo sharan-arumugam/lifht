@@ -17,4 +17,6 @@ public interface EntryDateRepositoryCustom {
     List<EntryDateBean> getPsListEntryDate(DateMultiPs request);
 
     List<EntryDateBean> getPsListForAggregate(RangeMultiPs request);
+
+    List<EntryDateBean> getPsListForAggregateDelta(RangeMultiPs request);
 }

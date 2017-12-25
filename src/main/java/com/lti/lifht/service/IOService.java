@@ -6,10 +6,8 @@ import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
 import static com.lti.lifht.util.CommonUtil.getNext;
 import static com.lti.lifht.util.CommonUtil.getPrev;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -31,8 +29,6 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,14 +43,11 @@ import com.lti.lifht.model.EntryRaw;
 import com.lti.lifht.repository.EmployeeRepository;
 import com.lti.lifht.repository.EntryDateRepository;
 import com.lti.lifht.repository.EntryPairRepository;
-import com.lti.lifht.util.ExcelUtil;
 
 import one.util.streamex.StreamEx;
 
 @Service
 public class IOService {
-
-    private static final Logger logger = LoggerFactory.getLogger(IOService.class);
 
     @Autowired
     EmployeeRepository employeeRepo;
