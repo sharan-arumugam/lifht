@@ -1,7 +1,6 @@
 package com.lti.lifht.repository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -17,7 +16,9 @@ import org.springframework.stereotype.Repository;
 
 import com.lti.lifht.entity.EntryDate;
 import com.lti.lifht.model.EntryDateBean;
-import com.lti.lifht.model.RangeMultiPs;
+import com.lti.lifht.model.request.DateMultiPs;
+import com.lti.lifht.model.request.RangeMultiPs;
+import com.lti.lifht.model.request.RangeSinglePs;
 
 @Repository
 @Transactional
@@ -70,7 +71,8 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
 
         StringBuilder sql = new StringBuilder();
 
-        sql.append("SELECT e.ps_number as number, e.ps_name as name, e.business_unit as bu, e.lti_mail as email,")
+        sql.append("SELECT e.ps_number as number, e.ps_name as name,")
+                .append(" e.business_unit as bu, e.lti_mail as email, e.ds_id as dsid,")
                 .append(" d.swipe_date as date, d.duration as duration, d.filo as filo,")
                 .append(" d.compliance as compliance, d.swipe_door as door")
                 .append(" FROM entry_date d, employee e WHERE e.ps_number = d.ps_number")
@@ -94,6 +96,70 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
         });
 
         return forAggregateList;
+    }
+
+    @Override
+    public List<EntryDateBean> getPsListEntryDate(DateMultiPs request) {
+
+        String psParams = request.getPsNumberList().stream().map(e -> "?").collect(Collectors.joining(","));
+
+        List<String> psNumberList = request.getPsNumberList();
+        int psCount = psNumberList.size();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT e.ps_number as number, e.ps_name as name,")
+                .append(" e.business_unit as bu, e.lti_mail as email, e.ds_id as dsid,")
+                .append(" d.swipe_date as date, d.duration as duration, d.filo as filo,")
+                .append(" d.compliance as compliance, d.swipe_door as door")
+                .append(" FROM entry_date d, employee e WHERE e.ps_number = d.ps_number")
+                .append(" AND d.ps_number in (" + psParams + ") AND d.swipe_date = ?");
+
+        Query select = entityManager.createNativeQuery(sql.toString());
+
+        for (int i = 0; i < psCount; i++) {
+            select.setParameter(i + 1, psNumberList.get(i));
+        }
+
+        select.setParameter(psCount + 1, request.getDate());
+
+        List<Object[]> resultList = select.getResultList();
+
+        List<EntryDateBean> entryDateList = new ArrayList<>();
+
+        resultList.forEach(rs -> {
+            entryDateList.add(new EntryDateBean(rs, rs[10], rs[11]));
+        });
+
+        return entryDateList;
+    }
+
+    @Override
+    public List<EntryDateBean> getPsEntryDate(RangeSinglePs request) {
+
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("SELECT e.ps_number as number, e.ps_name as name,")
+                .append(" e.business_unit as bu, e.lti_mail as email, e.ds_id as dsid,")
+                .append(" d.swipe_date as date, d.duration as duration, d.filo as filo,")
+                .append(" d.compliance as compliance, d.swipe_door as door,")
+                .append(" d.first_in as firstin, d.last_out as lastout")
+                .append(" FROM entry_date d, employee e WHERE e.ps_number = d.ps_number")
+                .append(" AND d.ps_number = ? AND d.swipe_date BETWEEN ? AND ?");
+
+        Query select = entityManager.createNativeQuery(sql.toString());
+
+        select.setParameter(1, request.getPsNumber());
+        select.setParameter(2, request.getFromDate());
+        select.setParameter(3, request.getToDate());
+
+        List<Object[]> resultList = select.getResultList();
+
+        List<EntryDateBean> entryDateList = new ArrayList<>();
+        resultList.forEach(rs -> {
+            entryDateList.add(new EntryDateBean(rs, rs[10], rs[11]));
+        });
+
+        return entryDateList;
     }
 
 }

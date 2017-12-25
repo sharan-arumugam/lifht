@@ -1,4 +1,4 @@
-package com.lti.lifht.model;
+package com.lti.lifht.model.request;
 
 import static com.lti.lifht.util.CommonUtil.parseDMYDashToDate;
 

@@ -1,6 +1,7 @@
 package com.lti.lifht.controller;
 
-import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE_ADMIN;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -14,12 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/")
 public class PageController {
 
-    @GetMapping("/upload")
-    public String upload() {
-        return "upload";
-    }
-
     @GetMapping("/staff")
+    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
     public String user(HttpSession session, HttpServletResponse response) {
 
         response.addHeader("username", String.valueOf(session.getAttribute("username")));
@@ -29,7 +26,7 @@ public class PageController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize(HAS_ANY_ROLE_ADMIN)
+    @PreAuthorize(HAS_ROLE_ADMIN)
     public String admin(HttpSession session, HttpServletResponse response) {
 
         response.addHeader("username", String.valueOf(session.getAttribute("username")));
@@ -37,4 +34,11 @@ public class PageController {
 
         return "adminindex";
     }
+
+    @GetMapping("/upload")
+    @PreAuthorize(HAS_ROLE_ADMIN)
+    public String upload() {
+        return "upload";
+    }
+
 }

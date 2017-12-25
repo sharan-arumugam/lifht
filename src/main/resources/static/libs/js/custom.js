@@ -57,7 +57,7 @@ $(document).ready(function() {
     var html = '';
     $.ajax({
       method: "GET",
-      url: "api/admin/all",
+      url: "api/all",
       success: function(response) {
         response.map((val) => {
           allStaff.push(val.psName);
@@ -192,7 +192,7 @@ $(document).ready(function() {
       $(".report-title-admin").html("Compliance Report from "+ fromDateForm +" to " + toDateForm);
       if (staff === 'Selected All') {
         callType = 'multi-ps-multi-date';
-        api = "api/admin/swipe/range-multi-ps";
+        api = "api/swipe/range-multi-ps";
         data = {
           psNumberList: allpsNumber,
           fromDate,
@@ -201,7 +201,7 @@ $(document).ready(function() {
         query_psList = allpsNumber;
       } else if (staff.split(",").length === 1) {
         callType = 'single-ps-multi-date';
-        api = "api/admin/swipe/range-single-ps";
+        api = "api/swipe/range-single-ps";
         data = {
           psNumber: psNumber.join(),
           fromDate,
@@ -210,7 +210,7 @@ $(document).ready(function() {
         query_psList = psNumber;
       } else if (staff.split(",").length > 1) {
         callType = 'multi-ps-multi-date';
-        api = "api/admin/swipe/range-multi-ps";
+        api = "api/swipe/range-multi-ps";
         data = {
           psNumberList: psNumber,
           fromDate,
@@ -222,7 +222,7 @@ $(document).ready(function() {
       // Generate excel url
       var query_fromdate = fromDateForm.replace(/\//g, '-');
       var query_toDate = toDateForm.replace(/\//g, '-');
-      var excel_url = "api/io/export/range-multi-ps?fromDate="+query_fromdate+"&toDate="+query_toDate+"&psNumberList="+query_psList.join(",");
+      var excel_url = "io/export/range-multi-ps?fromDate="+query_fromdate+"&toDate="+query_toDate+"&psNumberList="+query_psList.join(",");
       $(".download-xl").attr("href", excel_url);
       $.ajax({
         method: "POST",
@@ -316,9 +316,9 @@ $(document).ready(function() {
       if (form_fromDate === form_toDate) {
         data = {
           psNumber: psNumber_hard,
-          fromDate: form_toDate
+          date: form_toDate
         };
-        url = "api/emp/swipe/date";
+        url = "api/swipe/date-single-ps";
         callType = "single";
       }
       else {
@@ -327,7 +327,7 @@ $(document).ready(function() {
           fromDate: form_fromDate,
           toDate: form_toDate
         };
-        url = "api/emp/swipe/range";
+        url = "api/swipe/range-single-ps";
         callType = "range";
       }
       if (clear) {
@@ -345,8 +345,8 @@ $(document).ready(function() {
             var name = '';
             if (callType == "single") {
               response.map((val)=>{
-                var swipeIn= swipeIn.push(val.swipIn);
-                intime.push(val.durationString);
+                //swipeIn = swipeIn.push(val.swipIn);
+                inTime.push(val.durationString);
                 date = val.swipeDate;
               tableHtml += "<tr><td>"+val.swipeDate+"</td><td>"+val.swipeIn+"</td><td>"+val.swipeOut+"</td><td>"+val.durationString+"</td></tr>";
             });

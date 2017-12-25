@@ -1,6 +1,7 @@
 package com.lti.lifht.controller;
 
-import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_ADMIN;
 
 import java.util.List;
 
@@ -12,38 +13,49 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lti.lifht.model.DateMultiPs;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.EntryPairBean;
 import com.lti.lifht.model.EntryRange;
-import com.lti.lifht.model.RangeMultiPs;
-import com.lti.lifht.model.RangeSinglePs;
+import com.lti.lifht.model.request.DateMultiPs;
+import com.lti.lifht.model.request.DateSinglePs;
+import com.lti.lifht.model.request.RangeMultiPs;
+import com.lti.lifht.model.request.RangeSinglePs;
 import com.lti.lifht.service.AdminService;
 
 @RestController
-@RequestMapping("/api/admin")
-@PreAuthorize(HAS_ANY_ROLE_ADMIN)
-public class AdminController {
+@RequestMapping("/api")
+public class EmployeeController {
 
     @Autowired
     AdminService service;
 
     @GetMapping("/all")
+    @PreAuthorize(HAS_ROLE_ADMIN)
     public List<EmployeeBean> getAllEmployees() {
         return service.getAllEmployees();
     }
 
+    @PostMapping("/swipe/date-single-ps")
+    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
+    public List<EntryPairBean> getDateSinglePs(@RequestBody DateSinglePs request) {
+        return service.getDateSinglePs(request);
+    }
+
     @PostMapping("/swipe/range-single-ps")
+    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
     public List<EntryDateBean> getRangeSingle(@RequestBody RangeSinglePs request) {
         return service.getRangeSingle(request);
     }
 
     @PostMapping("/swipe/date-multi-ps")
+    @PreAuthorize(HAS_ROLE_ADMIN)
     public List<EntryDateBean> getDateMulti(@RequestBody DateMultiPs request) {
         return service.getDateMulti(request);
     }
 
     @PostMapping("/swipe/range-multi-ps")
+    @PreAuthorize(HAS_ROLE_ADMIN)
     public List<EntryRange> getRangeMulti(@RequestBody RangeMultiPs request) {
         return service.getRangeMulti(request);
     }

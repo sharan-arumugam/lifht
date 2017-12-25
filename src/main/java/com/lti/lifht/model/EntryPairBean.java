@@ -77,6 +77,22 @@ public class EntryPairBean {
         this.employee = employee;
     }
 
+    public EntryPairBean(Object[] rawResult) {
+        employee = new EmployeeBean(
+                String.valueOf(rawResult[0]),
+                String.valueOf(rawResult[1]),
+                String.valueOf(rawResult[2]),
+                String.valueOf(rawResult[3]),
+                String.valueOf(rawResult[4]));
+
+        psNumber = String.valueOf(rawResult[0]);
+        swipeDate = LocalDate.parse(String.valueOf(rawResult[5]));
+        duration = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])));
+        swipeDoor = String.valueOf(rawResult[7]);
+        swipeIn = LocalTime.parse(String.valueOf(rawResult[8]));
+        swipeOut = LocalTime.parse(String.valueOf(rawResult[9]));
+    }
+
     public LocalDate getSwipeDate() {
         return swipeDate;
     }

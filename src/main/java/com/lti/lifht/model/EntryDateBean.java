@@ -33,14 +33,34 @@ public class EntryDateBean {
                 String.valueOf(rawResult[0]),
                 String.valueOf(rawResult[1]),
                 String.valueOf(rawResult[2]),
-                String.valueOf(rawResult[3]));
+                String.valueOf(rawResult[3]),
+                String.valueOf(rawResult[4]));
 
         psNumber = String.valueOf(rawResult[0]);
-        swipeDate = LocalDate.parse(String.valueOf(rawResult[4]));
-        duration = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[5])));
-        filo = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])));
-        compliance = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7])));
-        swipeDoor = String.valueOf(rawResult[8]);
+        swipeDate = LocalDate.parse(String.valueOf(rawResult[5]));
+        duration = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])));
+        filo = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7])));
+        compliance = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8])));
+        swipeDoor = String.valueOf(rawResult[9]);
+    }
+
+    public EntryDateBean(Object[] rawResult, Object fi, Object lo) {
+
+        employee = new EmployeeBean(
+                String.valueOf(rawResult[0]),
+                String.valueOf(rawResult[1]),
+                String.valueOf(rawResult[2]),
+                String.valueOf(rawResult[3]),
+                String.valueOf(rawResult[4]));
+
+        psNumber = String.valueOf(rawResult[0]);
+        swipeDate = LocalDate.parse(String.valueOf(rawResult[5]));
+        duration = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])));
+        filo = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7])));
+        compliance = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8])));
+        swipeDoor = String.valueOf(rawResult[9]);
+        firstIn = LocalTime.parse(String.valueOf(fi));
+        lastOut = LocalTime.parse(String.valueOf(lo));
     }
 
     public EntryDateBean(EntryDate entity) {
