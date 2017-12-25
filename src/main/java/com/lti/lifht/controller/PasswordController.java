@@ -1,5 +1,7 @@
 package com.lti.lifht.controller;
 
+import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE_ADMIN;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,6 +10,7 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -83,7 +86,7 @@ public class PasswordController {
             RedirectAttributes redir) {
 
         Optional<Employee> user = userService.findByResetToken(requestParams.get("token"));
-        
+
         if (user.isPresent()) {
             Employee resetUser = user.get();
 
@@ -101,6 +104,18 @@ public class PasswordController {
             modelAndView.setViewName("resetPassword");
         }
 
+        return modelAndView;
+    }
+
+    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
+    @GetMapping("/change")
+    public ModelAndView changePassowrd(ModelAndView modelAndView) {
+        return modelAndView;
+    }
+
+    @PostMapping("/change")
+    public ModelAndView changePassowrd(ModelAndView modelAndView, @RequestParam Map<String, String> requestParams,
+            RedirectAttributes redir) {
         return modelAndView;
     }
 

@@ -1,7 +1,5 @@
 package com.lti.lifht.repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import com.lti.lifht.entity.EntryPair;
 import com.lti.lifht.model.EntryPairBean;
-import com.lti.lifht.model.RangeMultiPs;
+import com.lti.lifht.model.request.DateSinglePs;
 
 @Repository
 @Transactional
@@ -31,8 +29,6 @@ public class EntryPairRepositoryImpl implements EntryPairRepositoryCustom {
 
     @Override
     public void saveOrUpdatePair(List<EntryPair> pairList) {
-
-        List<Integer> updated = new ArrayList<>();
 
         pairList.forEach(entry -> {
 
@@ -57,5 +53,32 @@ public class EntryPairRepositoryImpl implements EntryPairRepositoryCustom {
                 e.printStackTrace();
             }
         });
+    }
+
+    @Override
+    public List<EntryPairBean> getDateSinlgePs(DateSinglePs request) {
+
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("SELECT e.ps_number, e.ps_name,")
+                .append(" e.business_unit, e.lti_mail, e.ds_id,")
+                .append(" p.swipe_date, p.duration,")
+                .append(" p.swipe_door, p.swipe_in, p.swipe_out")
+                .append(" FROM entry_pair p, employee e")
+                .append(" WHERE p.ps_number = e.ps_number AND p.ps_number = ? AND p.swipe_date = ?");
+
+        Query select = entityManager.createNativeQuery(sql.toString());
+        select.setParameter(1, request.getPsNumber());
+        select.setParameter(2, request.getDate());
+
+        List<Object[]> rawList = select.getResultList();
+
+        List<EntryPairBean> entryPairList = new ArrayList<>();
+
+        rawList.forEach(rs -> {
+            entryPairList.add(new EntryPairBean(rs));
+        });
+
+        return entryPairList;
     }
 }

@@ -6,9 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.lti.lifht.repository.EmployeeDao;
-import com.lti.lifht.model.RangeSinglePs;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
+import com.lti.lifht.model.request.RangeSinglePs;
 
 public class EmployeeService {
 

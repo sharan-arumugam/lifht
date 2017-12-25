@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lti.lifht.model.DateMultiPs;
 import com.lti.lifht.model.EntryRaw;
-import com.lti.lifht.model.RangeMultiPs;
-import com.lti.lifht.model.RangeSinglePs;
+import com.lti.lifht.model.request.DateMultiPs;
+import com.lti.lifht.model.request.RangeMultiPs;
+import com.lti.lifht.model.request.RangeSinglePs;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
@@ -156,8 +156,7 @@ public class EntryDao extends BaseDao {
 				entryDateList.add(new EntryDateBean(resultSet.getDate("date").toLocalDate(),
 						resultSet.getString("duration"), resultSet.getString("compliance"), resultSet.getString("filo"),
 						resultSet.getString("door"), resultSet.getString("number"),
-						new EmployeeBean(resultSet.getString("number"), resultSet.getString("name"),
-								resultSet.getString("bu"), resultSet.getString("email"))));
+						new EmployeeBean()));
 			}
 
 		} catch (SQLException e) {
@@ -192,8 +191,7 @@ public class EntryDao extends BaseDao {
 				entryDateList.add(new EntryDateBean(rs.getDate("date"), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
 						rs.getTime("firstin").toLocalTime(), rs.getTime("lastout").toLocalTime(),
-						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
-								rs.getString("email"))));
+						new EmployeeBean()));
 			}
 
 		} catch (SQLException e) {
@@ -233,8 +231,7 @@ public class EntryDao extends BaseDao {
 			while (rs.next()) {
 				entryDateList.add(new EntryDateBean(rs.getDate("date").toLocalDate(), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
-						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
-								rs.getString("email"))));
+						new EmployeeBean()));
 			}
 
 		} catch (SQLException e) {
@@ -277,8 +274,7 @@ public class EntryDao extends BaseDao {
 			while (rs.next()) {
 				forAggregateList.add(new EntryDateBean(rs.getDate("date").toLocalDate(), rs.getString("duration"),
 						rs.getString("compliance"), rs.getString("filo"), rs.getString("door"), rs.getString("number"),
-						new EmployeeBean(rs.getString("number"), rs.getString("name"), rs.getString("bu"),
-								rs.getString("email"))));
+						new EmployeeBean()));
 			}
 
 		} catch (SQLException e) {

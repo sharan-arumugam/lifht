@@ -12,18 +12,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.lti.lifht.entity.Employee;
-import com.lti.lifht.model.DateMultiPs;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
 import com.lti.lifht.model.EntryRange;
-import com.lti.lifht.model.RangeMultiPs;
-import com.lti.lifht.model.RangeSinglePs;
+import com.lti.lifht.model.request.DateMultiPs;
+import com.lti.lifht.model.request.DateSinglePs;
+import com.lti.lifht.model.request.RangeMultiPs;
+import com.lti.lifht.model.request.RangeSinglePs;
 import com.lti.lifht.repository.EmployeeRepository;
 import com.lti.lifht.repository.EntryDao;
 import com.lti.lifht.repository.EntryDateRepository;
+import com.lti.lifht.repository.EntryPairRepository;
 
 @Service
 public class AdminService {
@@ -34,8 +37,15 @@ public class AdminService {
     @Autowired
     EntryDateRepository entryDateRepo;
 
+    @Autowired
+    EntryPairRepository entryPairRepo;
+
     private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
     private static final EntryDao entryDao = new EntryDao();
+
+    public List<EntryPairBean> getDateSinglePs(@RequestBody DateSinglePs request) {
+        return entryPairRepo.getDateSinlgePs(request);
+    }
 
     public Optional<Employee> findByPsNumber(String psNumber) {
         return employeeRepo.findByPsNumber(psNumber);
@@ -66,11 +76,11 @@ public class AdminService {
     }
 
     public List<EntryDateBean> getRangeSingle(RangeSinglePs request) {
-        return entryDao.getPsEntryDate(request);
+        return entryDateRepo.getPsEntryDate(request);
     }
 
     public List<EntryDateBean> getDateMulti(DateMultiPs request) {
-        return entryDao.getPsListEntryDate(request);
+        return entryDateRepo.getPsListEntryDate(request);
     }
 
     public List<EntryRange> getRangeMulti(RangeMultiPs request) {
@@ -134,4 +144,5 @@ public class AdminService {
     public List<EntryPairBean> getAllPairs() {
         return entryDao.getAllPairs();
     }
+
 }

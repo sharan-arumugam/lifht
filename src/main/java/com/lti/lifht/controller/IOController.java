@@ -1,5 +1,6 @@
 package com.lti.lifht.controller;
 
+import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_ADMIN;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
 import static com.lti.lifht.util.ExcelUtil.parseXlsx;
 
@@ -11,6 +12,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,11 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.lti.lifht.model.EntryRange;
-import com.lti.lifht.model.RangeMultiPs;
+import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.service.AdminService;
 import com.lti.lifht.service.IOService;
 
 @RequestMapping("/io")
+@PreAuthorize(HAS_ROLE_ADMIN)
 @RestController
 public class IOController {
 

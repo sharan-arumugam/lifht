@@ -45,7 +45,7 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
 
             switch (grantedAuthority.getAuthority()) {
 
-            case "ROLE_USER":
+            case "ROLE_EMPLOYEE":
                 redirect.accept("/staff");
                 logger.info("staff login");
                 break;

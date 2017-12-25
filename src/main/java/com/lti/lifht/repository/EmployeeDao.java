@@ -9,10 +9,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lti.lifht.model.RangeSinglePs;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
+import com.lti.lifht.model.request.RangeSinglePs;
 
 public class EmployeeDao extends BaseDao {
 
@@ -60,11 +60,7 @@ public class EmployeeDao extends BaseDao {
 						rs.getString("duration"),
 						rs.getString("door"),
 						rs.getString("number"),
-						new EmployeeBean(
-								rs.getString("number"),
-								rs.getString("name"),
-								rs.getString("bu"),
-								rs.getString("email"))));
+						new EmployeeBean()));
 			}
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
@@ -104,11 +100,7 @@ public class EmployeeDao extends BaseDao {
 						rs.getString("filo"),
 						rs.getString("door"),
 						rs.getString("number"),
-						new EmployeeBean(
-								rs.getString("number"),
-								rs.getString("name"),
-								rs.getString("bu"),
-								rs.getString("email"))));
+						new EmployeeBean()));
 			}
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
