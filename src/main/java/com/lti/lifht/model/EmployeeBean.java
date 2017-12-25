@@ -13,7 +13,7 @@ import com.lti.lifht.entity.RoleMaster;
 
 public class EmployeeBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(EmployeeBean.class);
+    Logger logger = LoggerFactory.getLogger(EmployeeBean.class);
 
     private String psNumber;
     private String psName;

@@ -1,7 +1,5 @@
 package com.lti.lifht.repository;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -9,19 +7,13 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.lti.lifht.model.EmployeeBean;
-import com.lti.lifht.model.EntryDateBean;
-import com.lti.lifht.model.request.RangeSinglePs;
 
 @Repository
 @Transactional
 public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
-
-    private static final Logger logger = LoggerFactory.getLogger(EmployeeRepositoryImpl.class);
 
     @PersistenceContext
     EntityManager entityManager;
@@ -30,28 +22,25 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     public void saveOrUpdateHeadCount(List<EmployeeBean> employeeList) {
 
         employeeList.forEach(employee -> {
-            try {
 
-                StringBuilder sql = new StringBuilder();
+            StringBuilder sql = new StringBuilder();
 
-                sql.append("INSERT INTO employee(ps_number, ps_name, apple_manager, lti_mail)")
-                        .append(" VALUES (?,?,?,?)")
-                        .append(" ON DUPLICATE KEY UPDATE")
-                        .append(" ps_name = VALUES (ps_name),")
-                        .append(" apple_manager = VALUES (apple_manager),")
-                        .append(" lti_mail = VALUES (lti_mail)");
+            sql.append("INSERT INTO employee(ps_number, ps_name, apple_manager, lti_mail, ds_id)")
+                    .append(" VALUES (?, ?, ?, ?, ?)")
+                    .append(" ON DUPLICATE KEY UPDATE")
+                    .append(" ps_name = VALUES (ps_name),")
+                    .append(" apple_manager = VALUES (apple_manager),")
+                    .append(" lti_mail = VALUES (lti_mail), ")
+                    .append(" ds_id = VALUES (ds_id)");
 
-                Query insert = entityManager.createNativeQuery(sql.toString());
+            Query insert = entityManager.createNativeQuery(sql.toString());
 
-                insert.setParameter(1, employee.getPsNumber());
-                insert.setParameter(2, employee.getPsName());
-                insert.setParameter(3, employee.getManager());
-                insert.setParameter(4, employee.getEmail());
-                insert.executeUpdate();
-
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
+            insert.setParameter(1, employee.getPsNumber());
+            insert.setParameter(2, employee.getPsName());
+            insert.setParameter(3, employee.getManager());
+            insert.setParameter(4, employee.getEmail());
+            insert.setParameter(5, employee.getDsId());
+            insert.executeUpdate();
         });
     }
 
@@ -59,23 +48,18 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
     public void saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList) {
 
         employeeList.forEach(employee -> {
-            try {
 
-                StringBuilder sql = new StringBuilder();
+            StringBuilder sql = new StringBuilder();
 
-                sql.append("INSERT INTO employee(ps_number, business_unit)")
-                        .append(" VALUES (?,?)")
-                        .append(" ON DUPLICATE KEY UPDATE")
-                        .append(" business_unit = VALUES (business_unit)");
+            sql.append("INSERT INTO employee(ps_number, business_unit)")
+                    .append(" VALUES (?, ?)")
+                    .append(" ON DUPLICATE KEY UPDATE")
+                    .append(" business_unit = VALUES (business_unit)");
 
-                Query insert = entityManager.createNativeQuery(sql.toString());
-                insert.setParameter(1, employee.getPsNumber());
-                insert.setParameter(2, employee.getBusinessUnit());
-                insert.executeUpdate();
-
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
+            Query insert = entityManager.createNativeQuery(sql.toString());
+            insert.setParameter(1, employee.getPsNumber());
+            insert.setParameter(2, employee.getBusinessUnit());
+            insert.executeUpdate();
         });
     }
 

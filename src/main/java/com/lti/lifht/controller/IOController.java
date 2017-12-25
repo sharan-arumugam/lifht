@@ -65,7 +65,7 @@ public class IOController {
         RangeMultiPs request = new RangeMultiPs(fromDate, toDate,
                 psNumberList.split(","));
 
-        List<EntryRange> entries = adminService.getRangeMulti(request);
+        List<EntryRange> entries = adminService.getRangeMulti(request, true);
         String[] reportHeaders = EntryRange.fetchReportHeaders();
 
         response.setHeader("Content-Disposition",

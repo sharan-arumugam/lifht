@@ -20,6 +20,7 @@ import com.lti.lifht.model.request.DateSinglePs;
 
 @Repository
 @Transactional
+@SuppressWarnings("unchecked")
 public class EntryPairRepositoryImpl implements EntryPairRepositoryCustom {
 
     private static final Logger logger = LoggerFactory.getLogger(EntryPairRepositoryImpl.class);

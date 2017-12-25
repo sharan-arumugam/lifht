@@ -155,6 +155,28 @@ public class EntryDateBean {
         this.psNumber = psNumber;
     }
 
+    public EntryDateBean(String psNumber, Object[] rs) {
+
+    }
+
+    public EntryDateBean(
+            String psNumber,
+            LocalDate swipeDate,
+            Duration duration,
+            Duration compliance,
+            Duration filo,
+            String door,
+            EmployeeBean employee) {
+        super();
+        this.psNumber = psNumber;
+        this.swipeDate = swipeDate;
+        this.duration = duration;
+        this.compliance = compliance;
+        this.filo = filo;
+        this.swipeDoor = door;
+        this.employee = employee;
+    }
+
     public LocalDate getSwipeDate() {
         return swipeDate;
     }

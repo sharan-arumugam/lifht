@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,14 +84,19 @@ public class AdminService {
         return entryDateRepo.getPsListEntryDate(request);
     }
 
-    public List<EntryRange> getRangeMulti(RangeMultiPs request) {
+    public List<EntryRange> getRangeMulti(RangeMultiPs request, boolean includeDelta) {
 
-        logger.info(request.toString());
+        logger.info(request.toString(), ":: delta :: " + includeDelta);
 
         List<EntryRange> aggregateList = new ArrayList<>();
         List<EntryDateBean> psListForAggregate = entryDateRepo.getPsListForAggregate(request);
 
+        if (includeDelta) {
+            psListForAggregate.addAll(entryDateRepo.getPsListForAggregateDelta(request));
+        }
+
         psListForAggregate.stream()
+                .filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
                 .collect(Collectors.groupingBy(EntryDateBean::getPsNumber))
                 .forEach((psNumber, groupedList) -> {
 
@@ -128,6 +134,7 @@ public class AdminService {
                     aggregateList.add(new EntryRange(
                             request.getFromDate(),
                             request.getToDate(),
+                            groupedList.size(),
                             durationSum,
                             complianceSum,
                             filoSum,
@@ -137,7 +144,10 @@ public class AdminService {
                 });
 
         return aggregateList.stream()
-                .sorted(Comparator.comparing(entry -> entry.getEmployee().getPsName()))
+                .sorted(Comparator
+                        .comparing(entry -> null != entry.getEmployee().getPsName()
+                                ? entry.getEmployee().getPsName()
+                                : entry.getPsNumber()))
                 .collect(Collectors.toList());
     }
 
