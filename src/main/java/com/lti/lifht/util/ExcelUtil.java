@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -46,157 +47,164 @@ import org.slf4j.LoggerFactory;
  */
 public class ExcelUtil {
 
-	private static final Logger logger = LoggerFactory.getLogger(ExcelUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExcelUtil.class);
 
-	/**
-	 * Row Stream with StreamingReader for .xlsx - compatible with large file
-	 * 
-	 * @param inputStream
-	 * @return list of row map - columns as keys
-	 */
-	public static final Function<InputStream, List<Map<String, String>>> parseXlsx = inputStream -> {
-		return asListMap(
-				toStream(builder()
-						.open(inputStream)
-						.getSheetAt(0)
-						.iterator()),
-				EV_XSSF);
-	};
+    /**
+     * Row Stream with StreamingReader for .xlsx - compatible with large file
+     * 
+     * @param inputStream
+     * @return list of row map - columns as keys
+     */
+    public static final Function<InputStream, List<Map<String, String>>> parseXlsx = inputStream -> {
+        return asListMap(
+                toStream(builder()
+                        .open(inputStream)
+                        .getSheetAt(0)
+                        .iterator()),
+                EV_XSSF);
+    };
 
-	/**
-	 * Parse .xls (1997-2004) with vanilla POI, not compatible with large file
-	 * 
-	 * @param inputStream
-	 * @return list of row map - columns as keys
-	 */
-	public static final Function<InputStream, List<Map<String, String>>> parseXls = inputStream -> {
-		try {
-			return asListMap(
-					toStream(WorkbookFactory
-							.create(inputStream)
-							.getSheetAt(0)
-							.iterator()),
-					EV_HSSF);
+    /**
+     * Parse .xls (1997-2004) with vanilla POI, not compatible with large file
+     * 
+     * @param inputStream
+     * @return list of row map - columns as keys
+     */
+    public static final Function<InputStream, List<Map<String, String>>> parseXls = inputStream -> {
+        try {
+            return asListMap(
+                    toStream(WorkbookFactory
+                            .create(inputStream)
+                            .getSheetAt(0)
+                            .iterator()),
+                    EV_HSSF);
 
-		} catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
-			logger.error(e.getMessage());
-		}
-		return null;
-	};
+        } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+            logger.error(e.getMessage());
+        }
+        return null;
+    };
 
-	/**
-	 * IputStream to list map of column as keys
-	 * 
-	 * @param rowStream
-	 * @param evaluator
-	 * @return list of row map - columns as keys
-	 */
-	private static final List<Map<String, String>> asListMap(Stream<Row> rowStream, FormulaEvaluator evaluator) {
+    /**
+     * IputStream to list map of column as keys
+     * 
+     * @param rowStream
+     * @param evaluator
+     * @return list of row map - columns as keys
+     */
+    private static final List<Map<String, String>> asListMap(Stream<Row> rowStream, FormulaEvaluator evaluator) {
 
-		List<String> rowValueList = rowStream.map(row -> {
-			return toStream(row.iterator()).map(cell -> {
+        List<String> rowValueList = rowStream.map(row -> {
+            return toStream(row.iterator()).map(cell -> {
 
-				switch (cell.getCellTypeEnum()) {
+                switch (cell.getCellTypeEnum()) {
 
-				case STRING:
-					return cell.getStringCellValue();
+                case STRING:
+                    return cell.getStringCellValue();
 
-				case NUMERIC:
-					return FORMATTER.formatCellValue(cell, evaluator);
+                case NUMERIC:
+                    return FORMATTER.formatCellValue(cell, evaluator);
 
-				default:
-					return null;
-				}
-			}).collect(joining(DELIMITER));
+                default:
+                    return null;
+                }
+            }).collect(joining(DELIMITER));
 
-		}).collect(toList());
+        }).collect(toList());
 
-		String[] headers = rowValueList.get(0).split(DELIMITER);
+        int headerRow = 0;
 
-		List<Map<String, String>> rows = rowValueList.stream()
-				.skip(1) // skip headers row
-				.map(row -> row.split(DELIMITER))
-				.map(row -> {
-					return range(0, row.length)
-							.boxed()
-							.collect(toMap(column -> headers[column], column -> row[column]));
-				}).collect(toList());
+        // project allocation
+        if (Arrays.asList(rowValueList.get(0).split(DELIMITER)).contains("Resource Project Details")) {
+            headerRow = 2;
+        }
 
-		return rows;
-	}
+        String[] headers = rowValueList.get(headerRow).split(DELIMITER);
 
-	/**
-	 * Parse CSV to list of row map - column as keys
-	 * 
-	 * @param inputStream
-	 * @return list of row map - columns as keys
-	 */
-	public static final Function<InputStream, List<Map<String, String>>> parseCsv = inputStream -> {
+        List<Map<String, String>> rows = rowValueList.stream()
+                .skip(headerRow) // skip headers row
+                .map(row -> row.split(DELIMITER))
+                .map(row -> {
+                    return range(0, row.length)
+                            .boxed()
+                            .collect(toMap(column -> headers[column], column -> row[column]));
+                }).collect(toList());
 
-		try {
-			return StreamSupport.stream(CSVFormat.EXCEL
-					.withHeader()
-					.parse(new InputStreamReader(inputStream)).spliterator(), false)
-					.map(CSVRecord::toMap)
-					.collect(toList());
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-		}
+        return rows;
+    }
 
-		return null;
-	};
+    /**
+     * Parse CSV to list of row map - column as keys
+     * 
+     * @param inputStream
+     * @return list of row map - columns as keys
+     */
+    public static final Function<InputStream, List<Map<String, String>>> parseCsv = inputStream -> {
 
-	/**
-	 * Stream workbook to byte array
-	 * 
-	 * @param workbook
-	 * @return byte[] of workbook
-	 */
-	public static final byte[] toByteArray(Workbook workbook) {
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		try {
-			workbook.write(outputStream);
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-		}
-		return outputStream.toByteArray();
-	}
+        try {
+            return StreamSupport.stream(CSVFormat.EXCEL
+                    .withHeader()
+                    .parse(new InputStreamReader(inputStream)).spliterator(), false)
+                    .map(CSVRecord::toMap)
+                    .collect(toList());
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
 
-	/**
-	 * get file extension [.csv | .xls | .xlsx]
-	 */
-	public static final Function<String, String> getExtension = fileName -> {
-		fileName = fileName.toLowerCase();
-		String ext = NA;
-		if (fileName.endsWith(CSV)) {
-			ext = CSV;
-		} else if (fileName.endsWith(XLSX)) {
-			ext = XLSX;
-		} else if (fileName.endsWith(XLS)) {
-			ext = XLS;
-		}
-		return ext;
-	};
+        return null;
+    };
 
-	/**
-	 * Auto-detect extension and parse
-	 */
-	public static final BiFunction<String, InputStream, List<Map<String, String>>> autoParse = (fileName,
-			inputStream) -> {
+    /**
+     * Stream workbook to byte array
+     * 
+     * @param workbook
+     * @return byte[] of workbook
+     */
+    public static final byte[] toByteArray(Workbook workbook) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+        return outputStream.toByteArray();
+    }
 
-		List<Map<String, String>> rows = null;
+    /**
+     * get file extension [.csv | .xls | .xlsx]
+     */
+    public static final Function<String, String> getExtension = fileName -> {
+        fileName = fileName.toLowerCase();
+        String ext = NA;
+        if (fileName.endsWith(CSV)) {
+            ext = CSV;
+        } else if (fileName.endsWith(XLSX)) {
+            ext = XLSX;
+        } else if (fileName.endsWith(XLS)) {
+            ext = XLS;
+        }
+        return ext;
+    };
 
-		switch (getExtension.apply(fileName)) {
-		case CSV:
-			rows = parseCsv.apply(inputStream);
-			break;
-		case XLSX:
-			rows = parseXlsx.apply(inputStream);
-			break;
-		case XLS:
-			rows = parseXls.apply(inputStream);
-			break;
-		}
-		return rows;
-	};
+    /**
+     * Auto-detect extension and parse
+     */
+    public static final BiFunction<String, InputStream, List<Map<String, String>>> autoParse = (fileName,
+            inputStream) -> {
+
+        List<Map<String, String>> rows = null;
+
+        switch (getExtension.apply(fileName)) {
+        case CSV:
+            rows = parseCsv.apply(inputStream);
+            break;
+        case XLSX:
+            rows = parseXlsx.apply(inputStream);
+            break;
+        case XLS:
+            rows = parseXls.apply(inputStream);
+            break;
+        }
+        return rows;
+    };
 }

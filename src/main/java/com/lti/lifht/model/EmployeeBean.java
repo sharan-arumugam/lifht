@@ -61,7 +61,7 @@ public class EmployeeBean {
 		this.psNumber = psNumber;
 	}
 
-	public String getPsNumber() {
+    public String getPsNumber() {
 		return psNumber;
 	}
 

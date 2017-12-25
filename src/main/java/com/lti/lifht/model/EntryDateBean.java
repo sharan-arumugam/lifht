@@ -11,194 +11,210 @@ import com.lti.lifht.util.CommonUtil;
 
 public class EntryDateBean {
 
-	private static StringBuilder builder = new StringBuilder();
+    private static StringBuilder builder = new StringBuilder();
 
-	private LocalDate swipeDate;
-	private String swipeDoor;
-	private Duration duration;
-	private Duration compliance;
-	private String psNumber;
-	private EmployeeBean employee;
-	private LocalTime firstIn;
-	private LocalTime lastOut;
-	private Duration filo;
+    private LocalDate swipeDate;
+    private String swipeDoor;
+    private Duration duration;
+    private Duration compliance;
+    private String psNumber;
+    private EmployeeBean employee;
+    private LocalTime firstIn;
+    private LocalTime lastOut;
+    private Duration filo;
 
-	public EntryDateBean() {
+    public EntryDateBean() {
 
-	}
+    }
 
-	public EntryDateBean(EntryDate entity) {
-		super();
-		psNumber = entity.getPsNumber();
-		swipeDate = entity.getSwipeDate();
-		swipeDoor = entity.getSwipeDoor();
-		duration = Duration.ofMillis(entity.getDuration());
-		compliance = Duration.ofMillis(entity.getCompliance());
-		firstIn = entity.getFirstIn();
-		lastOut = entity.getLastOut();
-		filo = Duration.ofMillis(entity.getFilo());
-	}
+    public EntryDateBean(Object[] rawResult) {
 
-	public LocalTime getFirstIn() {
-		return firstIn;
-	}
+        employee = new EmployeeBean(
+                String.valueOf(rawResult[0]),
+                String.valueOf(rawResult[1]),
+                String.valueOf(rawResult[2]),
+                String.valueOf(rawResult[3]));
 
-	public void setFirstIn(LocalTime firstIn) {
-		this.firstIn = firstIn;
-	}
+        psNumber = String.valueOf(rawResult[0]);
+        swipeDate = LocalDate.parse(String.valueOf(rawResult[4]));
+        duration = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[5])));
+        filo = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])));
+        compliance = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7])));
+        swipeDoor = String.valueOf(rawResult[8]);
+    }
 
-	public LocalTime getLastOut() {
-		return lastOut;
-	}
+    public EntryDateBean(EntryDate entity) {
+        super();
+        psNumber = entity.getPsNumber();
+        swipeDate = entity.getSwipeDate();
+        swipeDoor = entity.getSwipeDoor();
+        duration = Duration.ofMillis(entity.getDuration());
+        compliance = Duration.ofMillis(entity.getCompliance());
+        firstIn = entity.getFirstIn();
+        lastOut = entity.getLastOut();
+        filo = Duration.ofMillis(entity.getFilo());
+    }
 
-	public void setLastOut(LocalTime lastOut) {
-		this.lastOut = lastOut;
-	}
+    public LocalTime getFirstIn() {
+        return firstIn;
+    }
 
-	public Duration getFilo() {
-		if (filo != null) {
-			return filo;
-		}
-		return null != firstIn && null != lastOut ? Duration.between(firstIn, lastOut) : Duration.ofMillis(0);
-	}
+    public void setFirstIn(LocalTime firstIn) {
+        this.firstIn = firstIn;
+    }
 
-	public void setFilo(Duration filo) {
-		this.filo = filo;
-	}
+    public LocalTime getLastOut() {
+        return lastOut;
+    }
 
-	public String getFiloString() {
-		return CommonUtil.formatDuration(filo);
-	}
+    public void setLastOut(LocalTime lastOut) {
+        this.lastOut = lastOut;
+    }
 
-	public void setCompliance(Duration compliance) {
-		this.compliance = compliance;
-	}
+    public Duration getFilo() {
+        if (filo != null) {
+            return filo;
+        }
+        return null != firstIn && null != lastOut ? Duration.between(firstIn, lastOut) : Duration.ofMillis(0);
+    }
 
-	public EntryDateBean(String psNumber, LocalDate date, String door, Duration durationSum, LocalTime firstIn,
-			LocalTime lastOut) {
-		super();
-		this.swipeDate = date;
-		this.swipeDoor = door;
-		this.duration = durationSum;
-		this.psNumber = psNumber;
-		this.firstIn = firstIn;
-		this.lastOut = lastOut;
-	}
+    public void setFilo(Duration filo) {
+        this.filo = filo;
+    }
 
-	public EntryDateBean(LocalDate date, String duration, String compliance, String filo, String door, String psNumber,
-			EmployeeBean employee) {
-		super();
-		this.swipeDate = date;
-		this.swipeDoor = door;
-		this.duration = Duration.parse(duration);
-		this.compliance = Duration.parse(compliance);
-		this.filo = Duration.parse(filo);
-		this.psNumber = psNumber;
-		this.employee = employee;
-	}
+    public String getFiloString() {
+        return CommonUtil.formatDuration(filo);
+    }
 
-	public EntryDateBean(Date date, String duration, String compliance, String filo, String door, String psNumber,
-			LocalTime firstIn, LocalTime lastOut, EmployeeBean employee) {
-		super();
-		this.swipeDate = date.toLocalDate();
-		this.swipeDoor = door;
-		this.duration = Duration.parse(duration);
-		this.compliance = Duration.parse(compliance);
-		this.filo = Duration.parse(filo);
-		this.psNumber = psNumber;
-		this.firstIn = firstIn;
-		this.lastOut = lastOut;
-		this.employee = employee;
-	}
+    public void setCompliance(Duration compliance) {
+        this.compliance = compliance;
+    }
 
-	public EntryDateBean(String psNumber, String door, Duration durationSum, Duration complianceSum) {
-		super();
-		this.swipeDoor = door;
-		this.duration = durationSum;
-		this.compliance = complianceSum;
-		this.psNumber = psNumber;
-	}
+    public EntryDateBean(String psNumber, LocalDate date, String door, Duration durationSum, LocalTime firstIn,
+            LocalTime lastOut) {
+        super();
+        this.swipeDate = date;
+        this.swipeDoor = door;
+        this.duration = durationSum;
+        this.psNumber = psNumber;
+        this.firstIn = firstIn;
+        this.lastOut = lastOut;
+    }
 
-	public LocalDate getSwipeDate() {
-		return swipeDate;
-	}
+    public EntryDateBean(LocalDate date, String duration, String compliance, String filo, String door, String psNumber,
+            EmployeeBean employee) {
+        super();
+        this.swipeDate = date;
+        this.swipeDoor = door;
+        this.duration = Duration.parse(duration);
+        this.compliance = Duration.parse(compliance);
+        this.filo = Duration.parse(filo);
+        this.psNumber = psNumber;
+        this.employee = employee;
+    }
 
-	public void setSwipeDate(LocalDate swipeDate) {
-		this.swipeDate = swipeDate;
-	}
+    public EntryDateBean(Date date, String duration, String compliance, String filo, String door, String psNumber,
+            LocalTime firstIn, LocalTime lastOut, EmployeeBean employee) {
+        super();
+        this.swipeDate = date.toLocalDate();
+        this.swipeDoor = door;
+        this.duration = Duration.parse(duration);
+        this.compliance = Duration.parse(compliance);
+        this.filo = Duration.parse(filo);
+        this.psNumber = psNumber;
+        this.firstIn = firstIn;
+        this.lastOut = lastOut;
+        this.employee = employee;
+    }
 
-	public String getSwipeDoor() {
-		return swipeDoor;
-	}
+    public EntryDateBean(String psNumber, String door, Duration durationSum, Duration complianceSum) {
+        super();
+        this.swipeDoor = door;
+        this.duration = durationSum;
+        this.compliance = complianceSum;
+        this.psNumber = psNumber;
+    }
 
-	public void setSwipeDoor(String swipeDoor) {
-		this.swipeDoor = swipeDoor;
-	}
+    public LocalDate getSwipeDate() {
+        return swipeDate;
+    }
 
-	public Duration getDuration() {
-		return duration;
-	}
+    public void setSwipeDate(LocalDate swipeDate) {
+        this.swipeDate = swipeDate;
+    }
 
-	public void setDuration(Duration duration) {
-		this.duration = duration;
-	}
+    public String getSwipeDoor() {
+        return swipeDoor;
+    }
 
-	/**
-	 * if not set, returns duration.minus(8 hours)
-	 * 
-	 * @return
-	 */
-	public Duration getCompliance() {
-		if (compliance != null) {
-			return compliance;
-		}
-		return null != duration ? duration.minus(8, ChronoUnit.HOURS) : Duration.ofMillis(0);
-	}
+    public void setSwipeDoor(String swipeDoor) {
+        this.swipeDoor = swipeDoor;
+    }
 
-	public String getPsNumber() {
-		return psNumber;
-	}
+    public Duration getDuration() {
+        return duration;
+    }
 
-	public void setPsNumber(String psNumber) {
-		this.psNumber = psNumber;
-	}
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
 
-	public EmployeeBean getEmployee() {
-		return employee;
-	}
+    /**
+     * if not set, returns duration.minus(8 hours)
+     * 
+     * @return
+     */
+    public Duration getCompliance() {
+        if (compliance != null) {
+            return compliance;
+        }
+        return null != duration ? duration.minus(8, ChronoUnit.HOURS) : Duration.ofMillis(0);
+    }
 
-	public void setEmployee(EmployeeBean employee) {
-		this.employee = employee;
-	}
+    public String getPsNumber() {
+        return psNumber;
+    }
 
-	public String getDurationString() {
-		return CommonUtil.formatDuration(duration);
-	}
+    public void setPsNumber(String psNumber) {
+        this.psNumber = psNumber;
+    }
 
-	public String getComplianceString() {
-		return CommonUtil.formatDuration(compliance);
-	}
+    public EmployeeBean getEmployee() {
+        return employee;
+    }
 
-	@Override
-	public String toString() {
-		return toCsvString();
-	}
+    public void setEmployee(EmployeeBean employee) {
+        this.employee = employee;
+    }
 
-	public String toCsvString() {
-		builder.setLength(0);
-		return builder
-				.append(swipeDate).append(",")
-				.append(psNumber).append(",")
-				// .append(employee.getPsName()).append(",")
-				// .append(getFiloString()).append(",")
-				.append(getDurationString()).append(",")
-				.append(getComplianceString())
-				.toString();
-	}
+    public String getDurationString() {
+        return CommonUtil.formatDuration(duration);
+    }
 
-	public static final String[] fetchReportHeaders() {
-		String[] reportHeaders = { "Date", "PS Number", "Floor Hours", "Compliance" };
-		return reportHeaders;
-	}
+    public String getComplianceString() {
+        return CommonUtil.formatDuration(compliance);
+    }
+
+    @Override
+    public String toString() {
+        return toCsvString();
+    }
+
+    public String toCsvString() {
+        builder.setLength(0);
+        return builder
+                .append(swipeDate).append(",")
+                .append(psNumber).append(",")
+                // .append(employee.getPsName()).append(",")
+                // .append(getFiloString()).append(",")
+                .append(getDurationString()).append(",")
+                .append(getComplianceString())
+                .toString();
+    }
+
+    public static final String[] fetchReportHeaders() {
+        String[] reportHeaders = { "Date", "PS Number", "Floor Hours", "Compliance" };
+        return reportHeaders;
+    }
 
 }

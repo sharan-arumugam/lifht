@@ -12,7 +12,10 @@
   </head>
   <body data-page="ADMIN">
     <header class='header'>
-      <img src='./assests/images/logo.png' alt=''>
+      <img class="btn col-md-12 col-sm-4 col-xs-4 pull-left" onclick="location.href='/'" src='./assests/images/logo.png' alt=''>
+      <button class="btn btn-primary col-md-2 col-sm-3 col-xs-3" onclick="location.href='/upload'">upload</button>
+      <button class="btn btn-danger col-md-2 col-sm-3 col-xs-3 pull-right" onclick="location.href='/logout'">logout</button>
+      <button class="btn btn-secondary col-md-2 col-sm-3 col-xs-3 pull-right">change password</button>
     </header>
     <div class='container'>
       <div class='row'>
@@ -52,7 +55,7 @@
               <span class="error">Please select to date</span>
             </div>
             <div class='col-md-3 col-sm-12 col-xs-12 input-field'>
-              <button id='submit-admin-form' class='btn btn-info' type='button' name='button'>Submit</button>
+              <button id='submit-admin-form' class='btn btn-primary' type='button' name='button'>Submit</button>
             </div>
             <div class='col-md-12 col-sm-12 col-xs-12 report'>
               <div>

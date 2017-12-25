@@ -23,34 +23,38 @@ import com.lti.lifht.model.RangeMultiPs;
 import com.lti.lifht.model.RangeSinglePs;
 import com.lti.lifht.repository.EmployeeRepository;
 import com.lti.lifht.repository.EntryDao;
+import com.lti.lifht.repository.EntryDateRepository;
 
 @Service
 public class AdminService {
 
     @Autowired
-    EmployeeRepository repo;
+    EmployeeRepository employeeRepo;
+
+    @Autowired
+    EntryDateRepository entryDateRepo;
 
     private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
     private static final EntryDao entryDao = new EntryDao();
 
     public Optional<Employee> findByPsNumber(String psNumber) {
-        return repo.findByPsNumber(psNumber);
+        return employeeRepo.findByPsNumber(psNumber);
     }
 
     public Optional<Employee> findByLtiMail(String ltiMail) {
-        return repo.findByLtiMail(ltiMail);
+        return employeeRepo.findByLtiMail(ltiMail);
     }
 
     public Optional<Employee> findByResetToken(String resetToken) {
-        return repo.findByResetToken(resetToken);
+        return employeeRepo.findByResetToken(resetToken);
     }
 
     public Employee save(Employee entity) {
-        return repo.saveAndFlush(entity);
+        return employeeRepo.saveAndFlush(entity);
     }
 
     public List<EmployeeBean> getAllEmployees() {
-        return repo
+        return employeeRepo
                 .findAll()
                 .stream()
                 .map(EmployeeBean::new)
@@ -74,7 +78,7 @@ public class AdminService {
         logger.info(request.toString());
 
         List<EntryRange> aggregateList = new ArrayList<>();
-        List<EntryDateBean> psListForAggregate = entryDao.getPsListForAggregate(request);
+        List<EntryDateBean> psListForAggregate = entryDateRepo.getPsListForAggregate(request);
 
         psListForAggregate.stream()
                 .collect(Collectors.groupingBy(EntryDateBean::getPsNumber))

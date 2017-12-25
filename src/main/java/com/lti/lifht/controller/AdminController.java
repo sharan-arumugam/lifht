@@ -21,7 +21,7 @@ import com.lti.lifht.model.RangeSinglePs;
 import com.lti.lifht.service.AdminService;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 @PreAuthorize(HAS_ANY_ROLE_ADMIN)
 public class AdminController {
 

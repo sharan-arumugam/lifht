@@ -2,12 +2,9 @@ package com.lti.lifht.repository;
 
 import java.util.List;
 
-import com.lti.lifht.model.EntryDateBean;
-import com.lti.lifht.model.EntryPairBean;
+import com.lti.lifht.entity.EntryPair;
 
 public interface EntryPairRepositoryCustom {
 
-	void saveOrUpdatePair(List<EntryPairBean> pairList);
-
-	void saveOrUpdateDate(List<EntryDateBean> entryDateList);
+    void saveOrUpdatePair(List<EntryPair> pairList);
 }

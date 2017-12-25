@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -64,7 +63,7 @@ public class PasswordController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/reset", method = RequestMethod.GET)
+    @GetMapping("/reset")
     public ModelAndView resetPassword(ModelAndView modelAndView, @RequestParam("token") String token) {
 
         Optional<Employee> user = userService.findByResetToken(token);
@@ -84,12 +83,14 @@ public class PasswordController {
             RedirectAttributes redir) {
 
         Optional<Employee> user = userService.findByResetToken(requestParams.get("token"));
-
+        
         if (user.isPresent()) {
-
             Employee resetUser = user.get();
+
             resetUser.setPassword(bCryptPasswordEncoder.encode(requestParams.get("password")));
             resetUser.setResetToken(null);
+
+            userService.save(resetUser);
 
             redir.addFlashAttribute("successMessage", "password reset");
             modelAndView.setViewName("resetPassword");
