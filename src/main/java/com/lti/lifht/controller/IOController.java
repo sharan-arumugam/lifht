@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.request.RangeMultiPs;
@@ -30,47 +31,68 @@ import com.lti.lifht.service.IOService;
 @RestController
 public class IOController {
 
-    @Autowired
-    IOService service;
+	@Autowired
+	IOService service;
 
-    @Autowired
-    AdminService adminService;
+	@Autowired
+	AdminService adminService;
 
-    @PostMapping("/import/head-count")
-    public void importHeadCount(@RequestParam("head-count") MultipartFile headCount) throws IOException {
+	@PostMapping("/import/head-count")
+	public ModelAndView importHeadCount(ModelAndView mv, @RequestParam("head-count") MultipartFile headCount)
+			throws IOException {
 
-        List<Map<String, String>> rows = parseXlsx.apply(headCount.getInputStream());
-        service.saveOrUpdateHeadCount(rows);
-    }
+		List<Map<String, String>> rows = parseXlsx.apply(headCount.getInputStream());
 
-    @PostMapping("/import/project-allocation")
-    public void importAllocation(@RequestParam("project-allocation") MultipartFile allocation) throws IOException {
+		Integer updateCount = service.saveOrUpdateHeadCount(rows);
 
-        List<Map<String, String>> rows = parseXlsx.apply(allocation.getInputStream());
-        service.saveOrUpdateProjectAllocation(rows);
-    }
+		mv.addObject("messageHc", "updated headcount: " + updateCount + " entries updated");
+		mv.setViewName("upload");
 
-    @PostMapping("/import/swipe-data")
-    public void importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData) throws IOException {
-        List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(), swipeData.getInputStream());
-        service.saveOrUpdateRawEntry(rows);
-    }
+		return mv;
+	}
 
-    @GetMapping("/export/range-multi-ps")
-    public void generateRangeMultiReport(HttpServletResponse response,
-            @RequestParam("fromDate") String fromDate,
-            @RequestParam("toDate") String toDate,
-            @RequestParam("psNumberList") String psNumberList) throws IOException {
+	@PostMapping("/import/project-allocation")
+	public ModelAndView importAllocation(ModelAndView mv, @RequestParam("project-allocation") MultipartFile allocation)
+			throws IOException {
 
-        RangeMultiPs request = new RangeMultiPs(fromDate, toDate,
-                psNumberList.split(","));
+		List<Map<String, String>> rows = parseXlsx.apply(allocation.getInputStream());
 
-        List<EntryRange> entries = adminService.getRangeMulti(request, true);
-        String[] reportHeaders = EntryRange.fetchReportHeaders();
+		Integer updateCount = service.saveOrUpdateProjectAllocation(rows);
 
-        response.setHeader("Content-Disposition",
-                "attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
-        service.generateRangeMultiReport(entries, reportHeaders).write(response.getOutputStream());
+		mv.addObject("messagePa", "updated project-allocation: " + updateCount + " entries updated");
+		mv.setViewName("upload");
 
-    }
+		return mv;
+	}
+
+	@PostMapping("/import/swipe-data")
+	public ModelAndView importSwipeData(ModelAndView mv, @RequestParam("swipe-data") MultipartFile swipeData)
+			throws IOException {
+		List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(), swipeData.getInputStream());
+
+		Integer updateCount = service.saveOrUpdateRawEntry(rows);
+
+		mv.addObject("messageSwipe", "updated swipes: " + updateCount + " entries updated");
+		mv.setViewName("upload");
+
+		return mv;
+	}
+
+	@GetMapping("/export/range-multi-ps")
+	public void generateRangeMultiReport(HttpServletResponse response,
+			@RequestParam("fromDate") String fromDate,
+			@RequestParam("toDate") String toDate,
+			@RequestParam("psNumberList") String psNumberList) throws IOException {
+
+		RangeMultiPs request = new RangeMultiPs(fromDate, toDate,
+				psNumberList.split(","));
+
+		List<EntryRange> entries = adminService.getRangeMulti(request, true);
+		String[] reportHeaders = EntryRange.fetchReportHeaders();
+
+		response.setHeader("Content-Disposition",
+				"attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
+		service.generateRangeMultiReport(entries, reportHeaders).write(response.getOutputStream());
+
+	}
 }

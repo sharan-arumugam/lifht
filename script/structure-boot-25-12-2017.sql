@@ -32,18 +32,8 @@ CREATE TABLE `access` (
   KEY `FKgundor8pb7fd8enhf9qdfkpa2` (`ps_number`),
   CONSTRAINT `FKfqjkmtw2rddr24sv5lcb40t59` FOREIGN KEY (`roles_role_id`) REFERENCES `role_master` (`role_id`),
   CONSTRAINT `FKgundor8pb7fd8enhf9qdfkpa2` FOREIGN KEY (`ps_number`) REFERENCES `employee` (`ps_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `access`
---
-
-LOCK TABLES `access` WRITE;
-/*!40000 ALTER TABLE `access` DISABLE KEYS */;
-INSERT INTO `access` VALUES (1,'admin',1),(2,'user',2);
-/*!40000 ALTER TABLE `access` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `employee`
@@ -62,19 +52,13 @@ CREATE TABLE `employee` (
   `apple_manager` varchar(100) DEFAULT NULL,
   `business_unit` varchar(100) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT '1',
-  PRIMARY KEY (`ps_number`)
+  `reset_token` varchar(100) DEFAULT NULL,
+  `employee_ps_number` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`ps_number`),
+  KEY `FKeyt5n6bcxifri0ey2q4ryry3q` (`employee_ps_number`),
+  CONSTRAINT `FKeyt5n6bcxifri0ey2q4ryry3q` FOREIGN KEY (`employee_ps_number`) REFERENCES `employee` (`ps_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `employee`
---
-
-LOCK TABLES `employee` WRITE;
-/*!40000 ALTER TABLE `employee` DISABLE KEYS */;
-INSERT INTO `employee` VALUES ('admin',NULL,NULL,'$2a$04$Xc6FOn/PSa.j8BcwfS8yjO6YxpbopFIChc1gdbtOwsumope3PTsRq',NULL,NULL,NULL,NULL,1),('inactive',NULL,NULL,'$2a$04$X2us1jNgSvyby6CyVtfRBups3d0AOvadiPEGnrY9yVzx.EtOiGMH2',NULL,NULL,NULL,NULL,0),('user',NULL,NULL,'$2a$04$IVujLfEByWIsSYjb0S6JLe48p4thr3iVZqlhSr6XMj1s9wV43MYMC',NULL,NULL,NULL,NULL,1);
-/*!40000 ALTER TABLE `employee` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `entry_date`
@@ -84,26 +68,19 @@ DROP TABLE IF EXISTS `entry_date`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `entry_date` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `ps_number` varchar(100) NOT NULL,
   `swipe_date` date NOT NULL,
   `swipe_door` varchar(100) NOT NULL,
-  `duration` varchar(255) DEFAULT NULL COMMENT 'sum of Time difference siwpe_out minus swipe_in\nPTxxHxxMxxs\nXXH hours\nXXM Minutes\nXXS Seconds\n',
-  `compliance` varchar(255) DEFAULT NULL COMMENT 'sum of (Duration minus 8) hours\nPTxxHxxMxxs\nXXH hours\nXXM Minutes\nXXS Seconds\n',
-  `first_in` time DEFAULT NULL,
-  `last_out` time DEFAULT NULL,
-  `filo` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`ps_number`,`swipe_date`,`swipe_door`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `duration` varchar(255) NOT NULL COMMENT 'sum of Time difference siwpe_out minus swipe_in\nPTxxHxxMxxs\nXXH hours\nXXM Minutes\nXXS Seconds\n',
+  `compliance` varchar(255) NOT NULL COMMENT 'sum of (Duration minus 8) hours\nPTxxHxxMxxs\nXXH hours\nXXM Minutes\nXXS Seconds\n',
+  `first_in` time NOT NULL,
+  `last_out` time NOT NULL,
+  `filo` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `UKmi936ad0m1bww1w99n7coyl8p` (`ps_number`,`swipe_date`,`swipe_door`,`duration`)
+) ENGINE=InnoDB AUTO_INCREMENT=516 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `entry_date`
---
-
-LOCK TABLES `entry_date` WRITE;
-/*!40000 ALTER TABLE `entry_date` DISABLE KEYS */;
-/*!40000 ALTER TABLE `entry_date` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `entry_pair`
@@ -113,24 +90,17 @@ DROP TABLE IF EXISTS `entry_pair`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `entry_pair` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `ps_number` varchar(100) NOT NULL,
   `swipe_date` date NOT NULL,
   `swipe_in` time NOT NULL,
   `swipe_out` time NOT NULL,
   `swipe_door` varchar(100) NOT NULL,
-  `duration` varchar(100) DEFAULT 'PT0S' COMMENT 'Time difference siwpe_out minus swipe_in\nPTxxHxxMxxs\nXXH hours\nXXM Minutes\nXXS Seconds\n',
-  PRIMARY KEY (`ps_number`,`swipe_date`,`swipe_in`,`swipe_out`,`swipe_door`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `duration` varchar(100) NOT NULL DEFAULT 'PT0S' COMMENT 'Time difference siwpe_out minus swipe_in\nPTxxHxxMxxs\nXXH hours\nXXM Minutes\nXXS Seconds\n',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `UKt4d89ddqt8bxa4vv7ahdhonv` (`ps_number`,`swipe_date`,`swipe_in`,`swipe_out`,`swipe_door`)
+) ENGINE=InnoDB AUTO_INCREMENT=1562 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `entry_pair`
---
-
-LOCK TABLES `entry_pair` WRITE;
-/*!40000 ALTER TABLE `entry_pair` DISABLE KEYS */;
-/*!40000 ALTER TABLE `entry_pair` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `role_master`
@@ -145,16 +115,6 @@ CREATE TABLE `role_master` (
   PRIMARY KEY (`role_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `role_master`
---
-
-LOCK TABLES `role_master` WRITE;
-/*!40000 ALTER TABLE `role_master` DISABLE KEYS */;
-INSERT INTO `role_master` VALUES (1,'ROLE_ADMIN'),(2,'ROLE_USER');
-/*!40000 ALTER TABLE `role_master` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -165,4 +125,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-12-18 15:13:18
+-- Dump completed on 2017-12-26  3:24:33
