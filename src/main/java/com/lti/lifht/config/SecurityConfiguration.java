@@ -18,31 +18,32 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    UserDetailsService employeeDetailsService;
+	@Autowired
+	UserDetailsService employeeDetailsService;
 
-    @Autowired
-    SuccessHandler successHandler;
+	@Autowired
+	SuccessHandler successHandler;
 
-    @Autowired
-    CorsFilter corsFilter;
+	@Autowired
+	CorsFilter corsFilter;
 
-    BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+	BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
 
-        http.authorizeRequests()
-                .antMatchers("/password/**").permitAll()
-                .anyRequest().authenticated()
-                .and().formLogin().permitAll().successHandler(successHandler)
-                .and().logout().logoutUrl(LOGOUT).logoutSuccessUrl(LOGIN)
-                .and().csrf().disable();
-    }
+		http.authorizeRequests()
+				.antMatchers("/password/**").permitAll()
+				.anyRequest().authenticated()
+				.antMatchers("/resources/**").permitAll()
+				.and().formLogin().permitAll().successHandler(successHandler)
+				.and().logout().logoutUrl(LOGOUT).logoutSuccessUrl(LOGIN)
+				.and().csrf().disable();
+	}
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(employeeDetailsService)
-                .passwordEncoder(bCryptPasswordEncoder);
-    }
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(employeeDetailsService)
+				.passwordEncoder(bCryptPasswordEncoder);
+	}
 }
