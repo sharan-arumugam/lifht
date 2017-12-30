@@ -1,8 +1,9 @@
 package com.lti.lifht.model;
 
+import static com.lti.lifht.util.CommonUtil.formatDuration;
+
 import java.time.Duration;
 import java.time.LocalDate;
-import static com.lti.lifht.util.CommonUtil.formatDuration;
 
 public class EntryRange {
 
@@ -17,6 +18,7 @@ public class EntryRange {
     private EmployeeBean employee;
     private Duration filo;
     private int daysPresent;
+    private LocalDate validSince;
 
     public Duration getFilo() {
         return filo;
@@ -39,11 +41,12 @@ public class EntryRange {
         this.psNumber = psNumber;
     }
 
-    public EntryRange(LocalDate from, LocalDate to, int daysPresent, Duration durationSum, Duration complianceSum,
-            Duration filoSum, String door, String psNumber, EmployeeBean employee) {
+    public EntryRange(LocalDate from, LocalDate to, LocalDate validSince, int daysPresent, Duration durationSum,
+            Duration complianceSum, Duration filoSum, String door, String psNumber, EmployeeBean employee) {
         super();
         this.fromDate = from;
         this.toDate = to;
+        this.validSince = validSince;
         this.daysPresent = daysPresent;
         this.duration = durationSum;
         this.compliance = complianceSum;
@@ -129,6 +132,14 @@ public class EntryRange {
         this.daysPresent = daysPresent;
     }
 
+    public LocalDate getValidSince() {
+        return validSince;
+    }
+
+    public void setValidSince(LocalDate validSince) {
+        this.validSince = validSince;
+    }
+
     public String toCsvString() {
         builder.setLength(0);
         return builder
@@ -139,7 +150,8 @@ public class EntryRange {
                 .append(null != employee && null != employee.getDsId() ? employee.getDsId() : "NA").append(",")
                 .append(null != psNumber ? psNumber : "NA").append(",")
                 .append(null != employee && null != employee.getPsName() ? employee.getPsName() : "NA").append(",")
-                .append(getDaysPresent()).append(",")
+                .append(validSince).append(",")
+                .append(daysPresent).append(",")
                 .append(getFiloString()).append(",")
                 .append(getDurationString()).append(",")
                 .append(getComplianceString())
@@ -152,7 +164,8 @@ public class EntryRange {
     }
 
     public static final String[] fetchReportHeaders() {
-        String[] reportHeaders = { "From", "To", "Business Unit", "DS ID", "PS Number", "PS Name", "Days",
+        String[] reportHeaders = { "From", "To", "Business Unit", "DS ID", "PS Number", "PS Name", "Valid Since",
+                "Days",
                 "FILO Hours", "Floor Hours", "Compliance" };
         return reportHeaders;
     }
