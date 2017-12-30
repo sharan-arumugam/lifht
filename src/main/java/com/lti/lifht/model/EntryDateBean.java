@@ -163,8 +163,8 @@ public class EntryDateBean {
             String psNumber,
             LocalDate swipeDate,
             Duration duration,
-            Duration compliance,
             Duration filo,
+            Duration compliance,
             String door,
             EmployeeBean employee) {
         super();
