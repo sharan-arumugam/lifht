@@ -1,6 +1,8 @@
 package com.lti.lifht.repository;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import com.lti.lifht.entity.EntryDate;
 import com.lti.lifht.model.EntryDateBean;
@@ -19,4 +21,6 @@ public interface EntryDateRepositoryCustom {
     List<EntryDateBean> getPsListForAggregate(RangeMultiPs request);
 
     List<EntryDateBean> getPsListForAggregateDelta(RangeMultiPs request);
+
+    Map<String, LocalDate> getValidSince(LocalDate fromDate, LocalDate toDate);
 }

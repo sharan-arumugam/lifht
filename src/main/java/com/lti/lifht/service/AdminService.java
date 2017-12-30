@@ -2,9 +2,11 @@ package com.lti.lifht.service;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -95,6 +97,10 @@ public class AdminService {
             psListForAggregate.addAll(entryDateRepo.getPsListForAggregateDelta(request));
         }
 
+        Map<String, LocalDate> psValidSinceMap = entryDateRepo.getValidSince(
+                request.getFromDate(),
+                request.getToDate());
+
         psListForAggregate.stream()
                 .filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
                 .collect(Collectors.groupingBy(EntryDateBean::getPsNumber))
@@ -131,10 +137,16 @@ public class AdminService {
                             .reduce(Duration::plus)
                             .orElse(Duration.ofMillis(0));
 
+                    Long daysPresent = groupedList.stream()
+                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+                            .count();
+
                     aggregateList.add(new EntryRange(
                             request.getFromDate(),
                             request.getToDate(),
-                            groupedList.size(),
+                            psValidSinceMap.get(psNumber),
+                            daysPresent.intValue(),
                             durationSum,
                             complianceSum,
                             filoSum,
