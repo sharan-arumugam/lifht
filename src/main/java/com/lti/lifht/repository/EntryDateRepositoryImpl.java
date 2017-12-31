@@ -15,8 +15,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.lti.lifht.entity.EntryDate;
@@ -30,8 +28,6 @@ import com.lti.lifht.model.request.RangeSinglePs;
 @Transactional
 @SuppressWarnings("unchecked")
 public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
-
-    private static final Logger logger = LoggerFactory.getLogger(EntryDateRepositoryImpl.class);
 
     @PersistenceContext
     EntityManager entityManager;

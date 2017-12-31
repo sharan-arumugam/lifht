@@ -27,7 +27,6 @@ import com.lti.lifht.model.request.DateSinglePs;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.model.request.RangeSinglePs;
 import com.lti.lifht.repository.EmployeeRepository;
-import com.lti.lifht.repository.EntryDao;
 import com.lti.lifht.repository.EntryDateRepository;
 import com.lti.lifht.repository.EntryPairRepository;
 
@@ -44,7 +43,6 @@ public class AdminService {
     EntryPairRepository entryPairRepo;
 
     private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
-    private static final EntryDao entryDao = new EntryDao();
 
     public List<EntryPairBean> getDateSinglePs(@RequestBody DateSinglePs request) {
         return entryPairRepo.getDateSinlgePs(request);
@@ -52,10 +50,6 @@ public class AdminService {
 
     public Optional<Employee> findByPsNumber(String psNumber) {
         return employeeRepo.findByPsNumber(psNumber);
-    }
-
-    public Optional<Employee> findByLtiMail(String ltiMail) {
-        return employeeRepo.findByLtiMail(ltiMail);
     }
 
     public Optional<Employee> findByResetToken(String resetToken) {
@@ -72,10 +66,6 @@ public class AdminService {
                 .stream()
                 .map(EmployeeBean::new)
                 .collect(Collectors.toList());
-    }
-
-    public List<EntryDateBean> getAllEntryDate() {
-        return entryDao.getAllEntryDate();
     }
 
     public List<EntryDateBean> getRangeSingle(RangeSinglePs request) {
@@ -161,10 +151,6 @@ public class AdminService {
                                 ? entry.getEmployee().getPsName()
                                 : entry.getPsNumber()))
                 .collect(Collectors.toList());
-    }
-
-    public List<EntryPairBean> getAllPairs() {
-        return entryDao.getAllPairs();
     }
 
 }
