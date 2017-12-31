@@ -43,6 +43,7 @@ public class ExcelConstant {
     static {
         ALC_MAP.put("psNumber", "EMPLID");
         ALC_MAP.put("businessUnit", "DEPUTED BU");
+        ALC_MAP.put("customer", "CUSTOMER");
     }
 
     // swipe-data map

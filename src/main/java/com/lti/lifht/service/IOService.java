@@ -5,21 +5,24 @@ import static com.lti.lifht.constant.ExcelConstant.HC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
 import static com.lti.lifht.util.CommonUtil.getNext;
 import static com.lti.lifht.util.CommonUtil.getPrev;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +32,8 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,246 +54,256 @@ import one.util.streamex.StreamEx;
 @Service
 public class IOService {
 
-	@Autowired
-	EmployeeRepository employeeRepo;
+    @Autowired
+    EmployeeRepository employeeRepo;
 
-	@Autowired
-	EntryPairRepository entryPairRepo;
+    @Autowired
+    EntryPairRepository entryPairRepo;
 
-	@Autowired
-	EntryDateRepository entryDateRepo;
+    @Autowired
+    EntryDateRepository entryDateRepo;
 
-	public Integer saveOrUpdateRawEntry(List<Map<String, String>> entries) {
+    Logger LOG = LoggerFactory.getLogger(IOService.class);
 
-		Comparator<EntryRaw> byPsNumDateTime = Comparator.comparing(EntryRaw::getPsNumber)
-				.thenComparing(EntryRaw::getSwipeDate)
-				.thenComparing(EntryRaw::getSwipeTime);
+    public Integer saveOrUpdateRawEntry(List<Map<String, String>> entries) {
 
-		Predicate<Map<String, String>> validEvent = entry -> {
-			String eventNumber = entry.get(SWP_MAP.get("eventNumber"));
-			eventNumber = eventNumber != null ? eventNumber : "201";
-			return !(eventNumber.equals("200") || eventNumber.equals("215") || eventNumber.startsWith("---"));
-		};
+        Comparator<EntryRaw> byPsNumDateTime = Comparator.comparing(EntryRaw::getPsNumber)
+                .thenComparing(EntryRaw::getSwipeDate)
+                .thenComparing(EntryRaw::getSwipeTime);
 
-		// parse row to EntryRaw
-		List<EntryRaw> entryList = entries.stream()
-				.filter(Objects::nonNull)
-				.filter(validEvent)
-				.filter(entry -> entry.get(SWP_MAP.get("swipeDoor"))
-						.contains("Apple Main Door"))
-				.map(EntryRaw::new)
-				.sorted(byPsNumDateTime)
-				.collect(Collectors.toList());
+        Predicate<Map<String, String>> validEvent = entry -> {
+            String eventNumber = entry.get(SWP_MAP.get("eventNumber"));
+            eventNumber = eventNumber != null ? eventNumber : "201";
+            return !(eventNumber.equals("200") || eventNumber.equals("215") || eventNumber.startsWith("---"));
+        };
 
-		int entrySize = entryList.size();
+        // parse row to EntryRaw
+        List<EntryRaw> entryList = entries.stream()
+                .filter(Objects::nonNull)
+                .filter(validEvent)
+                .filter(entry -> entry.get(SWP_MAP.get("swipeDoor"))
+                        .contains("Apple Main Door"))
+                .map(EntryRaw::new)
+                .sorted(byPsNumDateTime)
+                .collect(toList());
 
-		List<EntryRaw> filteredList = new ArrayList<>();
+        int entrySize = entryList.size();
 
-		Predicate<Integer> doorNotNull = index -> null != entryList.get(index)
-				&& null != entryList.get(index).getSwipeDoor();
+        List<EntryRaw> filteredList = new ArrayList<>();
 
-		BiPredicate<EntryRaw, EntryRaw> validRow = (current, adjacent) -> {
-			return current.getPsNumber().equals(adjacent.getPsNumber())
-					&& current.getSwipeDate().equals(adjacent.getSwipeDate());
-		};
+        Predicate<Integer> doorNotNull = index -> null != entryList.get(index)
+                && null != entryList.get(index).getSwipeDoor();
 
-		BiPredicate<EntryRaw, EntryRaw> doorPair = (current, next) -> {
-			return current.getSwipeDoor().endsWith(CommonConstant.ENTRY) &&
-					next.getSwipeDoor().endsWith(CommonConstant.EXIT);
-		};
+        BiPredicate<EntryRaw, EntryRaw> validRow = (current, adjacent) -> {
+            return current.getPsNumber().equals(adjacent.getPsNumber())
+                    && current.getSwipeDate().equals(adjacent.getSwipeDate());
+        };
 
-		BiPredicate<EntryRaw, EntryRaw> sameDoor = (current, adjacent) -> {
-			return current.getSwipeDoor().equals(adjacent.getSwipeDoor());
-		};
+        BiPredicate<EntryRaw, EntryRaw> doorPair = (current, next) -> {
+            return current.getSwipeDoor().endsWith(CommonConstant.ENTRY) &&
+                    next.getSwipeDoor().endsWith(CommonConstant.EXIT);
+        };
 
-		BiPredicate<EntryRaw, EntryRaw> timeNotNull = (current, adjacent) -> {
-			return null != current
-					&& null != current.getSwipeTime()
-					&& null != adjacent
-					&& null != adjacent.getSwipeTime();
-		};
+        BiPredicate<EntryRaw, EntryRaw> sameDoor = (current, adjacent) -> {
+            return current.getSwipeDoor().equals(adjacent.getSwipeDoor());
+        };
 
-		// filter repeating doors
-		Predicate<Integer> duplicateEntry = index -> {
-			EntryRaw current = entryList.get(index);
+        BiPredicate<EntryRaw, EntryRaw> timeNotNull = (current, adjacent) -> {
+            return null != current
+                    && null != current.getSwipeTime()
+                    && null != adjacent
+                    && null != adjacent.getSwipeTime();
+        };
 
-			if (index > 0) { // filter duplicate door entries
-				EntryRaw previous = getPrev.apply(entryList, index);
-				return validRow.test(current, previous)
-						? !sameDoor.test(current, previous)
-						: true;
+        // filter repeating doors
+        Predicate<Integer> duplicateEntry = index -> {
+            EntryRaw current = entryList.get(index);
 
-			} else if (index == 0 && index + 1 < entrySize) { // validate first pair
-				EntryRaw next = getNext.apply(entryList, index);
+            if (index > 0) { // filter duplicate door entries
+                EntryRaw previous = getPrev.apply(entryList, index);
+                return validRow.test(current, previous)
+                        ? !sameDoor.test(current, previous)
+                        : true;
 
-				return validRow.test(current, next)
-						? doorPair.test(current, next)
-						: false;
-			}
-			return true;
-		};
+            } else if (index == 0 && index + 1 < entrySize) { // validate first pair
+                EntryRaw next = getNext.apply(entryList, index);
 
-		Consumer<Integer> addToFilteredList = index -> filteredList.add(entryList.get(index));
+                return validRow.test(current, next)
+                        ? doorPair.test(current, next)
+                        : false;
+            }
+            return true;
+        };
 
-		// parse EntryRaw to EntryPair
-		BiFunction<EntryRaw, EntryRaw, EntryPairBean> toEntryPair = (current, next) -> {
-			if (timeNotNull.test(current, next)
-					&& validRow.test(current, next)
-					&& doorPair.test(current, next)) {
+        Consumer<Integer> addToFilteredList = index -> filteredList.add(entryList.get(index));
 
-				EntryPairBean pair = new EntryPairBean(current);
-				pair.setSwipeIn(current.getSwipeTime());
-				pair.setSwipeOut(next.getSwipeTime());
-				return pair;
-			}
-			return null;
-		};
+        // parse EntryRaw to EntryPair
+        BiFunction<EntryRaw, EntryRaw, EntryPairBean> toEntryPair = (current, next) -> {
+            if (timeNotNull.test(current, next)
+                    && validRow.test(current, next)
+                    && doorPair.test(current, next)) {
 
-		// filter duplicates
-		IntStream.range(0, entrySize)
-				.boxed()
-				.filter(doorNotNull)
-				.filter(duplicateEntry)
-				.forEach(addToFilteredList);
+                EntryPairBean pair = new EntryPairBean(current);
+                pair.setSwipeIn(current.getSwipeTime());
+                pair.setSwipeOut(next.getSwipeTime());
+                return pair;
+            }
+            return null;
+        };
 
-		// map to pairs
-		List<EntryPairBean> pairList = StreamEx.of(filteredList)
-				.sorted(byPsNumDateTime)
-				.nonNull()
-				.pairMap(toEntryPair)
-				.nonNull()
-				.collect(Collectors.toList());
+        // filter duplicates
+        IntStream.range(0, entrySize)
+                .boxed()
+                .filter(doorNotNull)
+                .filter(duplicateEntry)
+                .forEach(addToFilteredList);
 
-		entryPairRepo.saveOrUpdatePair(pairList
-				.stream()
-				.map(EntryPair::new)
-				.filter(pair -> NumberUtils.isCreatable(pair.getPsNumber()))
-				.collect(Collectors.toList()));
+        // map to pairs
+        List<EntryPairBean> pairList = StreamEx.of(filteredList)
+                .sorted(byPsNumDateTime)
+                .nonNull()
+                .pairMap(toEntryPair)
+                .nonNull()
+                .collect(toList());
 
-		return saveOrUpdateEntryDate();
-	}
+        entryPairRepo.saveOrUpdatePair(pairList
+                .stream()
+                .map(EntryPair::new)
+                .filter(pair -> NumberUtils.isCreatable(pair.getPsNumber()))
+                .collect(toList()));
 
-	public Integer saveOrUpdateEntryDate() {
+        LocalDate minDate = pairList.stream()
+                .map(EntryPairBean::getSwipeDate)
+                .findFirst()
+                .orElse(null);
 
-		List<EntryPair> entityList = entryPairRepo.findAll();
+        LocalDate maxDate = pairList.stream()
+                .map(EntryPairBean::getSwipeDate)
+                .reduce((current, next) -> next)
+                .orElse(null);
 
-		List<EntryPairBean> pairList = entityList
-				.stream()
-				.map(EntryPairBean::new)
-				.collect(Collectors.toList());
+        LOG.info("minDate::" + minDate.toString());
+        LOG.info("maxDate::" + maxDate.toString());
 
-		List<EntryDateBean> entryDateList = new ArrayList<>();
+        return saveOrUpdateEntryDate(minDate, maxDate);
+    }
 
-		pairList.stream()
-				.collect(Collectors.groupingBy(EntryPairBean::getSwipeDate))
-				.forEach((date, psList) -> {
+    public Integer saveOrUpdateEntryDate(LocalDate minDate, LocalDate maxDate) {
 
-					psList.stream()
-							.filter(entry -> null != entry.getPsNumber())
-							.collect(Collectors.groupingBy(EntryPairBean::getPsNumber))
-							.forEach((psNumber, groupedList) -> {
+        List<EntryPair> entityList = entryPairRepo.findBetween(minDate, maxDate);
 
-								LocalTime firstIn = groupedList.stream()
-										.findFirst()
-										.get()
-										.getSwipeIn();
+        List<EntryPairBean> pairList = entityList
+                .stream()
+                .map(EntryPairBean::new)
+                .collect(toList());
 
-								LocalTime lastOut = groupedList.stream()
-										.reduce((current, next) -> next)
-										.get()
-										.getSwipeOut();
+        List<EntryDateBean> entryDateList = new ArrayList<>();
 
-								String door = groupedList.stream()
-										.map(EntryPairBean::getSwipeDoor)
-										.findAny()
-										.orElse("Invalid");
+        pairList.stream()
+                .collect(groupingBy(EntryPairBean::getSwipeDate))
+                .forEach((date, psList) -> {
 
-								Duration durationSum = groupedList.stream()
-										.map(EntryPairBean::getDuration)
-										.reduce(Duration::plus)
-										.orElse(Duration.ofMillis(0));
+                    psList.stream()
+                            .filter(entry -> null != entry.getPsNumber())
+                            .collect(groupingBy(EntryPairBean::getPsNumber))
+                            .forEach((psNumber, groupedList) -> {
 
-								entryDateList
-										.add(new EntryDateBean(psNumber, date, door, durationSum, firstIn, lastOut));
-							});
-				});
+                                LocalTime firstIn = groupedList.stream()
+                                        .findFirst()
+                                        .get()
+                                        .getSwipeIn();
 
-		return entryDateRepo.saveOrUpdateDate(entryDateList
-				.stream()
-				.map(EntryDate::new)
-				.collect(Collectors.toList()));
-	}
+                                LocalTime lastOut = groupedList.stream()
+                                        .reduce((current, next) -> next)
+                                        .get()
+                                        .getSwipeOut();
 
-	public Integer saveOrUpdateHeadCount(List<Map<String, String>> rows) {
+                                String door = groupedList.stream()
+                                        .map(EntryPairBean::getSwipeDoor)
+                                        .findAny()
+                                        .orElse("Invalid");
 
-		List<EmployeeBean> offshoreList = rows
-				.stream()
-				.filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
-				.filter(row -> StringUtils.isNotBlank(row.get(HC_MAP.get("psNumber"))))
-				.map(row -> new EmployeeBean(row, HC_MAP))
-				.collect(Collectors.toList());
+                                Duration durationSum = groupedList.stream()
+                                        .map(EntryPairBean::getDuration)
+                                        .reduce(Duration::plus)
+                                        .orElse(Duration.ofMillis(0));
 
-		return employeeRepo.saveOrUpdateHeadCount(offshoreList);
-	}
+                                entryDateList
+                                        .add(new EntryDateBean(psNumber, date, door, durationSum, firstIn, lastOut));
+                            });
+                });
 
-	public Integer saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
+        return entryDateRepo.saveOrUpdateDate(entryDateList
+                .stream()
+                .map(EntryDate::new)
+                .collect(toList()));
+    }
 
-		List<String> psNumberList = employeeRepo.findAll()
-				.stream()
-				.map(EmployeeBean::new)
-				.map(EmployeeBean::getPsNumber)
-				.collect(Collectors.toList());
+    public Integer saveOrUpdateHeadCount(List<Map<String, String>> rows) {
 
-		rows = rows
-				.stream()
-				.filter(row -> psNumberList.contains(row.get(ALC_MAP.get("psNumber"))))
-				.collect(Collectors.toList());
+        List<EmployeeBean> offshoreList = rows
+                .stream()
+                .filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
+                .filter(row -> StringUtils.isNotBlank(row.get(HC_MAP.get("psNumber"))))
+                .map(row -> new EmployeeBean(row, HC_MAP))
+                .collect(toList());
 
-		List<EmployeeBean> employeeList = rows
-				.stream()
-				.map(row -> new EmployeeBean(row, ALC_MAP))
-				.collect(Collectors.toList());
+        return employeeRepo.saveOrUpdateHeadCount(offshoreList);
+    }
 
-		return employeeRepo.saveOrUpdateProjectAllocation(employeeList);
-	}
+    public Integer saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
 
-	public Workbook generateRangeMultiReport(List<EntryRange> entries, String[] reportHeaders) {
-		try {
-			return createTable(entries.toArray(), reportHeaders);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+        rows = rows
+                .stream()
+                .filter(row -> null != row.get(ALC_MAP.get("customer"))
+                        && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+                .collect(toList());
 
-	public Workbook createTable(Object[] rowArr, String[] reportHeaders) throws FileNotFoundException, IOException {
-		Workbook wb = new XSSFWorkbook();
-		XSSFSheet sheet = (XSSFSheet) wb.createSheet();
+        List<EmployeeBean> employeeList = rows
+                .stream()
+                .map(row -> new EmployeeBean(row, ALC_MAP))
+                .collect(toList());
 
-		int rowLength = rowArr.length;
+        return employeeRepo.saveOrUpdateProjectAllocation(employeeList);
+    }
 
-		// set headers
-		int colLength = reportHeaders.length;
-		XSSFRow headerRow = sheet.createRow(0); // first row as column names
+    public Workbook generateRangeMultiReport(List<EntryRange> entries, String[] reportHeaders) {
+        try {
+            return createTable(entries.toArray(), reportHeaders);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-		IntStream.range(0, colLength).forEach(colIndex -> {
-			XSSFCell cell = headerRow.createCell(colIndex);
-			cell.setCellValue(reportHeaders[colIndex]);
-		});
+    public Workbook createTable(Object[] rowArr, String[] reportHeaders) throws FileNotFoundException, IOException {
+        Workbook wb = new XSSFWorkbook();
+        XSSFSheet sheet = (XSSFSheet) wb.createSheet();
 
-		// set row, column values
-		IntStream.range(0, rowLength).forEach(rowIndex -> {
-			String[] colArr = rowArr[rowIndex].toString().split(",");
-			XSSFRow row = sheet.createRow(rowIndex + 1); // +1 as first row for headers
+        int rowLength = rowArr.length;
 
-			IntStream.range(0, colLength).forEach(colIndex -> {
-				XSSFCell cell = row.createCell(colIndex);
-				cell.setCellValue(colArr[colIndex]);
-				sheet.autoSizeColumn(colIndex);
-			});
-		});
+        // set headers
+        int colLength = reportHeaders.length;
+        XSSFRow headerRow = sheet.createRow(0); // first row as column names
 
-		return wb;
-	}
+        IntStream.range(0, colLength).forEach(colIndex -> {
+            XSSFCell cell = headerRow.createCell(colIndex);
+            cell.setCellValue(reportHeaders[colIndex]);
+        });
+
+        // set row, column values
+        IntStream.range(0, rowLength).forEach(rowIndex -> {
+            String[] colArr = rowArr[rowIndex].toString().split(",");
+            XSSFRow row = sheet.createRow(rowIndex + 1); // +1 as first row for headers
+
+            IntStream.range(0, colLength).forEach(colIndex -> {
+                XSSFCell cell = row.createCell(colIndex);
+                cell.setCellValue(colArr[colIndex]);
+                sheet.autoSizeColumn(colIndex);
+            });
+        });
+
+        return wb;
+    }
 
 }

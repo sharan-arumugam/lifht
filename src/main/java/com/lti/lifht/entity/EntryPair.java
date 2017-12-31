@@ -5,7 +5,6 @@ import static javax.persistence.GenerationType.AUTO;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -17,37 +16,23 @@ import com.lti.lifht.model.EntryPairBean;
 
 @Entity
 @Table(name = "entry_pair", uniqueConstraints = @UniqueConstraint(columnNames = {
-        "ps_number",
-        "swipe_date",
-        "swipe_in",
-        "swipe_out",
-        "swipe_door" }))
+        "psNumber",
+        "swipeDate",
+        "swipeIn",
+        "swipeOut",
+        "swipeDoor" }))
 
 public class EntryPair {
 
     @Id
     @GeneratedValue(strategy = AUTO)
-    @Column(name = "id")
     private int id;
-
-    @Column(name = "ps_number")
     private String psNumber;
-
-    @Column(name = "swipe_date")
     private LocalDate swipeDate;
-
-    @Column(name = "swipe_in")
     private LocalTime swipeIn;
-
-    @Column(name = "swipe_out")
     private LocalTime swipeOut;
-
-    @Column(name = "swipe_door")
     private String swipeDoor;
-
-    @Column(name = "duration")
     private long duration;
-
     @Transient
     private Employee employee;
 

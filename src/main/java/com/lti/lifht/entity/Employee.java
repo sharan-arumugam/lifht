@@ -1,67 +1,32 @@
 package com.lti.lifht.entity;
 
+import static com.lti.lifht.constant.EntityConstant.ACCESS;
+import static com.lti.lifht.constant.EntityConstant.PS_NUMBER;
 import static javax.persistence.CascadeType.ALL;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import static javax.persistence.FetchType.EAGER;
-import static javax.persistence.GenerationType.AUTO;
+
+import java.util.Set;
+
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import java.util.Set;
-
-import static com.lti.lifht.constant.EntityConstant.EMPLOYEE;
-import static com.lti.lifht.constant.EntityConstant.PS_NUMBER;
-import static com.lti.lifht.constant.EntityConstant.PS_NAME;
-import static com.lti.lifht.constant.EntityConstant.DS_ID;
-import static com.lti.lifht.constant.EntityConstant.PASSWORD;
-import static com.lti.lifht.constant.EntityConstant.APPLE_MAIL;
-import static com.lti.lifht.constant.EntityConstant.LTI_MAIL;
-import static com.lti.lifht.constant.EntityConstant.APPLE_MANAGER;
-import static com.lti.lifht.constant.EntityConstant.BUSINESS_UNIT;
-import static com.lti.lifht.constant.EntityConstant.IS_ACTIVE;
-import static com.lti.lifht.constant.EntityConstant.RESET_TOKEN;
-import static com.lti.lifht.constant.EntityConstant.ACCESS;
 
 @Entity
-@Table(name = EMPLOYEE)
 public class Employee {
 
     @Id
-    @GeneratedValue(strategy = AUTO)
-    @Column(name = PS_NUMBER)
     private String psNumber;
-
-    @Column(name = PS_NAME)
     private String psName;
-
-    @Column(name = DS_ID)
     private String dsId;
-
-    @Column(name = PASSWORD)
     private String password;
-
-    @Column(name = APPLE_MAIL)
     private String appleMail;
-
-    @Column(name = LTI_MAIL)
     private String ltiMail;
-
-    @Column(name = APPLE_MANAGER)
     private String appleManager;
-
-    @Column(name = BUSINESS_UNIT)
     private String businessUnit;
-
-    @Column(name = IS_ACTIVE)
-    private boolean isActive;
-
-    @Column(name = RESET_TOKEN)
+    private char active;
     private String resetToken;
-
     @OneToMany(cascade = ALL, fetch = EAGER)
     @JoinTable(name = ACCESS, joinColumns = @JoinColumn(name = PS_NUMBER))
     private Set<RoleMaster> roles;
@@ -80,7 +45,7 @@ public class Employee {
         ltiMail = employee.ltiMail;
         appleManager = employee.appleManager;
         businessUnit = employee.businessUnit;
-        isActive = employee.isActive;
+        active = employee.active;
         roles = employee.roles;
     }
 
@@ -149,11 +114,11 @@ public class Employee {
     }
 
     public boolean isActive() {
-        return isActive;
+        return 'Y' == active;
     }
 
-    public void setActive(boolean isActive) {
-        this.isActive = isActive;
+    public void setActive(char active) {
+        this.active = active;
     }
 
     public String getResetToken() {
