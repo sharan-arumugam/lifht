@@ -38,6 +38,7 @@ public class EmployeeController {
     public List<EmployeeBean> getAllEmployees() {
         return service.getAllEmployees()
                 .stream()
+                .filter(entry -> null != entry.getPsName())
                 .filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
                 .sorted(Comparator.comparing(EmployeeBean::getPsName))
                 .collect(Collectors.toList());

@@ -79,7 +79,7 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
                 .append(" e.business_unit as bu, e.lti_mail as email, e.ds_id as dsid,")
                 .append(" d.swipe_date as date, d.duration as duration, d.filo as filo,")
                 .append(" d.compliance as compliance, d.swipe_door as door")
-                .append(" FROM entry_date d, employee e WHERE e.ps_number = d.ps_number")
+                .append(" FROM entry_date d right outer join employee e on e.ps_number = d.ps_number")
                 .append(" AND d.ps_number in (" + psParams + ") AND d.swipe_date BETWEEN ? AND ?");
 
         Query select = entityManager.createNativeQuery(sql.toString());

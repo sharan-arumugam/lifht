@@ -23,6 +23,7 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -184,6 +185,9 @@ public class IOService {
 
         LOG.info("minDate::" + minDate.toString());
         LOG.info("maxDate::" + maxDate.toString());
+        
+        
+        LOG.info(pairList.stream().map(pair -> "\n" + pair.getPsNumber() + " - "+ pair.getSwipeIn() + " - " + pair.getSwipeOut()).collect(Collectors.toList()).toString());
 
         return saveOrUpdateEntryDate(minDate, maxDate);
     }
@@ -252,11 +256,14 @@ public class IOService {
     }
 
     public Integer saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
+    	
+    	Set<String> psNumbers = employeeRepo.findAllpsNumber();
 
         rows = rows
                 .stream()
                 .filter(row -> null != row.get(ALC_MAP.get("customer"))
                         && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+                .filter(row -> psNumbers.contains(row.get(ALC_MAP.get("psNumber"))))
                 .collect(toList());
 
         List<EmployeeBean> employeeList = rows

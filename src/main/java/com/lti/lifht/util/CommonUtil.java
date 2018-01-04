@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,10 +52,11 @@ public class CommonUtil {
 	// https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
 	private static DateTimeFormatter MDY = ofPattern("M/d/yyyy");
 	public static final Function<String, LocalDate> parseMDY = source -> {
-		if (source.endsWith("/17")) {
-			source = source.substring(0, 5) + "20" + source.substring(6, 7);
+		String[] splitDate = source.split("/");
+		if (splitDate[2].length() < 4) {
+			splitDate[2] = "20" + splitDate[2];
 		}
-		return LocalDate.parse(source, MDY);
+		return LocalDate.parse(Stream.of(splitDate).collect(Collectors.joining("/")), MDY);
 	};
 
 	private static DateTimeFormatter DMYDash = ofPattern("dd-MM-yyyy");
