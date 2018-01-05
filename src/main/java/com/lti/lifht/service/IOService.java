@@ -312,5 +312,44 @@ public class IOService {
 
         return wb;
     }
+    
+    public Workbook generateRangeMultiDatedReport(List<EntryRange> entries, String[] reportHeaders) {
+        try {
+            return createTable(entries.toArray(), reportHeaders);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Workbook createTableDated(Object[] rowArr, String[] reportHeaders) throws FileNotFoundException, IOException {
+        Workbook wb = new XSSFWorkbook();
+        XSSFSheet sheet = (XSSFSheet) wb.createSheet();
+
+        int rowLength = rowArr.length;
+
+        // set headers
+        int colLength = reportHeaders.length;
+        XSSFRow headerRow = sheet.createRow(0); // first row as column names
+
+        IntStream.range(0, colLength).forEach(colIndex -> {
+            XSSFCell cell = headerRow.createCell(colIndex);
+            cell.setCellValue(reportHeaders[colIndex]);
+        });
+
+        // set row, column values
+        IntStream.range(0, rowLength).forEach(rowIndex -> {
+            String[] colArr = rowArr[rowIndex].toString().split(",");
+            XSSFRow row = sheet.createRow(rowIndex + 1); // +1 as first row for headers
+
+            IntStream.range(0, colLength).forEach(colIndex -> {
+                XSSFCell cell = row.createCell(colIndex);
+                cell.setCellValue(colArr[colIndex]);
+                sheet.autoSizeColumn(colIndex);
+            });
+        });
+
+        return wb;
+    }
 
 }

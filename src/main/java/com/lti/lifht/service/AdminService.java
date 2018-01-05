@@ -73,6 +73,11 @@ public class AdminService {
 		return entryDateRepo.getPsEntryDate(request);
 	}
 
+	public Map<LocalDate, List<EntryDateBean>> getDateMulti(LocalDate date, String[] psNumbers) {
+		return getDateMulti(new DateMultiPs(date, psNumbers)).stream()
+				.collect(Collectors.groupingBy(EntryDateBean::getSwipeDate));
+	}
+
 	public List<EntryDateBean> getDateMulti(DateMultiPs request) {
 		return entryDateRepo.getPsListEntryDate(request);
 	}

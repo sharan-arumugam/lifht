@@ -39,8 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.lti.lifht.model.EntryRaw;
 import com.lti.lifht.model.EntryPairBean;
+import com.lti.lifht.model.EntryRaw;
 
 public class CommonUtil {
 
@@ -263,4 +263,5 @@ public class CommonUtil {
 	public static final <T> T fromJson(String json, Class<T> classOfT) {
 		return classOfT.cast(gson.fromJson(json, classOfT));
 	}
+
 }

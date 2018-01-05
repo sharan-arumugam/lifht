@@ -6,8 +6,10 @@ import static com.lti.lifht.util.ExcelUtil.parseXlsx;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -25,6 +27,7 @@ import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.service.AdminService;
 import com.lti.lifht.service.IOService;
+import com.lti.lifht.util.LocalDateStream;
 
 @RequestMapping("/io")
 @PreAuthorize(HAS_ROLE_ADMIN)
@@ -87,12 +90,32 @@ public class IOController {
 		RangeMultiPs request = new RangeMultiPs(fromDate, toDate,
 				psNumberList.split(","));
 
-		List<EntryRange> entries = adminService.getRangeMulti(request, true);
+		List<EntryRange> cumulative = adminService.getRangeMulti(request, true);
+
+		LocalDateStream localDateStream = new LocalDateStream(request.getFromDate(), request.getToDate());
+
+		List<String> mew2 = new ArrayList<>();
+
+		localDateStream.stream()
+				.map(date -> { System.out.println(date);
+					return adminService.getDateMulti(date, psNumberList.split(","));
+					})
+				.forEach(dateMultiPsMap -> {
+					dateMultiPsMap.forEach((date, entryDateBeanList) -> {
+						String mew = entryDateBeanList.stream().map(entryBean -> {
+							return entryBean.getPsNumber() + " : " + date + " : " + entryBean.getFiloString();
+						}).collect(Collectors.joining(","));
+						mew2.add(mew);
+					});
+				});
+
+		System.out.println(mew2);
+
 		String[] reportHeaders = EntryRange.fetchReportHeaders();
 
 		response.setHeader("Content-Disposition",
 				"attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
-		service.generateRangeMultiReport(entries, reportHeaders).write(response.getOutputStream());
+		service.generateRangeMultiReport(cumulative, reportHeaders).write(response.getOutputStream());
 
 	}
 }
