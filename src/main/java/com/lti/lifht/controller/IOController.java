@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -18,6 +19,8 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -123,12 +126,25 @@ public class IOController {
         System.out.println(cumulative.stream().collect(Collectors.groupingBy(EntryRange::getPsNumber)));
 
         Map<String, String> psNumName = cumulative.stream()
+                .filter(Objects::nonNull)
+                .filter(entry -> null != entry.getPsNumber())
                 .collect(Collectors.toMap(
                         EntryRange::getPsNumber,
                         e -> null != e.getEmployee()
                                 && null != e.getEmployee().getPsName()
                                         ? e.getEmployee().getPsName()
-                                        : null,
+                                        : "",
+                        (value, duplicate) -> value));
+
+        Map<String, String> psNumBu = cumulative.stream()
+                .filter(Objects::nonNull)
+                .filter(entry -> null != entry.getPsNumber())
+                .collect(Collectors.toMap(
+                        EntryRange::getPsNumber,
+                        e -> null != e.getEmployee()
+                                && null != e.getEmployee().getBusinessUnit()
+                                        ? e.getEmployee().getBusinessUnit()
+                                        : "",
                         (value, duplicate) -> value));
 
         datePsBeanMap
@@ -151,6 +167,7 @@ public class IOController {
                                     StringJoiner joiner = new StringJoiner(",");
                                     joiner.add(ps)
                                             .add(null != psNumName.get(ps) ? psNumName.get(ps) : "N/A")
+                                            .add(null != psNumBu.get(ps) ? psNumBu.get(ps) : "N/A")
                                             .add(null != psd.get(ps) ? psd.get(ps).getFiloString() : " - ")
                                             .add(null != psd.get(ps) ? psd.get(ps).getDurationString() : " - ");
                                     psDatedMap.put(ps, joiner);
@@ -165,11 +182,13 @@ public class IOController {
                         + LocalDate.now().toString()
                         + ".xlsx");
 
-        service.generateRangeMultiDatedReport(cumulative.toArray(),
+        Workbook wb = service.generateRangeMultiDatedReport(new XSSFWorkbook(),
+                cumulative.toArray(),
                 cumulativeHeaders,
                 psDatedMap,
-                datePsBeanMap.keySet())
-                .write(response.getOutputStream());
+                datePsBeanMap.keySet());
 
+        wb.write(response.getOutputStream());
+        wb.close();
     }
 }

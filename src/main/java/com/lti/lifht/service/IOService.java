@@ -39,7 +39,6 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -303,7 +302,11 @@ public class IOService {
 
             IntStream.range(0, colLength).forEach(colIndex -> {
                 XSSFCell cell = row.createCell(colIndex);
-                cell.setCellValue(colArr[colIndex]);
+                if (NumberUtils.isCreatable(colArr[colIndex])) {
+                    cell.setCellValue(Double.valueOf(colArr[colIndex]));
+                } else {
+                    cell.setCellValue(colArr[colIndex]);
+                }
                 sheet.autoSizeColumn(colIndex);
             });
         });
@@ -311,7 +314,7 @@ public class IOService {
         return sheet.getWorkbook();
     }
 
-    public Workbook generateRangeMultiDatedReport(Object[] cumulativeData, String[] cumulativeHeaders,
+    public Workbook generateRangeMultiDatedReport(Workbook wb, Object[] cumulativeData, String[] cumulativeHeaders,
             Map<String, StringJoiner> datedData, Set<LocalDate> datedHeaders) {
         try {
             LocalDate from = datedHeaders.stream()
@@ -324,17 +327,20 @@ public class IOService {
                     .reduce((d1, d2) -> d2)
                     .get();
 
-            Workbook wb = new XSSFWorkbook();
-
             XSSFSheet cumulativeSheet = (XSSFSheet) wb.createSheet("Cumulative");
             XSSFSheet datedSheet = (XSSFSheet) wb.createSheet("Dated "
                     + from
                     + " to "
                     + to);
 
-            wb = createDatedTable(datedSheet, datedData.values().stream().sorted(Comparator.comparing(joiner -> {
-                return joiner.toString().split(",")[1];
-            })).toArray(), datedHeaders);
+            wb = createDatedTable(datedSheet,
+                    datedData.values()
+                            .stream()
+                            .sorted(Comparator.comparing(joiner -> {
+                                return joiner.toString().split(",")[1];
+                            }))
+                            .toArray(),
+                    datedHeaders);
             wb = createTable(cumulativeSheet, cumulativeData, cumulativeHeaders);
 
             return wb;
@@ -355,6 +361,7 @@ public class IOService {
         List<String> dateHeaderList = new ArrayList<>();
         dateHeaderList.add(""); // psNumber
         dateHeaderList.add(""); // psName
+        dateHeaderList.add(""); // bu
 
         dateHeaders.stream()
                 .sorted(Comparator.comparing(LocalDate::atStartOfDay))
@@ -366,6 +373,7 @@ public class IOService {
         List<String> headersList2 = new ArrayList<>();
         headersList2.add("PS Number");
         headersList2.add("PS Name");
+        headersList2.add("BU");
         dateHeaders.stream().forEach(e -> {
             headersList2.add("FILO");
             headersList2.add("Floor");
@@ -425,7 +433,11 @@ public class IOService {
 
             IntStream.range(0, colLength).forEach(colIndex -> {
                 XSSFCell cell = row.createCell(colIndex);
-                cell.setCellValue(colArr[colIndex]);
+                if (NumberUtils.isCreatable(colArr[colIndex])) {
+                    cell.setCellValue(Double.valueOf(colArr[colIndex]));
+                } else {
+                    cell.setCellValue(colArr[colIndex]);
+                }
                 sheet.autoSizeColumn(colIndex);
             });
         });

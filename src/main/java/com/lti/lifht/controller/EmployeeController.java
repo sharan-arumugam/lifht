@@ -59,7 +59,7 @@ public class EmployeeController {
     @PostMapping("/swipe/date-multi-ps")
     @PreAuthorize(HAS_ROLE_ADMIN)
     public List<EntryDateBean> getDateMulti(@RequestBody DateMultiPs request) {
-        return service.getDateMulti(request);
+        return service.getDateMulti(request, false);
     }
 
     @PostMapping("/swipe/range-multi-ps")

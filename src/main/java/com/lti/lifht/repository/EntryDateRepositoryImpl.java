@@ -66,12 +66,15 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
     }
 
     @Override
-    public List<EntryDateBean> getPsListForAggregate(RangeMultiPs request) {
+    public List<EntryDateBean> getPsListForAggregate(RangeMultiPs request, boolean isReport) {
 
         String psParams = request.getPsNumberList().stream().map(e -> "?").collect(Collectors.joining(","));
 
         List<String> psNumberList = request.getPsNumberList();
-        int psCount = psNumberList.size();
+
+        int psCount = isReport ? 0 : psNumberList.size();
+
+        String paramConstraint = isReport ? "" : " AND d.ps_number in (" + psParams + ")";
 
         StringBuilder sql = new StringBuilder();
 
@@ -80,12 +83,14 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
                 .append(" d.swipe_date as date, d.duration as duration, d.filo as filo,")
                 .append(" d.compliance as compliance, d.swipe_door as door")
                 .append(" FROM entry_date d right outer join employee e on e.ps_number = d.ps_number")
-                .append(" AND d.ps_number in (" + psParams + ") AND d.swipe_date BETWEEN ? AND ?");
+                .append(paramConstraint + " AND d.swipe_date BETWEEN ? AND ?");
 
         Query select = entityManager.createNativeQuery(sql.toString());
 
-        for (int i = 0; i < psCount; i++) {
-            select.setParameter(i + 1, psNumberList.get(i));
+        if (!isReport) {
+            for (int i = 0; i < psCount; i++) {
+                select.setParameter(i + 1, psNumberList.get(i));
+            }
         }
 
         select.setParameter(psCount + 1, request.getFromDate());
@@ -103,24 +108,29 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
     }
 
     @Override
-    public List<EntryDateBean> getPsListEntryDate(DateMultiPs request) {
+    public List<EntryDateBean> getPsListEntryDate(DateMultiPs request, boolean isReport) {
 
         String psParams = request.getPsNumberList().stream().map(e -> "?").collect(Collectors.joining(","));
 
         List<String> psNumberList = request.getPsNumberList();
-        int psCount = psNumberList.size();
+        int psCount = isReport ? 0 : psNumberList.size();
+
+        String paramConstraint = isReport ? "" : " AND d.ps_number in (" + psParams + ")";
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT e.ps_number, e.ps_name, e.business_unit, e.lti_mail, e.ds_id,")
                 .append(" d.swipe_date, d.duration, d.filo, d.compliance, d.swipe_door, d.first_in, d.last_out")
                 .append(" FROM entry_date d right outer join employee e on e.ps_number = d.ps_number")
-                .append(" AND d.ps_number in (" + psParams + ") AND d.swipe_date = ? ORDER BY e.ps_name");
+                .append(paramConstraint + " AND d.swipe_date = ? ORDER BY e.ps_name");
 
         Query select = entityManager.createNativeQuery(sql.toString());
 
-        for (int i = 0; i < psCount; i++) {
-            select.setParameter(i + 1, psNumberList.get(i));
+        if (!isReport) {
+            for (int i = 0; i < psCount; i++) {
+                select.setParameter(i + 1, psNumberList.get(i));
+            }
         }
+
         select.setParameter(psCount + 1, request.getDate());
 
         List<Object[]> resultList = select.getResultList();
@@ -216,6 +226,35 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
         });
 
         return psValidSinceMap;
+    }
+
+    @Override
+    public List<EntryDateBean> getPsListEntryDateDelta(DateMultiPs request) {
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ps_number, swipe_date, duration, filo, compliance, swipe_door")
+                .append(" FROM entry_date where ps_number NOT IN (SELECT ps_number from employee)")
+                .append(" AND swipe_date = ?");
+
+        Query select = entityManager.createNativeQuery(sql.toString());
+
+        select.setParameter(1, request.getDate());
+
+        List<Object[]> resultList = select.getResultList();
+
+        List<EntryDateBean> entryDateList = new ArrayList<>();
+        resultList.forEach(rs -> {
+            entryDateList.add(new EntryDateBean(
+                    String.valueOf(rs[0]),
+                    LocalDate.parse(String.valueOf(rs[1])),
+                    Duration.ofMillis(Long.valueOf(String.valueOf(rs[2]))),
+                    Duration.ofMillis(Long.valueOf(String.valueOf(rs[3]))),
+                    Duration.ofMillis(Long.valueOf(String.valueOf(rs[4]))),
+                    String.valueOf(rs[5]),
+                    new EmployeeBean()));
+        });
+
+        return entryDateList;
     }
 
 }

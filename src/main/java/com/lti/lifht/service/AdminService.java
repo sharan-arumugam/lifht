@@ -74,26 +74,28 @@ public class AdminService {
     }
 
     public Map<LocalDate, List<EntryDateBean>> getDateMulti(LocalDate date, String[] psNumbers) {
-        return getDateMulti(new DateMultiPs(date, psNumbers)).stream()
+        return getDateMulti(new DateMultiPs(date, psNumbers), true).stream()
                 .filter(Objects::nonNull)
                 .filter(entryDate -> null != entryDate.getSwipeDate())
                 .collect(Collectors.groupingBy(EntryDateBean::getSwipeDate));
     }
 
-    public List<EntryDateBean> getDateMulti(DateMultiPs request) {
-        return entryDateRepo.getPsListEntryDate(request);
+    public List<EntryDateBean> getDateMulti(DateMultiPs request, boolean isReport) {
+        List<EntryDateBean> entryList = entryDateRepo.getPsListEntryDate(request, isReport);
+        if (isReport) {
+            entryList.addAll(entryDateRepo.getPsListEntryDateDelta(request));
+        }
+        return entryList;
     }
 
-    public List<EntryRange> getRangeMulti(RangeMultiPs request, boolean includeDelta) {
-
-        logger.info(request.toString(), ":: delta :: " + includeDelta);
+    public List<EntryRange> getRangeMulti(RangeMultiPs request, boolean isReport) {
 
         List<EntryRange> aggregateList = new ArrayList<>();
-        List<EntryDateBean> psListForAggregate = entryDateRepo.getPsListForAggregate(request);
+        List<EntryDateBean> psListForAggregate = entryDateRepo.getPsListForAggregate(request, isReport);
 
-        // if (includeDelta) {
-        // psListForAggregate.addAll(entryDateRepo.getPsListForAggregateDelta(request));
-        // }
+        if (isReport) {
+            psListForAggregate.addAll(entryDateRepo.getPsListForAggregateDelta(request));
+        }
 
         Map<String, LocalDate> psValidSinceMap = entryDateRepo.getValidSince(
                 request.getFromDate(),
