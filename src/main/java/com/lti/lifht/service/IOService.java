@@ -13,21 +13,29 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -43,11 +51,11 @@ import com.lti.lifht.entity.EntryPair;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
-import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.EntryRaw;
 import com.lti.lifht.repository.EmployeeRepository;
 import com.lti.lifht.repository.EntryDateRepository;
 import com.lti.lifht.repository.EntryPairRepository;
+import com.lti.lifht.util.CommonUtil;
 
 import one.util.streamex.StreamEx;
 
@@ -185,6 +193,10 @@ public class IOService {
         LOG.info("minDate::" + minDate.toString());
         LOG.info("maxDate::" + maxDate.toString());
 
+        LOG.info(pairList.stream()
+                .map(pair -> "\n" + pair.getPsNumber() + " - " + pair.getSwipeIn() + " - " + pair.getSwipeOut())
+                .collect(Collectors.toList()).toString());
+
         return saveOrUpdateEntryDate(minDate, maxDate);
     }
 
@@ -253,10 +265,13 @@ public class IOService {
 
     public Integer saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
 
+        Set<String> psNumbers = employeeRepo.findAllpsNumber();
+
         rows = rows
                 .stream()
                 .filter(row -> null != row.get(ALC_MAP.get("customer"))
                         && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+                .filter(row -> psNumbers.contains(row.get(ALC_MAP.get("psNumber"))))
                 .collect(toList());
 
         List<EmployeeBean> employeeList = rows
@@ -267,18 +282,8 @@ public class IOService {
         return employeeRepo.saveOrUpdateProjectAllocation(employeeList);
     }
 
-    public Workbook generateRangeMultiReport(List<EntryRange> entries, String[] reportHeaders) {
-        try {
-            return createTable(entries.toArray(), reportHeaders);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public Workbook createTable(Object[] rowArr, String[] reportHeaders) throws FileNotFoundException, IOException {
-        Workbook wb = new XSSFWorkbook();
-        XSSFSheet sheet = (XSSFSheet) wb.createSheet();
+    public Workbook createTable(XSSFSheet sheet, Object[] rowArr, String[] reportHeaders)
+            throws FileNotFoundException, IOException {
 
         int rowLength = rowArr.length;
 
@@ -303,7 +308,129 @@ public class IOService {
             });
         });
 
-        return wb;
+        return sheet.getWorkbook();
+    }
+
+    public Workbook generateRangeMultiDatedReport(Object[] cumulativeData, String[] cumulativeHeaders,
+            Map<String, StringJoiner> datedData, Set<LocalDate> datedHeaders) {
+        try {
+            LocalDate from = datedHeaders.stream()
+                    .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                    .findFirst()
+                    .get();
+
+            LocalDate to = datedHeaders.stream()
+                    .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                    .reduce((d1, d2) -> d2)
+                    .get();
+
+            Workbook wb = new XSSFWorkbook();
+
+            XSSFSheet cumulativeSheet = (XSSFSheet) wb.createSheet("Cumulative");
+            XSSFSheet datedSheet = (XSSFSheet) wb.createSheet("Dated "
+                    + from
+                    + " to "
+                    + to);
+
+            wb = createDatedTable(datedSheet, datedData.values().stream().sorted(Comparator.comparing(joiner -> {
+                return joiner.toString().split(",")[1];
+            })).toArray(), datedHeaders);
+            wb = createTable(cumulativeSheet, cumulativeData, cumulativeHeaders);
+
+            return wb;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Workbook createDatedTable(XSSFSheet sheet, Object[] rowArr, Set<LocalDate> dateHeaders)
+            throws FileNotFoundException, IOException {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
+
+        int rowLength = rowArr.length;
+
+        List<String> dateHeaderList = new ArrayList<>();
+        dateHeaderList.add(""); // psNumber
+        dateHeaderList.add(""); // psName
+
+        dateHeaders.stream()
+                .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                .forEach(e -> {
+                    dateHeaderList.add(e.format(formatter));
+                    dateHeaderList.add(""); // colspan for filo-floor
+                });
+
+        List<String> headersList2 = new ArrayList<>();
+        headersList2.add("PS Number");
+        headersList2.add("PS Name");
+        dateHeaders.stream().forEach(e -> {
+            headersList2.add("FILO");
+            headersList2.add("Floor");
+        });
+
+        Object[] dateHeader = dateHeaderList.toArray();
+        Object[] reportHeaders2 = headersList2.toArray();
+
+        // set headers
+        int colLength = dateHeader.length;
+        XSSFRow headerRow = sheet.createRow(0); // first row as column names
+        IntStream.range(0, colLength).forEach(colIndex -> {
+            XSSFCell cell = headerRow.createCell(colIndex);
+            cell.setCellValue(String.valueOf(dateHeader[colIndex]));
+        });
+
+        Font font = sheet.getWorkbook().createFont();
+        font.setBold(true);
+
+        CellStyle headerStyle = sheet.getWorkbook().createCellStyle();
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setFont(font);
+
+        IntStream.range(0, colLength).forEach(colIndex -> {
+            XSSFCell cell = headerRow.createCell(colIndex);
+            cell.setCellValue(String.valueOf(dateHeader[colIndex]));
+        });
+
+        int cellCount = 1;
+
+        List<Cell> dateHederStreamList = CommonUtil.toStream(sheet.getRow(0).cellIterator())
+                .collect(Collectors.toList());
+
+        for (Cell cell : dateHederStreamList) {
+            if (cellCount < dateHederStreamList.size()) {
+                sheet.addMergedRegion(new CellRangeAddress(
+                        0,
+                        0,
+                        ++cellCount,
+                        ++cellCount));
+            }
+            cell.setCellStyle(headerStyle);
+        }
+
+        // set headers
+        XSSFRow headerRow2 = sheet.createRow(1); // first row as column names
+        IntStream.range(0, colLength).forEach(colIndex -> {
+            XSSFCell cell = headerRow2.createCell(colIndex);
+            cell.setCellValue(String.valueOf(reportHeaders2[colIndex]));
+            cell.setCellStyle(headerStyle);
+        });
+
+        // set row, column values
+        IntStream.range(0, rowLength).forEach(rowIndex -> {
+            String[] colArr = rowArr[rowIndex].toString().split(",");
+            XSSFRow row = sheet.createRow(rowIndex + 2); // +1 as first row for headers
+
+            IntStream.range(0, colLength).forEach(colIndex -> {
+                XSSFCell cell = row.createCell(colIndex);
+                cell.setCellValue(colArr[colIndex]);
+                sheet.autoSizeColumn(colIndex);
+            });
+        });
+
+        return sheet.getWorkbook();
     }
 
 }

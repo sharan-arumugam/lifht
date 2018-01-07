@@ -21,7 +21,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, String>, Emp
 
     Employee saveAndFlush(Employee employee);
 
-    @Query("select psNumber from Employee where active = 'Y'")
+    @Query("select psNumber from Employee where active <> 'N'")
     Set<String> findAllpsNumber();
 
 }

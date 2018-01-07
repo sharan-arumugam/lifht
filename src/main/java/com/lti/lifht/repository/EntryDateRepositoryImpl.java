@@ -79,7 +79,7 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
                 .append(" e.business_unit as bu, e.lti_mail as email, e.ds_id as dsid,")
                 .append(" d.swipe_date as date, d.duration as duration, d.filo as filo,")
                 .append(" d.compliance as compliance, d.swipe_door as door")
-                .append(" FROM entry_date d, employee e WHERE e.ps_number = d.ps_number")
+                .append(" FROM entry_date d right outer join employee e on e.ps_number = d.ps_number")
                 .append(" AND d.ps_number in (" + psParams + ") AND d.swipe_date BETWEEN ? AND ?");
 
         Query select = entityManager.createNativeQuery(sql.toString());
@@ -111,23 +111,19 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
         int psCount = psNumberList.size();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT e.ps_number as number, e.ps_name as name,")
-                .append(" e.business_unit as bu, e.lti_mail as email, e.ds_id as dsid,")
-                .append(" d.swipe_date as date, d.duration as duration, d.filo as filo,")
-                .append(" d.compliance as compliance, d.swipe_door as door")
-                .append(" FROM entry_date d, employee e WHERE e.ps_number = d.ps_number")
-                .append(" AND d.ps_number in (" + psParams + ") AND d.swipe_date = ?");
+        sql.append("SELECT e.ps_number, e.ps_name, e.business_unit, e.lti_mail, e.ds_id,")
+                .append(" d.swipe_date, d.duration, d.filo, d.compliance, d.swipe_door, d.first_in, d.last_out")
+                .append(" FROM entry_date d right outer join employee e on e.ps_number = d.ps_number")
+                .append(" AND d.ps_number in (" + psParams + ") AND d.swipe_date = ? ORDER BY e.ps_name");
 
         Query select = entityManager.createNativeQuery(sql.toString());
 
         for (int i = 0; i < psCount; i++) {
             select.setParameter(i + 1, psNumberList.get(i));
         }
-
         select.setParameter(psCount + 1, request.getDate());
 
         List<Object[]> resultList = select.getResultList();
-
         List<EntryDateBean> entryDateList = new ArrayList<>();
 
         resultList.forEach(rs -> {

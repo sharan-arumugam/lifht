@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -72,6 +73,13 @@ public class AdminService {
         return entryDateRepo.getPsEntryDate(request);
     }
 
+    public Map<LocalDate, List<EntryDateBean>> getDateMulti(LocalDate date, String[] psNumbers) {
+        return getDateMulti(new DateMultiPs(date, psNumbers)).stream()
+                .filter(Objects::nonNull)
+                .filter(entryDate -> null != entryDate.getSwipeDate())
+                .collect(Collectors.groupingBy(EntryDateBean::getSwipeDate));
+    }
+
     public List<EntryDateBean> getDateMulti(DateMultiPs request) {
         return entryDateRepo.getPsListEntryDate(request);
     }
@@ -83,9 +91,9 @@ public class AdminService {
         List<EntryRange> aggregateList = new ArrayList<>();
         List<EntryDateBean> psListForAggregate = entryDateRepo.getPsListForAggregate(request);
 
-        if (includeDelta) {
-            psListForAggregate.addAll(entryDateRepo.getPsListForAggregateDelta(request));
-        }
+        // if (includeDelta) {
+        // psListForAggregate.addAll(entryDateRepo.getPsListForAggregateDelta(request));
+        // }
 
         Map<String, LocalDate> psValidSinceMap = entryDateRepo.getValidSince(
                 request.getFromDate(),
@@ -107,6 +115,8 @@ public class AdminService {
                             .orElse(null);
 
                     Duration durationSum = groupedList.stream()
+                            .filter(Objects::nonNull)
+                            .filter(entry -> null != entry.getSwipeDate())
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
                             .map(EntryDateBean::getDuration)
@@ -114,6 +124,8 @@ public class AdminService {
                             .orElse(Duration.ofMillis(0));
 
                     Duration complianceSum = groupedList.stream()
+                            .filter(Objects::nonNull)
+                            .filter(entry -> null != entry.getSwipeDate())
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
                             .map(EntryDateBean::getCompliance)
@@ -121,6 +133,8 @@ public class AdminService {
                             .orElse(Duration.ofMillis(0));
 
                     Duration filoSum = groupedList.stream()
+                            .filter(Objects::nonNull)
+                            .filter(entry -> null != entry.getSwipeDate())
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
                             .map(EntryDateBean::getFilo)
@@ -128,6 +142,8 @@ public class AdminService {
                             .orElse(Duration.ofMillis(0));
 
                     Long daysPresent = groupedList.stream()
+                            .filter(Objects::nonNull)
+                            .filter(entry -> null != entry.getSwipeDate())
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
                             .count();
@@ -146,10 +162,9 @@ public class AdminService {
                 });
 
         return aggregateList.stream()
-                .sorted(Comparator
-                        .comparing(entry -> null != entry.getEmployee().getPsName()
-                                ? entry.getEmployee().getPsName()
-                                : entry.getPsNumber()))
+                .sorted(Comparator.comparing(
+                        entry -> entry.getEmployee().getPsName(),
+                        Comparator.nullsFirst(Comparator.naturalOrder())))
                 .collect(Collectors.toList());
     }
 
