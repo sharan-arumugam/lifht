@@ -7,12 +7,9 @@ import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -252,8 +249,8 @@ public class IOService {
 				.filter(row -> StringUtils.isNotBlank(row.get(HC_MAP.get("psNumber"))))
 				.map(row -> new EmployeeBean(row, HC_MAP))
 				.collect(toList());
-		employeeRepo.reset(); // reset current employee to inactive
-		return employeeRepo.saveOrUpdateHeadCount(offshoreList);
+		employeeRepo.reset(); // flush
+		return employeeRepo.saveOrUpdateHeadCount(offshoreList); // re-populate
 	}
 
 	public Integer saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
@@ -273,58 +270,6 @@ public class IOService {
 				.collect(toList());
 
 		return employeeRepo.saveOrUpdateProjectAllocation(employeeList);
-	}
-
-	public Workbook createTable(LocalDate from, LocalDate to, XSSFSheet sheet, Object[] rowArr, String[] reportHeaders)
-			throws FileNotFoundException, IOException {
-
-		int rowLength = rowArr.length;
-
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
-		Font font = sheet.getWorkbook().createFont();
-		font.setBold(true);
-
-		CellStyle headerStyle = sheet.getWorkbook().createCellStyle();
-		headerStyle.setAlignment(HorizontalAlignment.CENTER);
-		headerStyle.setFont(font);
-
-		// set headers
-		int colLength = reportHeaders.length;
-		XSSFRow titleRow = sheet.createRow(0); // first row as date title
-		XSSFRow headerRow = sheet.createRow(1); // second row as column names
-
-		IntStream.range(0, colLength).forEach(colIndex -> {
-			titleRow.createCell(colIndex);
-		});
-
-		titleRow.getCell(0).setCellValue(from.format(formatter) + " to " + to.format(formatter));
-		titleRow.getCell(0).setCellStyle(headerStyle);
-
-		sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, colLength - 1));
-
-		IntStream.range(0, colLength).forEach(colIndex -> {
-			XSSFCell cell = headerRow.createCell(colIndex);
-			cell.setCellValue(reportHeaders[colIndex]);
-			cell.setCellStyle(headerStyle);
-		});
-
-		// set row, column values
-		IntStream.range(0, rowLength).forEach(rowIndex -> {
-			String[] colArr = rowArr[rowIndex].toString().split(",");
-			XSSFRow row = sheet.createRow(rowIndex + 2); // +2 as first, second row for headers
-
-			IntStream.range(0, colLength).forEach(colIndex -> {
-				XSSFCell cell = row.createCell(colIndex);
-				if (NumberUtils.isCreatable(colArr[colIndex])) {
-					cell.setCellValue(Double.valueOf(colArr[colIndex]));
-				} else {
-					cell.setCellValue(colArr[colIndex]);
-				}
-				sheet.autoSizeColumn(colIndex);
-			});
-		});
-
-		return sheet.getWorkbook();
 	}
 
 	public Workbook generateRangeMultiDatedReport(XSSFWorkbook workbook, StringJoiner cumulativeHeaders,
