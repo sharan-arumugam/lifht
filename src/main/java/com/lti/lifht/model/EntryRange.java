@@ -160,9 +160,15 @@ public class EntryRange {
 		return toCsvString();
 	}
 
-	public static final String[] fetchReportHeaders() {
-		String[] reportHeaders = { "Business Unit", "DS ID", "PS Number", "PS Name", "Valid Since", "Days",
-				"FILO Hours", "Floor Hours", "Compliance" };
-		return reportHeaders;
+	public static final StringJoiner fetchReportHeaders() {
+		return new StringJoiner(",").add("Business Unit")
+				.add("DS ID")
+				.add("PS Number")
+				.add("PS Name")
+				.add("Valid Since")
+				.add("Days")
+				.add("FILO Hours")
+				.add("Floor Hours")
+				.add("Compliance");
 	}
 }

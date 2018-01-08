@@ -21,6 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class CommonUtil {
 
+	public static final DateTimeFormatter reportDateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
+
 	public static final <T> Stream<T> toStream(Iterator<T> iterator) {
 		Iterable<T> iterable = () -> iterator;
 		return StreamSupport.stream(iterable.spliterator(), false);

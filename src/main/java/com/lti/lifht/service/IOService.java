@@ -3,6 +3,7 @@ package com.lti.lifht.service;
 import static com.lti.lifht.constant.ExcelConstant.ALC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.HC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
+import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -324,70 +327,62 @@ public class IOService {
 		return sheet.getWorkbook();
 	}
 
-	public Workbook generateRangeMultiDatedReport(Workbook wb, Object[] cumulativeData, String[] cumulativeHeaders,
-			Map<String, StringJoiner> datedData, Set<LocalDate> datedHeaders) {
-		try {
-			LocalDate from = datedHeaders.stream()
-					.sorted(Comparator.comparing(LocalDate::atStartOfDay))
-					.findFirst()
-					.get();
+	public Workbook generateRangeMultiDatedReport(XSSFWorkbook workbook, StringJoiner cumulativeHeaders,
+			Set<LocalDate> datedHeaders, Object[] reportData) {
 
-			LocalDate to = datedHeaders.stream()
-					.sorted(Comparator.comparing(LocalDate::atStartOfDay))
-					.reduce((d1, d2) -> d2)
-					.get();
+		LocalDate from = datedHeaders.stream()
+				.sorted(Comparator.comparing(LocalDate::atStartOfDay))
+				.findFirst()
+				.get();
 
-			XSSFSheet cumulativeSheet = (XSSFSheet) wb.createSheet("Cumulative");
-			XSSFSheet datedSheet = (XSSFSheet) wb.createSheet("Dated "
-					+ from
-					+ " to "
-					+ to);
+		LocalDate to = datedHeaders.stream()
+				.sorted(Comparator.comparing(LocalDate::atStartOfDay))
+				.reduce((d1, d2) -> d2)
+				.get();
 
-			wb = createDatedTable(datedSheet,
-					datedData.values()
-							.stream()
-							.sorted(Comparator.comparing(joiner -> {
-								String psName = joiner.toString().split(",")[3];
-								return null != psName && !"null".equals(psName) ? psName : "";
-							}))
-							.toArray(),
-					datedHeaders);
-			wb = createTable(from, to, cumulativeSheet, cumulativeData, cumulativeHeaders);
+		String cumulativeDateRange = from.format(reportDateFormatter) + " to " +
+				to.format(reportDateFormatter);
 
-			return wb;
+		XSSFSheet sheet = (XSSFSheet) workbook.createSheet();
 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		Font font = workbook.createFont();
+		font.setBold(true);
+		CellStyle headerStyle = workbook.createCellStyle();
+		headerStyle.setAlignment(HorizontalAlignment.CENTER);
+		headerStyle.setFont(font);
+
+		return createDatedTable(sheet, headerStyle, cumulativeDateRange, cumulativeHeaders,
+				datedHeaders, reportData);
+
 	}
 
-	public Workbook createDatedTable(XSSFSheet sheet, Object[] rowArr, Set<LocalDate> dateHeaders)
-			throws FileNotFoundException, IOException {
+	private Workbook createDatedTable(XSSFSheet sheet, CellStyle headerStyle, String cumulativeDateRange,
+			StringJoiner cumulativeHeaders, Set<LocalDate> datedHeaders, Object[] reportData) {
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
-
-		int rowLength = rowArr.length;
+		int rowLength = reportData.length;
 
 		List<String> dateHeaderList = new ArrayList<>();
 		dateHeaderList.add(""); // bu
 		dateHeaderList.add(""); // dsId
 		dateHeaderList.add(""); // psNumber
 		dateHeaderList.add(""); // psName
+		dateHeaderList.add(""); // validSince
+		dateHeaderList.add(""); // daysPresent
+		dateHeaderList.add(""); // filo
+		dateHeaderList.add(""); // floor
+		dateHeaderList.add(""); // compliance
 
-		dateHeaders.stream()
+		datedHeaders.stream()
 				.sorted(Comparator.comparing(LocalDate::atStartOfDay))
 				.forEach(e -> {
-					dateHeaderList.add(e.format(formatter));
+					dateHeaderList.add(e.format(reportDateFormatter));
 					dateHeaderList.add(""); // colspan for filo-floor
 				});
 
 		List<String> headersList2 = new ArrayList<>();
-		headersList2.add("Business Unit");
-		headersList2.add("DS ID");
-		headersList2.add("PS Number");
-		headersList2.add("PS Name");
-		dateHeaders.stream().forEach(e -> {
+		headersList2.addAll(Arrays.asList(cumulativeHeaders.toString().split(",")));
+
+		datedHeaders.stream().forEach(e -> {
 			headersList2.add("FILO");
 			headersList2.add("Floor");
 		});
@@ -403,19 +398,12 @@ public class IOService {
 			cell.setCellValue(String.valueOf(dateHeader[colIndex]));
 		});
 
-		Font font = sheet.getWorkbook().createFont();
-		font.setBold(true);
+		Cell cumulativeTitleCell = sheet.getRow(0).getCell(4);
+		cumulativeTitleCell.setCellValue(cumulativeDateRange);
+		cumulativeTitleCell.setCellStyle(headerStyle);
+		sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 8));
 
-		CellStyle headerStyle = sheet.getWorkbook().createCellStyle();
-		headerStyle.setAlignment(HorizontalAlignment.CENTER);
-		headerStyle.setFont(font);
-
-		IntStream.range(0, colLength).forEach(colIndex -> {
-			XSSFCell cell = headerRow.createCell(colIndex);
-			cell.setCellValue(String.valueOf(dateHeader[colIndex]));
-		});
-
-		int cellCount = 3;
+		int cellCount = 8;
 
 		List<Cell> dateHederStreamList = CommonUtil.toStream(sheet.getRow(0).cellIterator())
 				.collect(Collectors.toList());
@@ -441,7 +429,7 @@ public class IOService {
 
 		// set row, column values
 		IntStream.range(0, rowLength).forEach(rowIndex -> {
-			String[] colArr = rowArr[rowIndex].toString().split(",");
+			String[] colArr = reportData[rowIndex].toString().split(",");
 			XSSFRow row = sheet.createRow(rowIndex + 2); // +1 as first row for headers
 
 			IntStream.range(0, colLength).forEach(colIndex -> {

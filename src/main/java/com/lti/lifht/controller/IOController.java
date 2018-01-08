@@ -6,9 +6,11 @@ import static com.lti.lifht.util.ExcelUtil.parseXlsx;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
@@ -100,14 +102,14 @@ public class IOController {
 
 		LocalDateStream localDateStream = new LocalDateStream(request.getFromDate(), request.getToDate());
 
-		List<Map<LocalDate, List<EntryDateBean>>> nested = localDateStream.stream()
+		List<Map<LocalDate, List<EntryDateBean>>> nestedDateMultiList = localDateStream.stream()
 				.map(adminService::getDateMulti)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 
 		Map<LocalDate, Map<String, EntryDateBean>> datePsBeanMap = new HashMap<>();
 
-		nested.forEach(map -> {
+		nestedDateMultiList.forEach(map -> {
 			map.forEach((date, list) -> {
 				datePsBeanMap.put(date,
 						list.stream()
@@ -119,56 +121,65 @@ public class IOController {
 			});
 		});
 
-		Map<String, StringJoiner> psDatedMap = new HashMap<>();
+		Map<String, StringJoiner> reportMap = new HashMap<>();
 
 		Map<String, EmployeeBean> psEmpMap = cumulative.stream()
 				.filter(Objects::nonNull)
 				.filter(entry -> null != entry.getPsNumber())
 				.collect(Collectors.toMap(
 						EntryRange::getPsNumber,
-						e -> null != e.getEmployee()
-								&& null != e.getEmployee()
-										? e.getEmployee()
-										: new EmployeeBean(),
+						entryRange -> null != entryRange.getEmployee() && null != entryRange.getEmployee()
+								? entryRange.getEmployee()
+								: new EmployeeBean(),
 						(value, duplicate) -> value));
 
+		cumulative.stream()
+				.collect(Collectors.toMap(EntryRange::getPsNumber, Function.identity()))
+				.forEach((ps, entryRangeBean) -> {
+					StringJoiner joiner = new StringJoiner(",");
+					EmployeeBean employee = entryRangeBean.getEmployee();
+					joiner.add(null != employee.getBusinessUnit() ? employee.getBusinessUnit() : "")
+							.add(null != employee.getDsId() ? employee.getDsId() : "")
+							.add(ps)
+							.add(null != employee.getPsName() ? employee.getPsName() : "")
+							.add(entryRangeBean.getValidSince() + "")
+							.add(entryRangeBean.getDaysPresent() + "")
+							.add(entryRangeBean.getFiloString())
+							.add(entryRangeBean.getDurationString())
+							.add(entryRangeBean.getComplianceString());
+					reportMap.put(ps, joiner);
+				});
+
 		datePsBeanMap
-				.entrySet().stream()
+				.entrySet()
+				.stream()
 				.sorted(Map.Entry.comparingByKey())
-				.forEach(es -> {
-					Map<String, EntryDateBean> psd = es.getValue();
+				.map(Entry::getValue)
+				.forEach(psEntryBeanMap -> {
 					psEmpMap.forEach((ps, employee) -> {
-						if (psDatedMap.containsKey(ps)) {
-							psDatedMap.get(ps)
-									.add(null != psd.get(ps) ? psd.get(ps).getFiloString() : " - ")
-									.add(null != psd.get(ps) ? psd.get(ps).getDurationString() : " - ");
-						} else {
-							StringJoiner joiner = new StringJoiner(",");
-							joiner.add(employee.getBusinessUnit())
-									.add(employee.getDsId())
-									.add(ps)
-									.add(employee.getPsName())
-									.add(null != psd.get(ps) ? psd.get(ps).getFiloString() : " - ")
-									.add(null != psd.get(ps) ? psd.get(ps).getDurationString() : " - ");
-							psDatedMap.put(ps, joiner);
-						}
+						reportMap.get(ps)
+								.add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getFiloString() : "-")
+								.add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getDurationString() : "-");
 					});
 				});
 
-		String[] cumulativeHeaders = EntryRange.fetchReportHeaders();
+		StringJoiner cumulativeHeaders = EntryRange.fetchReportHeaders();
 
 		response.setHeader("Content-Disposition",
-				"attachment; filename=report-"
-						+ LocalDate.now().toString()
-						+ ".xlsx");
+				"attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
 
-		Workbook wb = service.generateRangeMultiDatedReport(new XSSFWorkbook(),
-				cumulative.toArray(),
+		Workbook workbook = service.generateRangeMultiDatedReport(new XSSFWorkbook(),
 				cumulativeHeaders,
-				psDatedMap,
-				datePsBeanMap.keySet());
+				datePsBeanMap.keySet(),
+				reportMap.values()
+						.stream()
+						.sorted(Comparator.comparing(joiner -> {
+							String psName = joiner.toString().split(",")[3];
+							return null != psName && !"null".equals(psName) ? psName : "";
+						}))
+						.toArray());
 
-		wb.write(response.getOutputStream());
-		wb.close();
+		workbook.write(response.getOutputStream());
+		workbook.close();
 	}
 }
