@@ -5,6 +5,7 @@ import static java.time.ZoneId.systemDefault;
 import static java.util.Arrays.asList;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -22,11 +23,8 @@ public class DateMultiPs {
 	}
 
 	public DateMultiPs(LocalDate localDate, String[] psNumbers) {
-		psNumberList = asList(psNumbers);
-		System.out.println("localDate::"+localDate.getClass());
+		psNumberList = null != psNumbers ? asList(psNumbers) : new ArrayList<>();
 		date = Date.from(localDate.atStartOfDay(systemDefault()).toInstant());
-		System.out.println("date::"+date.getClass());
-		System.out.println("date::"+date.toString());
 	}
 
 	public List<String> getPsNumberList() {

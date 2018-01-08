@@ -12,16 +12,15 @@ import com.lti.lifht.entity.Employee;
 @SuppressWarnings("unchecked")
 public interface EmployeeRepository extends JpaRepository<Employee, String>, EmployeeRepositoryCustom {
 
-    Optional<Employee> findByPsNumber(String psNumber);
+	Optional<Employee> findByPsNumber(String psNumber);
 
-    @Query("from Employee where resetToken = ?")
-    Optional<Employee> findByResetToken(String resetToken);
+	@Query("from Employee where resetToken = ?")
+	Optional<Employee> findByResetToken(String resetToken);
 
-    List<Employee> findAll();
+	List<Employee> findAll();
 
-    Employee saveAndFlush(Employee employee);
+	Employee saveAndFlush(Employee employee);
 
-    @Query("select psNumber from Employee where active <> 'N'")
-    Set<String> findAllpsNumber();
-
+	@Query("select psNumber from Employee where active <> 'N'")
+	Set<String> findAllpsNumber();
 }

@@ -3,7 +3,6 @@ package com.lti.lifht.model.request;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 
 public class DateSinglePs {
 

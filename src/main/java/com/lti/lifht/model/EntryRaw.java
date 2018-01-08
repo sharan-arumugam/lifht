@@ -1,16 +1,15 @@
 package com.lti.lifht.model;
 
+import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
+import static com.lti.lifht.util.CommonUtil.parseMDY;
+import static com.lti.lifht.util.CommonUtil.parseTime;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
-import static com.lti.lifht.util.CommonUtil.parseMDY;
-import static com.lti.lifht.util.CommonUtil.parseTime;
-import static com.lti.lifht.util.CommonUtil.toJson;
 
 public class EntryRaw {
 
@@ -26,17 +25,13 @@ public class EntryRaw {
 	}
 
 	public EntryRaw(Map<String, String> rawEntry) {
-		super();
-		logger.info("raw::" + rawEntry.get(SWP_MAP.get("swipeDate")));
 		swipeDate = parseMDY.apply(rawEntry.get(SWP_MAP.get("swipeDate")));
 		swipeTime = parseTime.apply(rawEntry.get(SWP_MAP.get("swipeTime")));
 		swipeDoor = rawEntry.get(SWP_MAP.get("swipeDoor"));
 		psNumber = rawEntry.get(SWP_MAP.get("psNumber"));
-		logger.info("localDate::" + swipeDate);
 	}
 
 	public EntryRaw(LocalDate swipeDate, LocalTime swipeTime, String swipeDoor, String psNumber) {
-		super();
 		this.swipeDate = swipeDate;
 		this.swipeTime = swipeTime;
 		this.swipeDoor = swipeDoor;
@@ -57,7 +52,6 @@ public class EntryRaw {
 
 	public void setSwipeTime(String swipeTime) {
 		this.swipeTime = parseTime.apply(swipeTime);
-		;
 	}
 
 	public String getSwipeDoor() {
@@ -75,10 +69,4 @@ public class EntryRaw {
 	public void setPsNumber(String psNumber) {
 		this.psNumber = psNumber;
 	}
-
-	@Override
-	public String toString() {
-		return toJson(this);
-	}
-
 }
