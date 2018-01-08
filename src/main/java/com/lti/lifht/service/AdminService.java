@@ -12,8 +12,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,140 +32,138 @@ import com.lti.lifht.repository.EntryPairRepository;
 @Service
 public class AdminService {
 
-    @Autowired
-    EmployeeRepository employeeRepo;
+	@Autowired
+	EmployeeRepository employeeRepo;
 
-    @Autowired
-    EntryDateRepository entryDateRepo;
+	@Autowired
+	EntryDateRepository entryDateRepo;
 
-    @Autowired
-    EntryPairRepository entryPairRepo;
+	@Autowired
+	EntryPairRepository entryPairRepo;
 
-    private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
+	public List<EntryPairBean> getDateSinglePs(@RequestBody DateSinglePs request) {
+		return entryPairRepo.getDateSinlgePs(request);
+	}
 
-    public List<EntryPairBean> getDateSinglePs(@RequestBody DateSinglePs request) {
-        return entryPairRepo.getDateSinlgePs(request);
-    }
+	public Optional<Employee> findByPsNumber(String psNumber) {
+		return employeeRepo.findByPsNumber(psNumber);
+	}
 
-    public Optional<Employee> findByPsNumber(String psNumber) {
-        return employeeRepo.findByPsNumber(psNumber);
-    }
+	public Optional<Employee> findByResetToken(String resetToken) {
+		return employeeRepo.findByResetToken(resetToken);
+	}
 
-    public Optional<Employee> findByResetToken(String resetToken) {
-        return employeeRepo.findByResetToken(resetToken);
-    }
+	public Employee save(Employee entity) {
+		return employeeRepo.saveAndFlush(entity);
+	}
 
-    public Employee save(Employee entity) {
-        return employeeRepo.saveAndFlush(entity);
-    }
+	public List<EmployeeBean> getAllEmployees() {
+		return employeeRepo
+				.findAll()
+				.stream()
+				.map(EmployeeBean::new)
+				.collect(Collectors.toList());
+	}
 
-    public List<EmployeeBean> getAllEmployees() {
-        return employeeRepo
-                .findAll()
-                .stream()
-                .map(EmployeeBean::new)
-                .collect(Collectors.toList());
-    }
+	public List<EntryDateBean> getRangeSingle(RangeSinglePs request) {
+		return entryDateRepo.getPsEntryDate(request);
+	}
 
-    public List<EntryDateBean> getRangeSingle(RangeSinglePs request) {
-        return entryDateRepo.getPsEntryDate(request);
-    }
+	public Map<LocalDate, List<EntryDateBean>> getDateMulti(LocalDate date) {
+		return getDateMulti(new DateMultiPs(date, null), true).stream()
+				.filter(Objects::nonNull)
+				.filter(entryDate -> null != entryDate.getSwipeDate())
+				.collect(Collectors.groupingBy(EntryDateBean::getSwipeDate));
+	}
 
-    public Map<LocalDate, List<EntryDateBean>> getDateMulti(LocalDate date, String[] psNumbers) {
-        return getDateMulti(new DateMultiPs(date, psNumbers), true).stream()
-                .filter(Objects::nonNull)
-                .filter(entryDate -> null != entryDate.getSwipeDate())
-                .collect(Collectors.groupingBy(EntryDateBean::getSwipeDate));
-    }
+	public List<EntryDateBean> getDateMulti(DateMultiPs request, boolean isReport) {
+		List<EntryDateBean> entryList = entryDateRepo.getPsListEntryDate(request, isReport);
+		if (isReport) {
+			entryList.addAll(entryDateRepo.getPsListEntryDateDelta(request));
+		}
+		return entryList;
+	}
 
-    public List<EntryDateBean> getDateMulti(DateMultiPs request, boolean isReport) {
-        List<EntryDateBean> entryList = entryDateRepo.getPsListEntryDate(request, isReport);
-        if (isReport) {
-            entryList.addAll(entryDateRepo.getPsListEntryDateDelta(request));
-        }
-        return entryList;
-    }
+	public List<EntryRange> getRangeMulti(RangeMultiPs request, boolean isReport) {
 
-    public List<EntryRange> getRangeMulti(RangeMultiPs request, boolean isReport) {
+		List<EntryRange> aggregateList = new ArrayList<>();
+		List<EntryDateBean> psListForAggregate = entryDateRepo.getPsListForAggregate(request, isReport);
 
-        List<EntryRange> aggregateList = new ArrayList<>();
-        List<EntryDateBean> psListForAggregate = entryDateRepo.getPsListForAggregate(request, isReport);
+		if (isReport) {
+			psListForAggregate.addAll(entryDateRepo.getPsListForAggregateDelta(request));
+		}
 
-        if (isReport) {
-            psListForAggregate.addAll(entryDateRepo.getPsListForAggregateDelta(request));
-        }
+		Map<String, LocalDate> psValidSinceMap = entryDateRepo.getValidSince(
+				request.getFromDate(),
+				request.getToDate());
 
-        Map<String, LocalDate> psValidSinceMap = entryDateRepo.getValidSince(
-                request.getFromDate(),
-                request.getToDate());
+		psListForAggregate.stream()
+				.filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
+				.collect(Collectors.groupingBy(EntryDateBean::getPsNumber))
+				.forEach((psNumber, groupedList) -> {
 
-        psListForAggregate.stream()
-                .filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
-                .collect(Collectors.groupingBy(EntryDateBean::getPsNumber))
-                .forEach((psNumber, groupedList) -> {
+					String door = groupedList.stream()
+							.map(EntryDateBean::getSwipeDoor)
+							.findAny()
+							.orElse("Invalid");
 
-                    String door = groupedList.stream()
-                            .map(EntryDateBean::getSwipeDoor)
-                            .findAny()
-                            .orElse("Invalid");
+					EmployeeBean employee = groupedList.stream()
+							.map(EntryDateBean::getEmployee)
+							.findAny()
+							.orElse(null);
 
-                    EmployeeBean employee = groupedList.stream()
-                            .map(EntryDateBean::getEmployee)
-                            .findAny()
-                            .orElse(null);
+					Duration durationSum = groupedList.stream()
+							.filter(Objects::nonNull)
+							.filter(entry -> null != entry.getSwipeDate())
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+							.map(EntryDateBean::getDuration)
+							.reduce(Duration::plus)
+							.orElse(Duration.ofMillis(0));
 
-                    Duration durationSum = groupedList.stream()
-                            .filter(Objects::nonNull)
-                            .filter(entry -> null != entry.getSwipeDate())
-                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
-                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
-                            .map(EntryDateBean::getDuration)
-                            .reduce(Duration::plus)
-                            .orElse(Duration.ofMillis(0));
+					Duration complianceSum = groupedList.stream()
+							.filter(Objects::nonNull)
+							.filter(entry -> null != entry.getSwipeDate())
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+							.map(EntryDateBean::getCompliance)
+							.reduce(Duration::plus)
+							.orElse(Duration.ofMillis(0));
 
-                    Duration complianceSum = groupedList.stream()
-                            .filter(Objects::nonNull)
-                            .filter(entry -> null != entry.getSwipeDate())
-                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
-                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
-                            .map(EntryDateBean::getCompliance)
-                            .reduce(Duration::plus)
-                            .orElse(Duration.ofMillis(0));
+					Duration filoSum = groupedList.stream()
+							.filter(Objects::nonNull)
+							.filter(entry -> null != entry.getSwipeDate())
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+							.map(EntryDateBean::getFilo)
+							.reduce(Duration::plus)
+							.orElse(Duration.ofMillis(0));
 
-                    Duration filoSum = groupedList.stream()
-                            .filter(Objects::nonNull)
-                            .filter(entry -> null != entry.getSwipeDate())
-                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
-                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
-                            .map(EntryDateBean::getFilo)
-                            .reduce(Duration::plus)
-                            .orElse(Duration.ofMillis(0));
+					Long daysPresent = groupedList.stream()
+							.filter(Objects::nonNull)
+							.filter(entry -> null != entry.getSwipeDate())
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+							.count();
 
-                    Long daysPresent = groupedList.stream()
-                            .filter(Objects::nonNull)
-                            .filter(entry -> null != entry.getSwipeDate())
-                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
-                            .filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
-                            .count();
+					aggregateList.add(new EntryRange(
+							request.getFromDate(),
+							request.getToDate(),
+							psValidSinceMap.get(psNumber),
+							daysPresent.intValue(),
+							durationSum,
+							complianceSum,
+							filoSum,
+							door,
+							psNumber,
+							employee));
+				});
 
-                    aggregateList.add(new EntryRange(
-                            request.getFromDate(),
-                            request.getToDate(),
-                            psValidSinceMap.get(psNumber),
-                            daysPresent.intValue(),
-                            durationSum,
-                            complianceSum,
-                            filoSum,
-                            door,
-                            psNumber,
-                            employee));
-                });
-
-        return aggregateList.stream()
-                .sorted(Comparator.comparing(
-                        entry -> entry.getEmployee().getPsName(),
-                        Comparator.nullsFirst(Comparator.naturalOrder())))
-                .collect(Collectors.toList());
-    }
+		return aggregateList.stream()
+				.sorted(Comparator.comparing(
+						entry -> entry.getEmployee().getPsName(),
+						Comparator.nullsFirst(Comparator.naturalOrder())))
+				.collect(Collectors.toList());
+	}
 
 }

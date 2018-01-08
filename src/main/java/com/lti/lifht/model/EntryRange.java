@@ -116,11 +116,11 @@ public class EntryRange {
 	}
 
 	public String getDurationString() {
-		return formatDuration(null != duration ? duration : Duration.ofMillis(0));
+		return null != duration ? formatDuration(duration) : "";
 	}
 
 	public String getComplianceString() {
-		return formatDuration(null != compliance ? compliance : Duration.ofMillis(0));
+		return null != compliance ? formatDuration(compliance) : "";
 	}
 
 	public int getDaysPresent() {
@@ -142,12 +142,11 @@ public class EntryRange {
 	public String toCsvString() {
 		StringJoiner joiner = new StringJoiner(",");
 		return joiner
-				.add(fromDate + "")
-				.add(toDate + "")
-				.add(null != employee && null != employee.getBusinessUnit() && !"null".equals(employee.getBusinessUnit()) ? employee.getBusinessUnit() : "N/A")
-				.add(null != employee && null != employee.getDsId() ? employee.getDsId() : "N/A")
-				.add(null != psNumber ? psNumber : "NA")
-				.add(null != employee && null != employee.getPsName() ? employee.getPsName() : "N/A")
+				.add(null != employee && null != employee.getBusinessUnit()
+						&& !"null".equals(employee.getBusinessUnit()) ? employee.getBusinessUnit() : "")
+				.add(null != employee && null != employee.getDsId() ? employee.getDsId() : "")
+				.add(null != psNumber ? psNumber : "")
+				.add(null != employee && null != employee.getPsName() ? employee.getPsName() : "")
 				.add(null != validSince ? validSince + "" : "")
 				.add(daysPresent + "")
 				.add(getFiloString())
@@ -162,8 +161,7 @@ public class EntryRange {
 	}
 
 	public static final String[] fetchReportHeaders() {
-		String[] reportHeaders = { "From", "To", "Business Unit", "DS ID", "PS Number", "PS Name", "Valid Since",
-				"Days",
+		String[] reportHeaders = { "Business Unit", "DS ID", "PS Number", "PS Name", "Valid Since", "Days",
 				"FILO Hours", "Floor Hours", "Compliance" };
 		return reportHeaders;
 	}

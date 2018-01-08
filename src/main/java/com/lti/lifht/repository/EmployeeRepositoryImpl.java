@@ -29,13 +29,14 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
 
 			StringBuilder sql = new StringBuilder();
 
-			sql.append("INSERT INTO employee(ps_number, ps_name, apple_manager, lti_mail, ds_id)")
-					.append(" VALUES (?, ?, ?, ?, ?)")
+			sql.append("INSERT INTO employee(ps_number, ps_name, apple_manager, lti_mail, ds_id, active)")
+					.append(" VALUES (?, ?, ?, ?, ?, ?)")
 					.append(" ON DUPLICATE KEY UPDATE")
 					.append(" ps_name = VALUES (ps_name),")
 					.append(" apple_manager = VALUES (apple_manager),")
 					.append(" lti_mail = VALUES (lti_mail), ")
-					.append(" ds_id = VALUES (ds_id)");
+					.append(" ds_id = VALUES (ds_id),")
+					.append(" active = VALUES (active)");
 
 			Query insert = entityManager.createNativeQuery(sql.toString());
 
@@ -44,6 +45,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
 			insert.setParameter(3, employee.getManager());
 			insert.setParameter(4, employee.getEmail());
 			insert.setParameter(5, employee.getDsId());
+			insert.setParameter(6, "Y"); // set active
 			updateCountList.add(insert.executeUpdate());
 		});
 
@@ -77,6 +79,13 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
 				.filter(Objects::nonNull)
 				.mapToInt(Integer::intValue)
 				.sum();
+	}
+
+	@Override
+	public void reset() {
+		StringBuilder sql = new StringBuilder("update employee set active = 'N' where active = 'Y'");
+		Query update = entityManager.createNativeQuery(sql.toString());
+		update.executeUpdate();
 	}
 
 }
