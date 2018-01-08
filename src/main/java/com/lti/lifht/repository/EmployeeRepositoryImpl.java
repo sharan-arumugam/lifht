@@ -83,7 +83,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
 
 	@Override
 	public void reset() {
-		StringBuilder sql = new StringBuilder("update employee set active = 'N' where active = 'Y'");
+		StringBuilder sql = new StringBuilder("delete from employee where active = 'Y'");
 		Query update = entityManager.createNativeQuery(sql.toString());
 		update.executeUpdate();
 	}
