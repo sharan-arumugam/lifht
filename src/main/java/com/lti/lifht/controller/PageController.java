@@ -1,7 +1,7 @@
 package com.lti.lifht.controller;
 
-import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_ADMIN;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -16,41 +16,44 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping("/")
 public class PageController {
 
-	@GetMapping("/staff")
-	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
-	public String user(HttpSession session, HttpServletResponse response) {
+    @GetMapping("/")
+    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
+    public String defaultIndex(HttpSession session, HttpServletResponse response) {
 
-		response.addHeader("username", String.valueOf(session.getAttribute("username")));
-		response.addHeader("authorities", String.valueOf(session.getAttribute("authorities")));
+        String authorities = String.valueOf(session.getAttribute("authorities"));
+        return "ROLE_ADMIN".contains(authorities) ? user(session, response) : admin(session, response);
+    }
 
-		return "staffindex";
-	}
+    @GetMapping("/staff")
+    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
+    public String user(HttpSession session, HttpServletResponse response) {
 
-	@GetMapping("/admin")
-	@PreAuthorize(HAS_ROLE_ADMIN)
-	public String admin(HttpSession session, HttpServletResponse response) {
+        response.addHeader("username", String.valueOf(session.getAttribute("username")));
+        response.addHeader("authorities", String.valueOf(session.getAttribute("authorities")));
 
-		response.addHeader("username", String.valueOf(session.getAttribute("username")));
-		response.addHeader("authorities", String.valueOf(session.getAttribute("authorities")));
+        return "staffindex";
+    }
 
-		return "adminindex";
-	}
+    @GetMapping("/admin")
+    @PreAuthorize(HAS_ROLE_ADMIN)
+    public String admin(HttpSession session, HttpServletResponse response) {
 
-	@GetMapping("/upload")
-	@PreAuthorize(HAS_ROLE_ADMIN)
-	public ModelAndView upload(ModelAndView mv) {
+        response.addHeader("username", String.valueOf(session.getAttribute("username")));
+        response.addHeader("authorities", String.valueOf(session.getAttribute("authorities")));
 
-		mv.addObject("messageSwipe", "");
-		mv.addObject("messageHc", "");
-		mv.addObject("messagePa", "");
-		mv.setViewName("upload");
+        return "adminindex";
+    }
 
-		return mv;
-	}
+    @GetMapping("/upload")
+    @PreAuthorize(HAS_ROLE_ADMIN)
+    public ModelAndView upload(ModelAndView mv) {
 
-	@GetMapping("/customLogin")
-	public String customLogin() {
-		return "customLogin";
-	}
+        mv.addObject("messageSwipe", "");
+        mv.addObject("messageHc", "");
+        mv.addObject("messagePa", "");
+        mv.setViewName("upload");
+
+        return mv;
+    }
 
 }

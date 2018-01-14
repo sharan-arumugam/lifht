@@ -4,6 +4,7 @@ import static com.lti.lifht.util.CommonUtil.parseDMYDashToDate;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -20,7 +21,7 @@ public class RangeMultiPs {
 	public RangeMultiPs(String fromDate, String toDate, String[] psNumberList) {
 		this.fromDate = parseDMYDashToDate.apply(fromDate);
 		this.toDate = parseDMYDashToDate.apply(toDate);
-		this.psNumberList = Arrays.asList(psNumberList);
+		this.psNumberList = null != psNumberList ? Arrays.asList(psNumberList) : new ArrayList<>();
 	}
 
 	public List<String> getPsNumberList() {

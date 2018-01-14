@@ -9,5 +9,6 @@ public interface EmployeeRepositoryCustom {
     Integer saveOrUpdateHeadCount(List<EmployeeBean> employeeList);
 
     Integer saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList);
-    
+
+    void resetAccess(List<String> psNumberList);
 }

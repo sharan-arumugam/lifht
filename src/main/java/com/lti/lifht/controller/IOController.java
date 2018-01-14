@@ -6,11 +6,21 @@ import static com.lti.lifht.util.ExcelUtil.parseXlsx;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.StringJoiner;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +31,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.lti.lifht.model.EmployeeBean;
+import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.service.AdminService;
 import com.lti.lifht.service.IOService;
+import com.lti.lifht.util.LocalDateStream;
 
 @RequestMapping("/io")
 @PreAuthorize(HAS_ROLE_ADMIN)
@@ -81,18 +94,92 @@ public class IOController {
 	@GetMapping("/export/range-multi-ps")
 	public void generateRangeMultiReport(HttpServletResponse response,
 			@RequestParam("fromDate") String fromDate,
-			@RequestParam("toDate") String toDate,
-			@RequestParam("psNumberList") String psNumberList) throws IOException {
+			@RequestParam("toDate") String toDate) throws IOException {
 
-		RangeMultiPs request = new RangeMultiPs(fromDate, toDate,
-				psNumberList.split(","));
+		RangeMultiPs request = new RangeMultiPs(fromDate, toDate, null);
 
-		List<EntryRange> entries = adminService.getRangeMulti(request, true);
-		String[] reportHeaders = EntryRange.fetchReportHeaders();
+		List<EntryRange> cumulative = adminService.getRangeMulti(request, true);
+
+		LocalDateStream localDateStream = new LocalDateStream(request.getFromDate(), request.getToDate());
+
+		List<Map<LocalDate, List<EntryDateBean>>> nestedDateMultiList = localDateStream.stream()
+				.map(adminService::getDateMulti)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+
+		Map<LocalDate, Map<String, EntryDateBean>> datePsBeanMap = new HashMap<>();
+
+		nestedDateMultiList.forEach(map -> {
+			map.forEach((date, list) -> {
+				datePsBeanMap.put(date,
+						list.stream()
+								.collect(Collectors.toMap(
+										e -> e.getPsNumber(),
+										Function.identity(),
+										(value, duplicate) -> value,
+										TreeMap::new)));
+			});
+		});
+
+		Map<String, StringJoiner> reportMap = new HashMap<>();
+
+		Map<String, EmployeeBean> psEmpMap = cumulative.stream()
+				.filter(Objects::nonNull)
+				.filter(entry -> null != entry.getPsNumber())
+				.collect(Collectors.toMap(
+						EntryRange::getPsNumber,
+						entryRange -> null != entryRange.getEmployee() && null != entryRange.getEmployee()
+								? entryRange.getEmployee()
+								: new EmployeeBean(),
+						(value, duplicate) -> value));
+
+		cumulative.stream()
+				.collect(Collectors.toMap(EntryRange::getPsNumber, Function.identity()))
+				.forEach((ps, entryRangeBean) -> {
+					StringJoiner joiner = new StringJoiner(",");
+					EmployeeBean employee = entryRangeBean.getEmployee();
+					joiner.add(null != employee.getBusinessUnit() ? employee.getBusinessUnit() : "")
+							.add(null != employee.getDsId() ? employee.getDsId() : "")
+							.add(ps)
+							.add(null != employee.getPsName() ? employee.getPsName() : "")
+							.add(entryRangeBean.getValidSince() + "")
+							.add(entryRangeBean.getDaysPresent() + "")
+							.add(entryRangeBean.getFiloString())
+							.add(entryRangeBean.getDurationString())
+							.add(entryRangeBean.getComplianceString());
+					reportMap.put(ps, joiner);
+				});
+
+		datePsBeanMap
+				.entrySet()
+				.stream()
+				.sorted(Map.Entry.comparingByKey())
+				.map(Entry::getValue)
+				.forEach(psEntryBeanMap -> {
+					psEmpMap.forEach((ps, employee) -> {
+						reportMap.get(ps)
+								.add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getFiloString() : "-")
+								.add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getDurationString() : "-");
+					});
+				});
+
+		StringJoiner cumulativeHeaders = EntryRange.fetchReportHeaders();
 
 		response.setHeader("Content-Disposition",
 				"attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
-		service.generateRangeMultiReport(entries, reportHeaders).write(response.getOutputStream());
 
+		Workbook workbook = service.generateRangeMultiDatedReport(new XSSFWorkbook(),
+				cumulativeHeaders,
+				datePsBeanMap.keySet(),
+				reportMap.values()
+						.stream()
+						.sorted(Comparator.comparing(joiner -> {
+							String psName = joiner.toString().split(",")[3];
+							return null != psName && !"null".equals(psName) ? psName : "";
+						}))
+						.toArray());
+
+		workbook.write(response.getOutputStream());
+		workbook.close();
 	}
 }

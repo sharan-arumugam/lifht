@@ -38,6 +38,7 @@ public class EmployeeController {
     public List<EmployeeBean> getAllEmployees() {
         return service.getAllEmployees()
                 .stream()
+                .filter(entry -> null != entry.getPsName())
                 .filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
                 .sorted(Comparator.comparing(EmployeeBean::getPsName))
                 .collect(Collectors.toList());
@@ -58,7 +59,7 @@ public class EmployeeController {
     @PostMapping("/swipe/date-multi-ps")
     @PreAuthorize(HAS_ROLE_ADMIN)
     public List<EntryDateBean> getDateMulti(@RequestBody DateMultiPs request) {
-        return service.getDateMulti(request);
+        return service.getDateMulti(request, false);
     }
 
     @PostMapping("/swipe/range-multi-ps")

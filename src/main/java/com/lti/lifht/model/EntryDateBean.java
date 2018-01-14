@@ -5,13 +5,12 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.StringJoiner;
 
 import com.lti.lifht.entity.EntryDate;
 import com.lti.lifht.util.CommonUtil;
 
 public class EntryDateBean {
-
-    private static StringBuilder builder = new StringBuilder();
 
     private LocalDate swipeDate;
     private String swipeDoor;
@@ -37,10 +36,10 @@ public class EntryDateBean {
                 String.valueOf(rawResult[4]));
 
         psNumber = String.valueOf(rawResult[0]);
-        swipeDate = LocalDate.parse(String.valueOf(rawResult[5]));
-        duration = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])));
-        filo = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7])));
-        compliance = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8])));
+        swipeDate = null != rawResult[5] ? LocalDate.parse(String.valueOf(rawResult[5])) : null;
+        duration = null != rawResult[6] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6]))) : null;
+        filo = null != rawResult[7] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7]))) : null;
+        compliance = null != rawResult[8] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8]))) : null;
         swipeDoor = String.valueOf(rawResult[9]);
     }
 
@@ -54,13 +53,21 @@ public class EntryDateBean {
                 String.valueOf(rawResult[4]));
 
         psNumber = String.valueOf(rawResult[0]);
-        swipeDate = LocalDate.parse(String.valueOf(rawResult[5]));
-        duration = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])));
-        filo = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7])));
-        compliance = Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8])));
+        swipeDate = null != rawResult[5]
+                ? LocalDate.parse(String.valueOf(rawResult[5]))
+                : null;
+        duration = null != rawResult[6]
+                ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])))
+                : null;
+        filo = null != rawResult[7]
+                ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7])))
+                : null;
+        compliance = null != rawResult[8]
+                ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8])))
+                : null;
         swipeDoor = String.valueOf(rawResult[9]);
-        firstIn = LocalTime.parse(String.valueOf(fi));
-        lastOut = LocalTime.parse(String.valueOf(lo));
+        firstIn = null != fi ? LocalTime.parse(String.valueOf(fi)) : null;
+        lastOut = null != lo ? LocalTime.parse(String.valueOf(lo)) : null;
     }
 
     public EntryDateBean(EntryDate entity) {
@@ -243,14 +250,12 @@ public class EntryDateBean {
     }
 
     public String toCsvString() {
-        builder.setLength(0);
-        return builder
-                .append(swipeDate).append(",")
-                .append(psNumber).append(",")
-                // .append(employee.getPsName()).append(",")
-                // .append(getFiloString()).append(",")
-                .append(getDurationString()).append(",")
-                .append(getComplianceString())
+        StringJoiner joiner = new StringJoiner(",");
+        return joiner
+                .add(swipeDate + "")
+                .add(psNumber)
+                .add(getFiloString())
+                .add(getComplianceString())
                 .toString();
     }
 

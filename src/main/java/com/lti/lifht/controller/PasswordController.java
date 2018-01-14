@@ -36,7 +36,8 @@ public class PasswordController {
     @Autowired
     private MailService emailService;
 
-    private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private BCryptPasswordEncoder encoder;
 
     @GetMapping("/forgot")
     public String forgotPassword() {
@@ -90,7 +91,7 @@ public class PasswordController {
         if (user.isPresent()) {
             Employee resetUser = user.get();
 
-            resetUser.setPassword(bCryptPasswordEncoder.encode(requestParams.get("password")));
+            resetUser.setPassword(encoder.encode(requestParams.get("password")));
             resetUser.setResetToken(null);
 
             userService.save(resetUser);

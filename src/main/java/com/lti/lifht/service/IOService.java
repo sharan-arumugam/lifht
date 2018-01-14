@@ -3,31 +3,36 @@ package com.lti.lifht.service;
 import static com.lti.lifht.constant.ExcelConstant.ALC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.HC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
-import static com.lti.lifht.util.CommonUtil.getNext;
-import static com.lti.lifht.util.CommonUtil.getPrev;
+import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -43,11 +48,12 @@ import com.lti.lifht.entity.EntryPair;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
-import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.EntryRaw;
 import com.lti.lifht.repository.EmployeeRepository;
 import com.lti.lifht.repository.EntryDateRepository;
 import com.lti.lifht.repository.EntryPairRepository;
+import com.lti.lifht.repository.RoleMasterRepository;
+import com.lti.lifht.util.CommonUtil;
 
 import one.util.streamex.StreamEx;
 
@@ -56,6 +62,9 @@ public class IOService {
 
     @Autowired
     EmployeeRepository employeeRepo;
+
+    @Autowired
+    RoleMasterRepository roleMasterRepo;
 
     @Autowired
     EntryPairRepository entryPairRepo;
@@ -120,13 +129,13 @@ public class IOService {
             EntryRaw current = entryList.get(index);
 
             if (index > 0) { // filter duplicate door entries
-                EntryRaw previous = getPrev.apply(entryList, index);
+                EntryRaw previous = entryList.get(index - 1);
                 return validRow.test(current, previous)
                         ? !sameDoor.test(current, previous)
                         : true;
 
             } else if (index == 0 && index + 1 < entrySize) { // validate first pair
-                EntryRaw next = getNext.apply(entryList, index);
+                EntryRaw next = entryList.get(index + 1);
 
                 return validRow.test(current, next)
                         ? doorPair.test(current, next)
@@ -182,9 +191,6 @@ public class IOService {
                 .reduce((current, next) -> next)
                 .orElse(null);
 
-        LOG.info("minDate::" + minDate.toString());
-        LOG.info("maxDate::" + maxDate.toString());
-
         return saveOrUpdateEntryDate(minDate, maxDate);
     }
 
@@ -226,7 +232,7 @@ public class IOService {
                                 Duration durationSum = groupedList.stream()
                                         .map(EntryPairBean::getDuration)
                                         .reduce(Duration::plus)
-                                        .orElse(Duration.ofMillis(0));
+                                        .orElse(null);
 
                                 entryDateList
                                         .add(new EntryDateBean(psNumber, date, door, durationSum, firstIn, lastOut));
@@ -248,15 +254,27 @@ public class IOService {
                 .map(row -> new EmployeeBean(row, HC_MAP))
                 .collect(toList());
 
-        return employeeRepo.saveOrUpdateHeadCount(offshoreList);
+        int updateCount = employeeRepo.saveOrUpdateHeadCount(offshoreList);
+
+        List<String> psNumberList = offshoreList.stream()
+                .map(EmployeeBean::getPsNumber)
+                .collect(toList());
+
+        employeeRepo.resetAccess(psNumberList);
+        employeeRepo.setNewAccess(roleMasterRepo.findByRole("ROLE_EMPLOYEE"));
+
+        return updateCount;
     }
 
     public Integer saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
+
+        Set<String> psNumbers = employeeRepo.findAllpsNumber();
 
         rows = rows
                 .stream()
                 .filter(row -> null != row.get(ALC_MAP.get("customer"))
                         && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+                .filter(row -> psNumbers.contains(row.get(ALC_MAP.get("psNumber"))))
                 .collect(toList());
 
         List<EmployeeBean> employeeList = rows
@@ -267,43 +285,128 @@ public class IOService {
         return employeeRepo.saveOrUpdateProjectAllocation(employeeList);
     }
 
-    public Workbook generateRangeMultiReport(List<EntryRange> entries, String[] reportHeaders) {
-        try {
-            return createTable(entries.toArray(), reportHeaders);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public Workbook generateRangeMultiDatedReport(XSSFWorkbook workbook, StringJoiner cumulativeHeaders,
+            Set<LocalDate> datedHeaders, Object[] reportData) {
+
+        LocalDate from = datedHeaders.stream()
+                .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                .findFirst()
+                .orElse(null);
+
+        LocalDate to = datedHeaders.stream()
+                .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                .reduce((d1, d2) -> d2)
+                .orElse(null);
+
+        String cumulativeDateRange = null != from && null != to
+                ? "Cumulative"
+                        + " from " + from.format(reportDateFormatter)
+                        + " to " + to.format(reportDateFormatter)
+                : "Invalid dates";
+
+        XSSFSheet sheet = (XSSFSheet) workbook.createSheet();
+
+        Font font = workbook.createFont();
+        font.setBold(true);
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setFont(font);
+
+        return createDatedTable(sheet, headerStyle, cumulativeDateRange, cumulativeHeaders,
+                datedHeaders, reportData);
+
     }
 
-    public Workbook createTable(Object[] rowArr, String[] reportHeaders) throws FileNotFoundException, IOException {
-        Workbook wb = new XSSFWorkbook();
-        XSSFSheet sheet = (XSSFSheet) wb.createSheet();
+    private Workbook createDatedTable(XSSFSheet sheet, CellStyle headerStyle, String cumulativeDateRange,
+            StringJoiner cumulativeHeaders, Set<LocalDate> datedHeaders, Object[] reportData) {
 
-        int rowLength = rowArr.length;
+        int rowLength = reportData.length;
+
+        List<String> dateHeaderList = new ArrayList<>();
+        dateHeaderList.add(""); // bu
+        dateHeaderList.add(""); // dsId
+        dateHeaderList.add(""); // psNumber
+        dateHeaderList.add(""); // psName
+        dateHeaderList.add(""); // validSince
+        dateHeaderList.add(""); // daysPresent
+        dateHeaderList.add(""); // filo
+        dateHeaderList.add(""); // floor
+        dateHeaderList.add(""); // compliance
+
+        datedHeaders.stream()
+                .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                .forEach(e -> {
+                    dateHeaderList.add(e.format(reportDateFormatter));
+                    dateHeaderList.add(""); // colspan for filo-floor
+                });
+
+        List<String> headersList2 = new ArrayList<>();
+        headersList2.addAll(Arrays.asList(cumulativeHeaders.toString().split(",")));
+
+        datedHeaders.stream().forEach(e -> {
+            headersList2.add("FILO");
+            headersList2.add("Floor");
+        });
+
+        Object[] dateHeader = dateHeaderList.toArray();
+        Object[] reportHeaders2 = headersList2.toArray();
 
         // set headers
-        int colLength = reportHeaders.length;
+        int colLength = dateHeader.length;
         XSSFRow headerRow = sheet.createRow(0); // first row as column names
-
         IntStream.range(0, colLength).forEach(colIndex -> {
             XSSFCell cell = headerRow.createCell(colIndex);
-            cell.setCellValue(reportHeaders[colIndex]);
+            cell.setCellValue(String.valueOf(dateHeader[colIndex]));
+        });
+
+        Cell cumulativeTitleCell = sheet.getRow(0).getCell(4);
+        cumulativeTitleCell.setCellValue(cumulativeDateRange);
+        cumulativeTitleCell.setCellStyle(headerStyle);
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 8));
+
+        int cellCount = 8;
+
+        List<Cell> dateHederStreamList = CommonUtil.toStream(sheet.getRow(0).cellIterator())
+                .collect(Collectors.toList());
+
+        for (Cell cell : dateHederStreamList) {
+            if (cellCount < dateHederStreamList.size()) {
+                sheet.addMergedRegion(new CellRangeAddress(
+                        0,
+                        0,
+                        ++cellCount,
+                        ++cellCount));
+            }
+            cell.setCellStyle(headerStyle);
+        }
+
+        // set headers
+        XSSFRow headerRow2 = sheet.createRow(1); // first row as column names
+        IntStream.range(0, colLength).forEach(colIndex -> {
+            XSSFCell cell = headerRow2.createCell(colIndex);
+            cell.setCellValue(String.valueOf(reportHeaders2[colIndex]));
+            cell.setCellStyle(headerStyle);
         });
 
         // set row, column values
         IntStream.range(0, rowLength).forEach(rowIndex -> {
-            String[] colArr = rowArr[rowIndex].toString().split(",");
-            XSSFRow row = sheet.createRow(rowIndex + 1); // +1 as first row for headers
+            String[] colArr = reportData[rowIndex].toString().split(",");
+            XSSFRow row = sheet.createRow(rowIndex + 2); // +1 as first row for headers
 
             IntStream.range(0, colLength).forEach(colIndex -> {
                 XSSFCell cell = row.createCell(colIndex);
-                cell.setCellValue(colArr[colIndex]);
+                if (NumberUtils.isCreatable(colArr[colIndex])) {
+                    cell.setCellValue(Double.valueOf(colArr[colIndex]));
+                } else {
+                    cell.setCellValue(null != colArr[colIndex]
+                            && !"null".equals(colArr[colIndex])
+                                    ? colArr[colIndex]
+                                    : "");
+                }
                 sheet.autoSizeColumn(colIndex);
             });
         });
-
-        return wb;
+        return sheet.getWorkbook();
     }
 
 }
