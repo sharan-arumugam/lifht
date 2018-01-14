@@ -16,32 +16,28 @@ import static com.lti.lifht.constant.EntityConstant.ROLE;
 @Table(name = ROLE_MASTER)
 public class RoleMaster {
 
-	@Id
-	@GeneratedValue(strategy = AUTO)
-	@Column(name = ROLE_ID)
-	private int roleId;
+    @Id
+    @GeneratedValue(strategy = AUTO)
+    @Column(name = ROLE_ID)
+    private int roleId;
 
-	@Column(name = ROLE)
-	private String role;
+    @Column(name = ROLE)
+    private String role;
 
-	public RoleMaster() {
-		super();
-	}
+    public int getRoleId() {
+        return roleId;
+    }
 
-	public int getRoleId() {
-		return roleId;
-	}
+    public void setRoleId(int roleId) {
+        this.roleId = roleId;
+    }
 
-	public void setRoleId(int roleId) {
-		this.roleId = roleId;
-	}
+    public String getRole() {
+        return role;
+    }
 
-	public String getRole() {
-		return role;
-	}
-
-	public void setRole(String role) {
-		this.role = role;
-	}
+    public void setRole(String role) {
+        this.role = role;
+    }
 
 }

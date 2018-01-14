@@ -377,7 +377,7 @@ $(document).ready(function() {
     });
   }
   /***End Staff Page***/
-
+  
 });
 
 function createChart(type,date,name,inTime){

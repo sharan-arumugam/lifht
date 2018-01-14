@@ -1,17 +1,12 @@
 package com.lti.lifht.entity;
 
-import static com.lti.lifht.constant.EntityConstant.ACCESS;
-import static com.lti.lifht.constant.EntityConstant.PS_NUMBER;
-import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.FetchType.EAGER;
 
 import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 
 @Entity
 public class Employee {
@@ -27,8 +22,7 @@ public class Employee {
     private String businessUnit;
     private char active;
     private String resetToken;
-    @OneToMany(cascade = ALL, fetch = EAGER)
-    @JoinTable(name = ACCESS, joinColumns = @JoinColumn(name = PS_NUMBER))
+    @ManyToMany(fetch = EAGER)
     private Set<RoleMaster> roles;
 
     public Employee() {
@@ -77,8 +71,9 @@ public class Employee {
         return password;
     }
 
-    public void setPassword(String password) {
+    public Employee setPassword(String password) {
         this.password = password;
+        return this;
     }
 
     public String getAppleMail() {
@@ -113,12 +108,13 @@ public class Employee {
         this.businessUnit = businessUnit;
     }
 
-    public boolean isActive() {
-        return 'Y' == active;
+    public char getActive() {
+        return active;
     }
 
-    public void setActive(char active) {
+    public Employee setActive(char active) {
         this.active = active;
+        return this;
     }
 
     public String getResetToken() {
@@ -133,7 +129,8 @@ public class Employee {
         return roles;
     }
 
-    public void setRoles(Set<RoleMaster> roles) {
+    public Employee setRoles(Set<RoleMaster> roles) {
         this.roles = roles;
+        return this;
     }
 }

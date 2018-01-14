@@ -1,5 +1,7 @@
 package com.lti.lifht.config;
 
+import static org.springframework.security.web.WebAttributes.AUTHENTICATION_EXCEPTION;
+
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -9,10 +11,9 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
-import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +22,8 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SuccessHandler.class);
 
-    private static final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+    @Autowired
+    private RedirectStrategy redirectStrategy;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -69,6 +71,7 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
         if (null == session) {
             return;
         }
-        session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        session.removeAttribute(AUTHENTICATION_EXCEPTION);
     }
 }

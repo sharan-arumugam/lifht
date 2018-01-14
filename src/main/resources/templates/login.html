@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="utf-8">
+		<link rel="icon" href="./assests/images/LTI_Lets_solve.png" type="image/x-icon" />
+		<link rel="stylesheet" href="./libs/bootstrap/css/bootstrap.min.css" />
+		<link rel="stylesheet" href="./libs/css/custom.css" />
+		<title>Lifht</title>
+	</head>
+  	<body>
+  
+	<header class="header">
+		<h4 class="text-center"> Lifht - LTI Floor Hour Tracker </h4>
+	</header>
+
+	<div class="container">
+		<div class="row">
+			<form class="login-box" th:action="@{/login}" method="post">
+				<img src="./assests/images/LTI_Lets_solve.png" alt="LTI logo">
+				<div class="form-group">
+					<div th:if="${param.error == nul}" role="alert"><strong>&nbsp;</strong></div>
+					<div th:if="${param.error != nul}" class="alert-danger" role="alert"><strong>Invalid</strong></div>
+					<input title="PS Number" type="text" name="psNumber" value="" placeholder="PS Number" class="form-control login-input">
+					<input title="Password" type="password" name="password" value="" placeholder="Password" class="form-control login-input">
+					<button type="submit" name="button" class="btn btn-success">Log In</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	</body>
+	
+	<script type="text/javascript" src="./libs/js/jquery.min.js"></script>
+	<script type="text/javascript" src="./libs/bootstrap/js/bootstrap.min.js"></script>
+
+</html>

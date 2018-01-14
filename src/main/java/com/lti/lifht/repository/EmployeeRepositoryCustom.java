@@ -6,9 +6,9 @@ import com.lti.lifht.model.EmployeeBean;
 
 public interface EmployeeRepositoryCustom {
 
-	Integer saveOrUpdateHeadCount(List<EmployeeBean> employeeList);
+    Integer saveOrUpdateHeadCount(List<EmployeeBean> employeeList);
 
-	Integer saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList);
+    Integer saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList);
 
-	void reset();
+    void resetAccess(List<String> psNumberList);
 }
