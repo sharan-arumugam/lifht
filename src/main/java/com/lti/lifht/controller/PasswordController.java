@@ -1,6 +1,6 @@
 package com.lti.lifht.controller;
 
-import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE;
 
 import java.util.Map;
 import java.util.Optional;
@@ -30,98 +30,99 @@ import com.lti.lifht.service.MailService;
 @RequestMapping("/password")
 public class PasswordController {
 
-    @Autowired
-    private AdminService userService;
+	@Autowired
+	private AdminService userService;
 
-    @Autowired
-    private MailService emailService;
+	@Autowired
+	private MailService emailService;
 
-    @Autowired
-    private BCryptPasswordEncoder encoder;
+	@Autowired
+	private BCryptPasswordEncoder encoder;
 
-    @GetMapping("/forgot")
-    public String forgotPassword() {
-        return "forgotPassword";
-    }
+	@GetMapping("/forgot")
+	public String forgotPassword() {
+		return "forgotPassword";
+	}
 
-    @PostMapping("/forgot")
-    public ModelAndView forgotPassword(ModelAndView modelAndView, @RequestParam("psNumber") String psNumber,
-            HttpServletRequest request) throws MessagingException {
+	@PostMapping("/forgot")
+	public ModelAndView forgotPassword(ModelAndView modelAndView, @RequestParam("psNumber") String psNumber,
+			HttpServletRequest request) throws MessagingException {
 
-        Optional<Employee> optional = userService.findByPsNumber(psNumber);
+		Optional<Employee> optional = userService.findByPsNumber(psNumber);
 
-        if (!optional.isPresent()) {
-            modelAndView.addObject("errorMessage", psNumber + " not found");
-        } else {
-            Employee user = optional.get();
-            user.setResetToken(UUID.randomUUID().toString());
-            userService.save(user);
+		if (!optional.isPresent()) {
+			modelAndView.addObject("errorMessage", psNumber + " not found");
+		} else {
+			Employee user = optional.get();
+			user.setResetToken(UUID.randomUUID().toString());
+			userService.save(user);
 
-            String appUrl = request.getScheme() + "://" + request.getServerName();
+			String appUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 
-            emailService.sendMail(appUrl, psNumber, user.getResetToken());
-            modelAndView.addObject("successMessage", "reset link sent to mail associated with :: " + psNumber);
-        }
+			emailService.sendMail(appUrl, psNumber, user.getResetToken());
+			modelAndView.addObject("successMessage", "reset link sent to mail associated with :: " + psNumber);
+		}
 
-        modelAndView.setViewName("forgotPassword");
-        return modelAndView;
-    }
+		modelAndView.setViewName("forgotPassword");
+		return modelAndView;
+	}
 
-    @GetMapping("/reset")
-    public ModelAndView resetPassword(ModelAndView modelAndView, @RequestParam("token") String token) {
+	@GetMapping("/reset")
+	public ModelAndView resetPassword(ModelAndView modelAndView, @RequestParam("token") String token) {
 
-        Optional<Employee> user = userService.findByResetToken(token);
+		Optional<Employee> user = userService.findByResetToken(token);
 
-        if (user.isPresent()) {
-            modelAndView.addObject("resetToken", token);
-        } else {
-            modelAndView.addObject("errorMessage", "invalid");
-        }
+		if (user.isPresent()) {
+			modelAndView.addObject("resetToken", token);
+		} else {
+			modelAndView.addObject("errorMessage", "invalid");
+		}
 
-        modelAndView.setViewName("resetPassword");
-        return modelAndView;
-    }
+		modelAndView.setViewName("resetPassword");
+		return modelAndView;
+	}
 
-    @PostMapping("/reset")
-    public ModelAndView resetPassword(ModelAndView modelAndView, @RequestParam Map<String, String> requestParams,
-            RedirectAttributes redir) {
+	@PostMapping("/reset")
+	public ModelAndView resetPassword(ModelAndView modelAndView, @RequestParam Map<String, String> requestParams,
+			RedirectAttributes redir) {
 
-        Optional<Employee> user = userService.findByResetToken(requestParams.get("token"));
+		Optional<Employee> user = userService.findByResetToken(requestParams.get("token"));
 
-        if (user.isPresent()) {
-            Employee resetUser = user.get();
+		if (user.isPresent()) {
+			Employee resetUser = user.get();
 
-            resetUser.setPassword(encoder.encode(requestParams.get("password")));
-            resetUser.setResetToken(null);
+			resetUser.setPassword(encoder.encode(requestParams.get("password")));
+			resetUser.setResetToken(null);
 
-            userService.save(resetUser);
+			userService.save(resetUser);
 
-            redir.addFlashAttribute("successMessage", "password reset");
-            modelAndView.setViewName("resetPassword");
-            return modelAndView;
+			redir.addFlashAttribute("successMessage", "password reset");
+			modelAndView.setViewName("resetPassword");
+			return modelAndView;
 
-        } else {
-            modelAndView.addObject("errorMessage", "invalid");
-            modelAndView.setViewName("resetPassword");
-        }
+		} else {
+			modelAndView.addObject("errorMessage", "invalid");
+			modelAndView.setViewName("resetPassword");
+		}
 
-        return modelAndView;
-    }
+		return modelAndView;
+	}
 
-    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
-    @GetMapping("/change")
-    public ModelAndView changePassowrd(ModelAndView modelAndView) {
-        return modelAndView;
-    }
+	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
+	@GetMapping("/change")
+	public ModelAndView changePassowrd(ModelAndView modelAndView) {
+		return modelAndView;
+	}
 
-    @PostMapping("/change")
-    public ModelAndView changePassowrd(ModelAndView modelAndView, @RequestParam Map<String, String> requestParams,
-            RedirectAttributes redir) {
-        return modelAndView;
-    }
+	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
+	@PostMapping("/change")
+	public ModelAndView changePassowrd(ModelAndView modelAndView, @RequestParam Map<String, String> requestParams,
+			RedirectAttributes redir) {
+		return modelAndView;
+	}
 
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ModelAndView handleMissingParams(MissingServletRequestParameterException ex) {
-        return new ModelAndView("redirect:login");
-    }
+	@ExceptionHandler(MissingServletRequestParameterException.class)
+	public ModelAndView handleMissingParams(MissingServletRequestParameterException ex) {
+		return new ModelAndView("redirect:login");
+	}
 }

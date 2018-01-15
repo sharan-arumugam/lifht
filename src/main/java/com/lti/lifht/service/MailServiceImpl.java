@@ -15,22 +15,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class MailServiceImpl implements MailService {
 
-    @Autowired
-    private JavaMailSender sender;
+	@Autowired
+	private JavaMailSender sender;
 
-    @Async
-    @Override
-    public Future<String> sendMail(String appUrl, String psNumber, String resetToken) throws MessagingException {
-        MimeMessage message = sender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message);
+	@Async
+	@Override
+	public Future<String> sendMail(String appUrl, String psNumber, String resetToken) throws MessagingException {
+		MimeMessage message = sender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(message);
 
-        // helper.setTo(psNumber + "@lntinfotech.com");
-        helper.setTo("noreply.ltiodc@gmail.com");
-        helper.setSubject("LTI ODC - reset password");
-        helper.setText("reset link: " + appUrl + ":8080/password/reset?token=" + resetToken);
+		helper.setTo(psNumber + "@lntinfotech.com");
+		helper.setSubject("LTI ODC - reset password");
+		helper.setText("reset link: " + appUrl + "/password/reset?token=" + resetToken);
 
-        sender.send(message);
+		sender.send(message);
 
-        return new AsyncResult<String>("Email send successfully");
-    }
+		return new AsyncResult<String>("email sent: " + psNumber + "@lntinfotech.com");
+	}
 }

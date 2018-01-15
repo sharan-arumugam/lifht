@@ -1,7 +1,7 @@
 package com.lti.lifht.controller;
 
-import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE_ADMIN;
-import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE;
 
 import java.util.Comparator;
 import java.util.List;
@@ -30,42 +30,42 @@ import com.lti.lifht.service.AdminService;
 @RequestMapping("/api")
 public class EmployeeController {
 
-    @Autowired
-    AdminService service;
+	@Autowired
+	AdminService service;
 
-    @GetMapping("/all")
-    @PreAuthorize(HAS_ROLE_ADMIN)
-    public List<EmployeeBean> getAllEmployees() {
-        return service.getAllEmployees()
-                .stream()
-                .filter(entry -> null != entry.getPsName())
-                .filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
-                .sorted(Comparator.comparing(EmployeeBean::getPsName))
-                .collect(Collectors.toList());
-    }
+	@GetMapping("/all")
+	@PreAuthorize(HAS_ANY_ROLE_ADMIN)
+	public List<EmployeeBean> getAllEmployees() {
+		return service.getAllEmployees()
+				.stream()
+				.filter(entry -> null != entry.getPsName())
+				.filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
+				.sorted(Comparator.comparing(EmployeeBean::getPsName))
+				.collect(Collectors.toList());
+	}
 
-    @PostMapping("/swipe/date-single-ps")
-    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
-    public List<EntryPairBean> getDateSinglePs(@RequestBody DateSinglePs request) {
-        return service.getDateSinglePs(request);
-    }
+	@PostMapping("/swipe/date-single-ps")
+	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
+	public List<EntryPairBean> getDateSinglePs(@RequestBody DateSinglePs request) {
+		return service.getDateSinglePs(request);
+	}
 
-    @PostMapping("/swipe/range-single-ps")
-    @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE_ADMIN)
-    public List<EntryDateBean> getRangeSingle(@RequestBody RangeSinglePs request) {
-        return service.getRangeSingle(request);
-    }
+	@PostMapping("/swipe/range-single-ps")
+	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
+	public List<EntryDateBean> getRangeSingle(@RequestBody RangeSinglePs request) {
+		return service.getRangeSingle(request);
+	}
 
-    @PostMapping("/swipe/date-multi-ps")
-    @PreAuthorize(HAS_ROLE_ADMIN)
-    public List<EntryDateBean> getDateMulti(@RequestBody DateMultiPs request) {
-        return service.getDateMulti(request, false);
-    }
+	@PostMapping("/swipe/date-multi-ps")
+	@PreAuthorize(HAS_ANY_ROLE_ADMIN)
+	public List<EntryDateBean> getDateMulti(@RequestBody DateMultiPs request) {
+		return service.getDateMulti(request, false);
+	}
 
-    @PostMapping("/swipe/range-multi-ps")
-    @PreAuthorize(HAS_ROLE_ADMIN)
-    public List<EntryRange> getRangeMulti(@RequestBody RangeMultiPs request) {
-        return service.getRangeMulti(request, false);
-    }
+	@PostMapping("/swipe/range-multi-ps")
+	@PreAuthorize(HAS_ANY_ROLE_ADMIN)
+	public List<EntryRange> getRangeMulti(@RequestBody RangeMultiPs request) {
+		return service.getRangeMulti(request, false);
+	}
 
 }
