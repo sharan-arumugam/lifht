@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="utf-8">
-    <link rel="icon" href="./libs/images/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="./libs/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="./libs/bootstrap/css/bootstrap-calender.css" />
     <link rel='stylesheet' href='./libs/dataTable/dataTable.css' />
@@ -11,14 +10,65 @@
     <title>Lifht</title>
   </head>
   <body data-page="staff">
-    <header class="header">
-      <img src="./assests/images/logo.png" alt="">
+    
+
+	<header class='header'>
+      <div class="content-mid col-sm-1 pull-left">
+      	<a title="home" href="/">
+      		<img src='./assests/images/LTI_Lets_solve.png' class="btn-md" alt="Home">
+      	</a>
+      </div>
+      <div class="col-md-2 pull-left">
+	      <a href="/password/change" class="btn btn-md">
+	      	<span class="glyphicon glyphicon-pencil"></span> Password
+	      </a>
+      </div>
+      <div class="col-md-6 text-center pull-left">
+		<span class="btn btn-lg">
+			<span class="glyphicon glyphicon-open"></span> Lifht - Home
+		</span>
+      </div>
+      
+     <div class="col-md-3 pull-right">
+      	<div class="col-md-5 text-right"> 
+      		<label th:text="${session.psName}" th:unless="${session == null}"></label> 
+      	</div>
+      	<div class="col-md-1">
+			<a href="#" data-toggle="modal" data-target="#logoutModal" class="btn btn-info btn-md">
+	        		<span class="glyphicon glyphicon-log-out"></span> Log out
+	      	</a>
+      	</div>
+      </div>
+      
     </header>
+    
+    <!-- Log out modal -->
+	<div class="modal" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
+	  <div class="modal-dialog modal-sm">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+	        <h4>Confirm<i class="fa fa-lock"></i></h4>
+	      </div>
+	      <div class="modal-body">
+	        <div>
+		        <div class="col-md-12 text-center">
+        		        <a href="#" onclick="location.href='/logout'" class="btn btn-md col-xs-12 btn-danger" data-dismiss="modal">
+        		        		<span class="glyphicon glyphicon-log-out"></span> Log out
+        		        	</a>
+		        </div>
+   	    		    <br />
+           		<br />
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+    
+    <br />
+
     <div class="container">
       <div class="row">
-        <h1 class="mainheading">
-          LTI Compliance Tracker
-        </h1>
         <div class="col-md-12 col-sm-12 col-xs-12">
           <div class="row">
             <div class="col-md-3 col-sm-12 col-xs-12 input-field">
@@ -137,11 +187,12 @@
       </div>
     </div>
   </body>
-  <script type="text/javascript" src="./libs/js/jquery.min.js"></script>
-  <script type="text/javascript" src="./libs/bootstrap/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="./libs/bootstrap/js/bootstrap-datepicker.js"></script>
-  <script type="text/javascript" src="./libs/charts/highcharts.js"></script>
-  <script type="text/javascript" src="./libs/charts/exporting.js"></script>
-  <script type='text/javascript' src='./libs/dataTable/dataTable.js'></script>
-  <script type="text/javascript" src="./libs/js/custom.js"></script>
+	<script type="text/javascript" th:inline="javascript">/*<![CDATA[*/var sessionPsNumber = [[${session.psNumber}]];/*]]>*/</script>
+	<script type="text/javascript" src="./libs/js/jquery.min.js"></script>
+	<script type="text/javascript" src="./libs/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="./libs/bootstrap/js/bootstrap-datepicker.js"></script>
+	<script type="text/javascript" src="./libs/charts/highcharts.js"></script>
+	<script type="text/javascript" src="./libs/charts/exporting.js"></script>
+	<script type='text/javascript' src='./libs/dataTable/dataTable.js'></script>
+	<script type="text/javascript" src="./libs/js/custom.js"></script>
 </html>

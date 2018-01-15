@@ -24,5 +24,5 @@ public class DateSinglePs {
     public void setDate(Date date) {
         this.date = date;
     }
-
+    
 }

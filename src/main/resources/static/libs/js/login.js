@@ -1,5 +1,6 @@
 $(document).ready(function() {
-  $(".form-inputs").on("keyup", "input[name=username],input[name=password]", function(event) {
+	
+  $(".form-inputs").on("keyup", "input[name=psNumber],input[name=password]", function(event) {
     if (event.key === 'Enter') {
       $(".btn-submit-login").click();
     }

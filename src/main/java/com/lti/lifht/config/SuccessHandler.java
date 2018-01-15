@@ -17,61 +17,71 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.lti.lifht.model.EmployeeDetails;
+
 @Component
 public class SuccessHandler implements AuthenticationSuccessHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(SuccessHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(SuccessHandler.class);
 
-    @Autowired
-    private RedirectStrategy redirectStrategy;
+	@Autowired
+	private RedirectStrategy redirectStrategy;
 
-    @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-            HttpServletResponse response, Authentication authentication)
-            throws IOException {
+	@Override
+	public void onAuthenticationSuccess(HttpServletRequest request,
+			HttpServletResponse response, Authentication authentication)
+			throws IOException {
 
-        Consumer<String> redirect = targetUrl -> {
-            try {
-                request.getSession().setAttribute("username", authentication.getName());
-                request.getSession().setAttribute("authorities", authentication.getAuthorities());
+		Consumer<String> redirect = targetUrl -> {
+			try {
 
-                redirectStrategy.sendRedirect(request, response, targetUrl);
+				EmployeeDetails principal = (EmployeeDetails) authentication.getPrincipal();
+				String psName = null != principal.getPsName()
+						? principal.getPsName().split(" ")[0]
+						: principal.getPsNumber();
 
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-                e.printStackTrace();
-            }
-        };
+				request.getSession().setAttribute("psNumber", authentication.getName());
+				request.getSession().setAttribute("psName", psName);
+				request.getSession().setAttribute("authorities", authentication.getAuthorities());
 
-        authentication.getAuthorities().forEach(grantedAuthority -> {
+				redirectStrategy.sendRedirect(request, response, targetUrl);
 
-            switch (grantedAuthority.getAuthority()) {
+			} catch (IOException e) {
+				logger.error(e.getMessage());
+				e.printStackTrace();
+			}
+		};
 
-            case "ROLE_EMPLOYEE":
-                redirect.accept("/staff");
-                logger.info("staff login");
-                break;
+		authentication.getAuthorities().forEach(grantedAuthority -> {
 
-            case "ROLE_ADMIN":
-                redirect.accept("/admin");
-                logger.info("admin login");
-                break;
+			switch (grantedAuthority.getAuthority()) {
 
-            default:
-                throw new IllegalStateException();
-            }
-        });
+			case "ROLE_EMPLOYEE":
+				redirect.accept("/staff");
+				logger.info("staff login");
+				break;
 
-        if (response.isCommitted()) {
-            logger.debug("response committed");
-            return;
-        }
+			case "ROLE_SUPER":
+			case "ROLE_ADMIN":
+				redirect.accept("/admin");
+				logger.info("admin login");
+				break;
 
-        HttpSession session = request.getSession(false);
-        if (null == session) {
-            return;
-        }
+			default:
+				throw new IllegalStateException();
+			}
+		});
 
-        session.removeAttribute(AUTHENTICATION_EXCEPTION);
-    }
+		if (response.isCommitted()) {
+			logger.debug("response committed");
+			return;
+		}
+
+		HttpSession session = request.getSession(false);
+		if (null == session) {
+			return;
+		}
+
+		session.removeAttribute(AUTHENTICATION_EXCEPTION);
+	}
 }
