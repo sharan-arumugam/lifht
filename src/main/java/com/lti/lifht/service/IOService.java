@@ -3,9 +3,12 @@ package com.lti.lifht.service;
 import static com.lti.lifht.constant.ExcelConstant.ALC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.HC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
+import static com.lti.lifht.constant.SwipeConstant.DOOR_MD;
 import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -90,8 +93,10 @@ public class IOService {
 		List<EntryRaw> entryList = entries.stream()
 				.filter(Objects::nonNull)
 				.filter(validEvent)
-				.filter(entry -> entry.get(SWP_MAP.get("swipeDoor"))
-						.contains("Apple Main Door"))
+				.filter(entry -> {
+					String doorName = entry.get(SWP_MAP.get("swipeDoor"));
+					return doorName.contains(DOOR_MD);
+				})
 				.map(EntryRaw::new)
 				.sorted(byPsNumDateTime)
 				.collect(toList());
@@ -250,7 +255,7 @@ public class IOService {
 		List<EmployeeBean> offshoreList = rows
 				.stream()
 				.filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
-				.filter(row -> StringUtils.isNotBlank(row.get(HC_MAP.get("psNumber"))))
+				.filter(row -> isNotBlank(row.get(HC_MAP.get("psNumber"))))
 				.map(row -> new EmployeeBean(row, HC_MAP))
 				.collect(toList());
 
@@ -308,7 +313,7 @@ public class IOService {
 		Font font = workbook.createFont();
 		font.setBold(true);
 		CellStyle headerStyle = workbook.createCellStyle();
-		headerStyle.setAlignment(HorizontalAlignment.CENTER);
+		headerStyle.setAlignment(CENTER);
 		headerStyle.setFont(font);
 
 		return createDatedTable(sheet, headerStyle, cumulativeDateRange, cumulativeHeaders,
