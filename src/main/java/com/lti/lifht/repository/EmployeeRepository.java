@@ -22,51 +22,53 @@ import com.lti.lifht.entity.RoleMaster;
 @SuppressWarnings("unchecked")
 public interface EmployeeRepository extends JpaRepository<Employee, String>, EmployeeRepositoryCustom {
 
-    Optional<Employee> findByPsNumber(String psNumber);
+	Optional<Employee> findByPsNumber(String psNumber);
 
-    @Query("from Employee where resetToken = ?")
-    Optional<Employee> findByResetToken(String resetToken);
+	@Query("from Employee where resetToken = ?")
+	Optional<Employee> findByResetToken(String resetToken);
 
-    @Query("from Employee where active <> 'N' and active <> 'A'")
-    List<Employee> findAll();
+	@Query("from Employee where active <> 'N' and active <> 'A'")
+	List<Employee> findAll();
 
-    Employee saveAndFlush(Employee employee);
+	Employee saveAndFlush(Employee employee);
 
-    @Query("select psNumber from Employee where active <> 'N' and active <> 'A'")
-    Set<String> findAllpsNumber();
+	@Query("select psNumber from Employee where active <> 'N' and active <> 'A'")
+	Set<String> findAllpsNumber();
 
-    List<Employee> findByPsNumberNotIn(List<String> psNumberList);
+	List<Employee> findByPsNumberNotIn(List<String> psNumberList);
 
-    public default void resetAccess(List<String> psNumberList) {
-        save(findByPsNumberNotIn(psNumberList)
-                .stream()
-                .map(employee -> 'A' == employee.getActive() ? employee : employee.setActive('N')) // ignore super sets
-                .collect(toSet()));
-    }
+	default void resetAccess(List<String> psNumberList, RoleMaster employeeRole) {
+		save(findByPsNumberNotIn(psNumberList)
+				.stream()
+				.map(employee -> 'A' == employee.getActive() ? employee : employee.setActive('N')) // ignore super sets
+				.collect(toSet()));
 
-    /**
-     * to be called only after resetAccess
-     * 
-     * @see EmployeeRepository#resetAccess
-     * @param employeeRole
-     */
-    public default void setNewAccess(RoleMaster employeeRole) {
-        Supplier<Stream<Employee>> stream = () -> findAll().stream();
+		setNewAccess(employeeRole);
+	}
 
-        Map<String, String> cryptMap = cryptTupleMap(stream
-                .get()
-                .map(Employee::getPsNumber)
-                .collect(toList()));
+	/**
+	 * to be called only after resetAccess
+	 * 
+	 * @see EmployeeRepository#resetAccess
+	 * @param employeeRole
+	 */
+	default void setNewAccess(RoleMaster employeeRole) {
+		Supplier<Stream<Employee>> stream = () -> findAll().stream();
 
-        Set<RoleMaster> roles = new HashSet<>(asList(employeeRole));
+		Map<String, String> cryptMap = cryptTupleMap(stream
+				.get()
+				.map(Employee::getPsNumber)
+				.collect(toList()));
 
-        save(stream
-                .get()
-                .map(employee -> {
-                    return employee
-                            .setPassword(cryptMap.get(employee.getPsNumber()))
-                            .setRoles(roles);
-                })
-                .collect(toSet()));
-    }
+		Set<RoleMaster> roles = new HashSet<>(asList(employeeRole));
+
+		save(stream
+				.get()
+				.map(employee -> {
+					return employee
+							.setPassword(cryptMap.get(employee.getPsNumber()))
+							.setRoles(roles);
+				})
+				.collect(toSet()));
+	}
 }

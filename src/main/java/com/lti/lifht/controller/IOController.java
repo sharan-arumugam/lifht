@@ -1,12 +1,16 @@
 package com.lti.lifht.controller;
 
-import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
+import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
 import static com.lti.lifht.util.ExcelUtil.parseXlsx;
+import static java.util.Comparator.comparing;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,8 +18,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,7 +42,6 @@ import com.lti.lifht.service.IOService;
 import com.lti.lifht.util.LocalDateStream;
 
 @RequestMapping("/io")
-@PreAuthorize(HAS_ROLE_ADMIN)
 @RestController
 public class IOController {
 
@@ -51,11 +52,11 @@ public class IOController {
 	AdminService adminService;
 
 	@PostMapping("/import/head-count")
+	@PreAuthorize(HAS_ROLE_SUPER)
 	public ModelAndView importHeadCount(ModelAndView mv, @RequestParam("head-count") MultipartFile headCount)
 			throws IOException {
 
 		List<Map<String, String>> rows = parseXlsx.apply(headCount.getInputStream());
-
 		Integer updateCount = service.saveOrUpdateHeadCount(rows);
 
 		mv.addObject("messageHc", "updated headcount: " + updateCount + " entries updated");
@@ -65,11 +66,11 @@ public class IOController {
 	}
 
 	@PostMapping("/import/project-allocation")
+	@PreAuthorize(HAS_ROLE_SUPER)
 	public ModelAndView importAllocation(ModelAndView mv, @RequestParam("project-allocation") MultipartFile allocation)
 			throws IOException {
 
 		List<Map<String, String>> rows = parseXlsx.apply(allocation.getInputStream());
-
 		Integer updateCount = service.saveOrUpdateProjectAllocation(rows);
 
 		mv.addObject("messagePa", "updated project-allocation: " + updateCount + " entries updated");
@@ -79,10 +80,11 @@ public class IOController {
 	}
 
 	@PostMapping("/import/swipe-data")
+	@PreAuthorize(HAS_ROLE_SUPER)
 	public ModelAndView importSwipeData(ModelAndView mv, @RequestParam("swipe-data") MultipartFile swipeData)
 			throws IOException {
-		List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(), swipeData.getInputStream());
 
+		List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(), swipeData.getInputStream());
 		Integer updateCount = service.saveOrUpdateRawEntry(rows);
 
 		mv.addObject("messageSwipe", "updated swipes: " + updateCount + " entries updated");
@@ -92,41 +94,39 @@ public class IOController {
 	}
 
 	@GetMapping("/export/range-multi-ps")
+	@PreAuthorize(HAS_ANY_ROLE_ADMIN)
 	public void generateRangeMultiReport(HttpServletResponse response,
 			@RequestParam("fromDate") String fromDate,
 			@RequestParam("toDate") String toDate) throws IOException {
 
 		RangeMultiPs request = new RangeMultiPs(fromDate, toDate, null);
-
 		List<EntryRange> cumulative = adminService.getRangeMulti(request, true);
 
+		Workbook workbook;
 		LocalDateStream localDateStream = new LocalDateStream(request.getFromDate(), request.getToDate());
+		Map<LocalDate, Map<String, EntryDateBean>> datePsBeanMap = new HashMap<>();
+		Map<String, StringJoiner> reportMap = new HashMap<>();
 
 		List<Map<LocalDate, List<EntryDateBean>>> nestedDateMultiList = localDateStream.stream()
 				.map(adminService::getDateMulti)
 				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
-
-		Map<LocalDate, Map<String, EntryDateBean>> datePsBeanMap = new HashMap<>();
+				.collect(toList());
 
 		nestedDateMultiList.forEach(map -> {
 			map.forEach((date, list) -> {
 				datePsBeanMap.put(date,
 						list.stream()
-								.collect(Collectors.toMap(
-										e -> e.getPsNumber(),
-										Function.identity(),
+								.collect(toMap(EntryDateBean::getPsNumber,
+										identity(),
 										(value, duplicate) -> value,
 										TreeMap::new)));
 			});
 		});
 
-		Map<String, StringJoiner> reportMap = new HashMap<>();
-
 		Map<String, EmployeeBean> psEmpMap = cumulative.stream()
 				.filter(Objects::nonNull)
 				.filter(entry -> null != entry.getPsNumber())
-				.collect(Collectors.toMap(
+				.collect(toMap(
 						EntryRange::getPsNumber,
 						entryRange -> null != entryRange.getEmployee() && null != entryRange.getEmployee()
 								? entryRange.getEmployee()
@@ -134,7 +134,7 @@ public class IOController {
 						(value, duplicate) -> value));
 
 		cumulative.stream()
-				.collect(Collectors.toMap(EntryRange::getPsNumber, Function.identity()))
+				.collect(toMap(EntryRange::getPsNumber, identity()))
 				.forEach((ps, entryRangeBean) -> {
 					StringJoiner joiner = new StringJoiner(",");
 					EmployeeBean employee = entryRangeBean.getEmployee();
@@ -153,7 +153,7 @@ public class IOController {
 		datePsBeanMap
 				.entrySet()
 				.stream()
-				.sorted(Map.Entry.comparingByKey())
+				.sorted(Entry.comparingByKey())
 				.map(Entry::getValue)
 				.forEach(psEntryBeanMap -> {
 					psEmpMap.forEach((ps, employee) -> {
@@ -168,12 +168,12 @@ public class IOController {
 		response.setHeader("Content-Disposition",
 				"attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
 
-		Workbook workbook = service.generateRangeMultiDatedReport(new XSSFWorkbook(),
+		workbook = service.generateRangeMultiDatedReport(new XSSFWorkbook(),
 				cumulativeHeaders,
 				datePsBeanMap.keySet(),
 				reportMap.values()
 						.stream()
-						.sorted(Comparator.comparing(joiner -> {
+						.sorted(comparing(joiner -> {
 							String psName = joiner.toString().split(",")[3];
 							return null != psName && !"null".equals(psName) ? psName : "";
 						}))

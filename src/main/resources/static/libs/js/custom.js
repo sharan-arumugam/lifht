@@ -5,7 +5,7 @@ $(document).ready(function() {
   var nonchecked = 0;
   var allStaff = [];
   var allpsNumber = [];
-  var psNumber_hard = 10612253;
+  var psNumber_hard = sessionPsNumber;
   var tableoptions = {
     columnDefs: [
         {
@@ -15,21 +15,8 @@ $(document).ready(function() {
     ],
     lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]] // Will change depend on the count
   };
-  $(document).on("click", ".switch-form-btn", function() {
-    // Toggle form
-    if (login === "admin") {
-      $("#admin-login").hide();
-      $("#staff-login").show();
-      login = "staff";
-    } else {
-      $("#admin-login").show();
-      $("#staff-login").hide();
-      login = "admin";
-    }
-    // Resetting input
-    $("#admin-login").find("input").val('');
-    $("#staff-login").find("input").val('');
-  });
+  
+  console.log("sessionPsNumber: "+sessionPsNumber);
 
   // Calender
   var startDate = new Date();
@@ -254,7 +241,7 @@ $(document).ready(function() {
         date.push(val.swipeDate);
         name = val.employee.psName;
         inTime.push(val.durationString);
-        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.swipeDate+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'>Detail Report</button></td></tr>";
+        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.swipeDate+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
       });
       chartType = 'line';
       createChart(chartType,date,name,inTime);
@@ -264,7 +251,7 @@ $(document).ready(function() {
         date = val.dateRange;
         name.push(val.employee.psName);
         inTime.push(val.durationString);
-        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.dateRange+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'>Detail Report</button></td></tr>";
+        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.dateRange+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
       });
         chartType = "column";
         createChart(chartType,name,date,inTime);
@@ -347,8 +334,8 @@ $(document).ready(function() {
               response.map((val)=>{
                 //swipeIn = swipeIn.push(val.swipIn);
                 inTime.push(val.durationString);
-                date = val.swipeDate;
-              tableHtml += "<tr><td>"+val.swipeDate+"</td><td>"+val.swipeIn+"</td><td>"+val.swipeOut+"</td><td>"+val.durationString+"</td></tr>";
+                date = val.swipeDateString;
+              tableHtml += "<tr><td>"+date+"</td><td>"+val.swipeIn+"</td><td>"+val.swipeOut+"</td><td>"+val.durationString+"</td></tr>";
             });
             $("#result-table-single").css("display", "block");
             $("#result-table-single tbody").html(tableHtml);
@@ -358,7 +345,8 @@ $(document).ready(function() {
                 date1.push(val.swipeDate);
                 inTime.push(val.durationString);
                 name = val.employee.psName;
-              tableHtml += "<tr>/n<td>"+val.swipeDate+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'>Detail Report</button></td></tr>";
+                date = val.swipeDateString;
+              tableHtml += "<tr>/n<td>"+date+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
             });
             $("#result-table-range").css("display", "block");
             $("#result-table-range tbody").html(tableHtml);
@@ -377,7 +365,6 @@ $(document).ready(function() {
     });
   }
   /***End Staff Page***/
-  
 });
 
 function createChart(type,date,name,inTime){

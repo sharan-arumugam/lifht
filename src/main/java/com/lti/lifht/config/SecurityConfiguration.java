@@ -7,7 +7,7 @@ import static com.lti.lifht.constant.PathConstant.PATH_LIB_ANY;
 import static com.lti.lifht.constant.PathConstant.PATH_LOGIN;
 import static com.lti.lifht.constant.PathConstant.PATH_LOGIN_ERROR;
 import static com.lti.lifht.constant.PathConstant.PATH_LOGOUT;
-import static com.lti.lifht.constant.PathConstant.PATH_PASSWORD_ANY;
+import static com.lti.lifht.constant.PathConstant.PATH_PASSWORD_FORGOT;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -25,39 +25,39 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    UserDetailsService employeeDetailsService;
+	@Autowired
+	UserDetailsService employeeDetailsService;
 
-    @Autowired
-    SuccessHandler successHandler;
+	@Autowired
+	SuccessHandler successHandler;
 
-    @Autowired
-    CorsFilter corsFilter;
+	@Autowired
+	CorsFilter corsFilter;
 
-    @Autowired
-    BCryptPasswordEncoder encoder;
+	@Autowired
+	BCryptPasswordEncoder encoder;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .anyRequest().authenticated()
-                .antMatchers(PATH_PASSWORD_ANY).permitAll()
-                .and().formLogin().loginPage(PATH_LOGIN).permitAll()
-                .failureUrl(PATH_LOGIN_ERROR)
-                .usernameParameter(PARAM_PS_NUMBER)
-                .passwordParameter(PARAM_PASSWORD)
-                .successHandler(successHandler)
-                .and().logout().logoutUrl(PATH_LOGOUT)
-                .logoutSuccessUrl(PATH_LOGIN)
-                .and().csrf().disable();
-    }
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests()
+				.anyRequest().authenticated()
+				.antMatchers(PATH_PASSWORD_FORGOT).permitAll()
+				.and().formLogin().loginPage(PATH_LOGIN).permitAll()
+				.failureUrl(PATH_LOGIN_ERROR)
+				.usernameParameter(PARAM_PS_NUMBER)
+				.passwordParameter(PARAM_PASSWORD)
+				.successHandler(successHandler)
+				.and().logout().logoutUrl(PATH_LOGOUT)
+				.logoutSuccessUrl(PATH_LOGIN)
+				.and().csrf().disable();
+	}
 
-    public void configure(WebSecurity webSecurity) throws Exception {
-        webSecurity.ignoring().antMatchers(PATH_LIB_ANY, PATH_ASSET_ANY);
-    }
+	public void configure(WebSecurity webSecurity) throws Exception {
+		webSecurity.ignoring().antMatchers(PATH_LIB_ANY, PATH_ASSET_ANY);
+	}
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder authMgrBuilder) throws Exception {
-        authMgrBuilder.userDetailsService(employeeDetailsService).passwordEncoder(encoder);
-    }
+	@Override
+	protected void configure(AuthenticationManagerBuilder authMgrBuilder) throws Exception {
+		authMgrBuilder.userDetailsService(employeeDetailsService).passwordEncoder(encoder);
+	}
 }
