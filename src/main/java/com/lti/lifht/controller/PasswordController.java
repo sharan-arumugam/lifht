@@ -2,6 +2,7 @@ package com.lti.lifht.controller;
 
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -123,23 +124,23 @@ public class PasswordController {
 
 	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
 	@PostMapping("/change")
-	public ModelAndView changePassowrd(ModelAndView modelAndView, @RequestParam Map<String, String> requestParams,
-			@RequestBody Map<String, String> body,
-			RedirectAttributes redir, HttpSession session) {
+	public Map<String, String> changePassowrd(@RequestBody Map<String, String> request, HttpSession session) {
 
-		Employee employee = miscService.changePassword(body.get("currentPass"),
-				body.get("newPass"),
-				session.getAttribute("psNumber")
-						.toString());
+		Map<String, String> responseMap = new HashMap<>();
 
-		if (null == employee) {
-			modelAndView.addObject("errorMessage", "Failed");
+		Employee employee = miscService.changePassword(
+				request.get("currentPass"),
+				request.get("newPass"),
+				session.getAttribute("psNumber").toString());
+
+		if (null != employee) {
+			responseMap.put("status", "success");
+			responseMap.put("message", "password changed");
 		} else {
-			modelAndView.addObject("successMessage", "Changed");
+			responseMap.put("status", "failed");
+			responseMap.put("message", "mismatch/invalid");
 		}
-
-		modelAndView.setViewName("changePassword");
-		return modelAndView;
+		return responseMap;
 	}
 
 	@ExceptionHandler(MissingServletRequestParameterException.class)
