@@ -10,27 +10,22 @@
 
 	<body>
 		<header class='header'>
-	      <div class="content-mid col-sm-1 pull-left">
+	      <div class="col-md-2 col-sm-2 pull-left">
 	      	<a title="home" href="/">
 	      		<img src='./assests/images/LTI_Lets_solve.png' class="btn-md" alt="Home">
 	      	</a>
 	      </div>
-	      <div class="col-md-2 pull-left">
-		      <a href="/" class="btn btn-md btn-primary">
-		      	<span class="glyphicon glyphicon-home"></span> Home &nbsp;
-		      </a>
-	      </div>
-	      <div class="col-md-2 pull-left">
+	      <div class="col-md-2 col-sm-2">
 		      <a href="/password/change" class="btn btn-md">
 		      	<span class="glyphicon glyphicon-pencil"></span> Password
 		      </a>
 	      </div>
-	      <div class="col-md-2 pull-left">
+	      <div class="col-md-3 col-sm-3">
 		      <span class="btn btn-lg">
 		      	<span class="glyphicon glyphicon-open"></span> Lifht - Upload
 		      </span>
 	      </div>
-	      <div class="col-md-2 pull-right">
+	      <div class="col-md-2 col-sm-2 pull-right">
 			<a href="#" data-toggle="modal" data-target="#logoutModal" class="btn btn-info btn-md">
 	        		<span class="glyphicon glyphicon-log-out"></span> Log out
 	      	</a>
@@ -63,31 +58,34 @@
    		<br />
 		<div class='container'>
 			<div class='row'>
-				<form class="col-md-4 col-sm-12 upload-form" method="POST" name="swipe" action="/io/import/swipe-data" enctype="multipart/form-data">
+				<form id="swipe-data" class="col-md-4 col-sm-12 upload-form" enctype="multipart/form-data">
 					<div class="form-content">
 						<h3> Swipe data: </h3>
 						<input type="file" class="form-input" name="swipe-data" class="btn btn-default" />
 						<input type="submit" value="Submit" class="btn btn-primary" />
-						<!-- <label th:if="null != ${messageSwipe}" class="alert alert-warning" th:text="${messageSwipe}"></label> -->
+						<span class="swipe-data-ack-msg alert"></span>
 					</div>
 				</form>
-				<form class="col-md-4 col-sm-12 upload-form" method="POST" action="/io/import/head-count" enctype="multipart/form-data">
+				<form id="head-count" class="col-md-4 col-sm-12 upload-form" enctype="multipart/form-data">
 					<div class="form-content">
 						<h3> Head-count:</h3>
 						<input type="file" name="head-count" class="btn btn-default" />
 						<input type="submit" value="Submit" class="btn btn-primary" />
-						<!-- <label style="font-size: 12pt; color: gray;" th:text="${messageHc}"></label> -->
+						<span class="head-count-ack-msg alert"></span>
 					</div>
 				</form>
-				<form class="col-md-4 col-sm-12 upload-form" method="POST" action="/io/import/project-allocation" enctype="multipart/form-data">
+				<form id="project-allocation" class="col-md-4 col-sm-12 upload-form" enctype="multipart/form-data">
 					<div class="form-content">
 						<h3> Project allocation: </h3>
 						<input type="file" name="project-allocation" class="btn btn-default" />
 						<input type="submit" value="Submit" class="btn btn-primary" />
-						<!-- <label style="font-size: 12pt; color: gray;" th:text="${messagePa}"> </label> -->
+						<span class="project-all-ack-msg alert"></span>
 					</div>
 				</form>
 			</div>
+		</div>
+		<div class="loading">
+			<img src='./assests/images/uploading-2.gif' alt="Home">
 		</div>
 	</body>
 

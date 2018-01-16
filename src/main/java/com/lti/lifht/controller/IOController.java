@@ -8,6 +8,9 @@ import static java.util.Comparator.comparing;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.springframework.http.HttpStatus.NOT_MODIFIED;
+import static org.springframework.http.ResponseEntity.accepted;
+import static org.springframework.http.ResponseEntity.status;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -24,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
@@ -53,50 +56,40 @@ public class IOController {
 
 	@PostMapping("/import/head-count")
 	@PreAuthorize(HAS_ROLE_SUPER)
-	public ModelAndView importHeadCount(ModelAndView mv, @RequestParam("head-count") MultipartFile headCount)
-			throws IOException {
-
-		List<Map<String, String>> rows = parseXlsx.apply(headCount.getInputStream());
-		Integer updateCount = service.saveOrUpdateHeadCount(rows);
-
-		mv.addObject("messageHc", "updated headcount: " + updateCount + " entries updated");
-		mv.setViewName("upload");
-
-		return mv;
+	public ResponseEntity<Object> importHeadCount(@RequestParam("head-count") MultipartFile headCount) {
+		try {
+			service.saveOrUpdateHeadCount(parseXlsx.apply(headCount.getInputStream()));
+			return accepted().build();
+		} catch (Exception e) {
+			return status(NOT_MODIFIED).build();
+		}
 	}
 
 	@PostMapping("/import/project-allocation")
 	@PreAuthorize(HAS_ROLE_SUPER)
-	public ModelAndView importAllocation(ModelAndView mv, @RequestParam("project-allocation") MultipartFile allocation)
-			throws IOException {
-
-		List<Map<String, String>> rows = parseXlsx.apply(allocation.getInputStream());
-		Integer updateCount = service.saveOrUpdateProjectAllocation(rows);
-
-		mv.addObject("messagePa", "updated project-allocation: " + updateCount + " entries updated");
-		mv.setViewName("upload");
-
-		return mv;
+	public ResponseEntity<Object> importAllocation(@RequestParam("project-allocation") MultipartFile allocation) {
+		try {
+			service.saveOrUpdateProjectAllocation(parseXlsx.apply(allocation.getInputStream()));
+			return accepted().build();
+		} catch (Exception e) {
+			return status(NOT_MODIFIED).build();
+		}
 	}
 
 	@PostMapping("/import/swipe-data")
 	@PreAuthorize(HAS_ROLE_SUPER)
-	public ModelAndView importSwipeData(ModelAndView mv, @RequestParam("swipe-data") MultipartFile swipeData)
-			throws IOException {
-
-		List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(), swipeData.getInputStream());
-		Integer updateCount = service.saveOrUpdateRawEntry(rows);
-
-		mv.addObject("messageSwipe", "updated swipes: " + updateCount + " entries updated");
-		mv.setViewName("upload");
-
-		return mv;
+	public ResponseEntity<Object> importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData) {
+		try {
+			service.saveOrUpdateRawEntry(autoParse.apply(swipeData.getOriginalFilename(), swipeData.getInputStream()));
+			return accepted().build();
+		} catch (Exception e) {
+			return status(NOT_MODIFIED).build();
+		}
 	}
 
 	@GetMapping("/export/range-multi-ps")
 	@PreAuthorize(HAS_ANY_ROLE_ADMIN)
-	public void generateRangeMultiReport(HttpServletResponse response,
-			@RequestParam("fromDate") String fromDate,
+	public void generateRangeMultiReport(HttpServletResponse response, @RequestParam("fromDate") String fromDate,
 			@RequestParam("toDate") String toDate) throws IOException {
 
 		RangeMultiPs request = new RangeMultiPs(fromDate, toDate, null);
@@ -108,53 +101,36 @@ public class IOController {
 		Map<String, StringJoiner> reportMap = new HashMap<>();
 
 		List<Map<LocalDate, List<EntryDateBean>>> nestedDateMultiList = localDateStream.stream()
-				.map(adminService::getDateMulti)
-				.filter(Objects::nonNull)
-				.collect(toList());
+				.map(adminService::getDateMulti).filter(Objects::nonNull).collect(toList());
 
 		nestedDateMultiList.forEach(map -> {
 			map.forEach((date, list) -> {
-				datePsBeanMap.put(date,
-						list.stream()
-								.collect(toMap(EntryDateBean::getPsNumber,
-										identity(),
-										(value, duplicate) -> value,
-										TreeMap::new)));
+				datePsBeanMap.put(date, list.stream().collect(
+						toMap(EntryDateBean::getPsNumber, identity(), (value, duplicate) -> value, TreeMap::new)));
 			});
 		});
 
-		Map<String, EmployeeBean> psEmpMap = cumulative.stream()
-				.filter(Objects::nonNull)
+		Map<String, EmployeeBean> psEmpMap = cumulative.stream().filter(Objects::nonNull)
 				.filter(entry -> null != entry.getPsNumber())
-				.collect(toMap(
-						EntryRange::getPsNumber,
+				.collect(toMap(EntryRange::getPsNumber,
 						entryRange -> null != entryRange.getEmployee() && null != entryRange.getEmployee()
 								? entryRange.getEmployee()
 								: new EmployeeBean(),
 						(value, duplicate) -> value));
 
-		cumulative.stream()
-				.collect(toMap(EntryRange::getPsNumber, identity()))
-				.forEach((ps, entryRangeBean) -> {
-					StringJoiner joiner = new StringJoiner(",");
-					EmployeeBean employee = entryRangeBean.getEmployee();
-					joiner.add(null != employee.getBusinessUnit() ? employee.getBusinessUnit() : "")
-							.add(null != employee.getDsId() ? employee.getDsId() : "")
-							.add(ps)
-							.add(null != employee.getPsName() ? employee.getPsName() : "")
-							.add(entryRangeBean.getValidSince() + "")
-							.add(entryRangeBean.getDaysPresent() + "")
-							.add(entryRangeBean.getFiloString())
-							.add(entryRangeBean.getDurationString())
-							.add(entryRangeBean.getComplianceString());
-					reportMap.put(ps, joiner);
-				});
+		cumulative.stream().collect(toMap(EntryRange::getPsNumber, identity())).forEach((ps, entryRangeBean) -> {
+			StringJoiner joiner = new StringJoiner(",");
+			EmployeeBean employee = entryRangeBean.getEmployee();
+			joiner.add(null != employee.getBusinessUnit() ? employee.getBusinessUnit() : "")
+					.add(null != employee.getDsId() ? employee.getDsId() : "").add(ps)
+					.add(null != employee.getPsName() ? employee.getPsName() : "")
+					.add(entryRangeBean.getValidSince() + "").add(entryRangeBean.getDaysPresent() + "")
+					.add(entryRangeBean.getFiloString()).add(entryRangeBean.getDurationString())
+					.add(entryRangeBean.getComplianceString());
+			reportMap.put(ps, joiner);
+		});
 
-		datePsBeanMap
-				.entrySet()
-				.stream()
-				.sorted(Entry.comparingByKey())
-				.map(Entry::getValue)
+		datePsBeanMap.entrySet().stream().sorted(Entry.comparingByKey()).map(Entry::getValue)
 				.forEach(psEntryBeanMap -> {
 					psEmpMap.forEach((ps, employee) -> {
 						reportMap.get(ps)
@@ -168,16 +144,11 @@ public class IOController {
 		response.setHeader("Content-Disposition",
 				"attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
 
-		workbook = service.generateRangeMultiDatedReport(new XSSFWorkbook(),
-				cumulativeHeaders,
-				datePsBeanMap.keySet(),
-				reportMap.values()
-						.stream()
-						.sorted(comparing(joiner -> {
-							String psName = joiner.toString().split(",")[3];
-							return null != psName && !"null".equals(psName) ? psName : "";
-						}))
-						.toArray());
+		workbook = service.generateRangeMultiDatedReport(new XSSFWorkbook(), cumulativeHeaders, datePsBeanMap.keySet(),
+				reportMap.values().stream().sorted(comparing(joiner -> {
+					String psName = joiner.toString().split(",")[3];
+					return null != psName && !"null".equals(psName) ? psName : "";
+				})).toArray());
 
 		workbook.write(response.getOutputStream());
 		workbook.close();

@@ -7,14 +7,11 @@ $(document).ready(function() {
   var allpsNumber = [];
   var psNumber_hard = sessionPsNumber;
   var tableoptions = {
-    columnDefs: [
-        {
-            targets: [ 0, 1, 2 ],
-            className: 'mdl-data-table__cell--non-numeric'
-        }
-    ],
-    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]] // Will change depend on the count
-  };
+    "ordering": true,
+    columnDefs: [{
+      orderable: false,
+      targets: "no-sort"
+    }]};
 
   // Calender
   var startDate = new Date();
