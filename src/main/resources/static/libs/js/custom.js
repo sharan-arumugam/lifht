@@ -15,8 +15,6 @@ $(document).ready(function() {
     ],
     lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]] // Will change depend on the count
   };
-  
-  console.log("sessionPsNumber: "+sessionPsNumber);
 
   // Calender
   var startDate = new Date();
@@ -37,6 +35,15 @@ $(document).ready(function() {
   });
 
   /***** Admin *****/
+
+  $(document).on("click", "#admin-actions-toggle", function() {
+    if ($(".admin-dropdown").is(":visible")) {
+      $("#admin-actions-toggle").find("span").attr("class", 'glyphicon glyphicon-menu-down');
+    } else {
+      $("#admin-actions-toggle").find("span").attr("class", 'glyphicon glyphicon-menu-up');
+    }
+    $(".admin-dropdown").toggle();
+  });
 
   // Generate Emplyee list from API for Admin only
   // Mock data
@@ -237,7 +244,6 @@ $(document).ready(function() {
     var tableHtml = '';
     if (type === 'single-ps-multi-date') {
       response.map((val) => {
-        console.log(val);
         date.push(val.swipeDate);
         name = val.employee.psName;
         inTime.push(val.durationString);
@@ -247,7 +253,6 @@ $(document).ready(function() {
       createChart(chartType,date,name,inTime);
     } else if (type === 'multi-ps-multi-date') {
       response.map((val) => {
-        console.log(val);
         date = val.dateRange;
         name.push(val.employee.psName);
         inTime.push(val.durationString);
@@ -411,13 +416,4 @@ function convertstrtotime(timeStr) {
     arr.push(str);
   });
   return arr;
-}
-
-var a = 10;
-function test() {
-  var a = 20;
-  function a() {
-    console.log(hi);
-  }
-  console.log(typeof a);
 }
