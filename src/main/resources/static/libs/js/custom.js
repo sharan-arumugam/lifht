@@ -6,6 +6,7 @@ $(document).ready(function() {
   var allStaff = [];
   var allpsNumber = [];
   var psNumber_hard = sessionPsNumber;
+  console.log(sessionAuthorities);
   var tableoptions = {
     "ordering": true,
     columnDefs: [{

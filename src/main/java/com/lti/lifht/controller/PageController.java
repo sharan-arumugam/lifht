@@ -3,6 +3,11 @@ package com.lti.lifht.controller;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
+import static java.lang.String.valueOf;
+import static java.util.Arrays.asList;
+import static java.util.Collections.disjoint;
+
+import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -17,18 +22,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
 public class PageController {
 
-	@GetMapping
+	@GetMapping("/")
 	public String defaultIndex(HttpSession session, HttpServletResponse response) {
 
-		String psNumber = String.valueOf(session.getAttribute("psNumber"));
-		String psName = String.valueOf(session.getAttribute("psName"));
-		String authorities = String.valueOf(session.getAttribute("authorities"));
+		String psNumber = valueOf(session.getAttribute("psNumber"));
+		String psName = valueOf(session.getAttribute("psName"));
+		String authorities = valueOf(session.getAttribute("authorities")).replace("[", "").replace("]", "").trim();
+
+		List<String> authoritiesList = asList(authorities.split(","));
 
 		response.addHeader("psNumber", psNumber);
 		response.addHeader("psName", psName);
 		response.addHeader("authorities", authorities);
 
-		return "ROLE_ADMIN, ROLE_SUPER".contains(authorities) ? admin() : user();
+		List<String> adminAuthorities = asList("ROLE_ADMIN", "ROLE_SUPER");
+
+		return !disjoint(adminAuthorities, authoritiesList) ? admin() : user();
 	}
 
 	@GetMapping("/staff")
