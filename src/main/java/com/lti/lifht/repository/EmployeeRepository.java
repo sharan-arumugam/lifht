@@ -60,10 +60,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, String>, Emp
 				.map(Employee::getPsNumber)
 				.collect(toList()));
 
+		Set<String> cryptSet = cryptMap.keySet();
+
 		Set<RoleMaster> roles = new HashSet<>(asList(employeeRole));
 
 		save(stream
 				.get()
+				.filter(emp -> null == emp.getPassword())
+				.filter(emp -> cryptSet.contains(emp.getPsNumber()))
 				.map(employee -> {
 					return employee
 							.setPassword(cryptMap.get(employee.getPsNumber()))

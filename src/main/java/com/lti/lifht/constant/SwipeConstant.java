@@ -10,14 +10,15 @@ public class SwipeConstant {
 	public static final String EXIT = " Exit";
 
 	// Doors / Gates
-	public static final String DOOR_MD = "BLR  LTI  Embassy Apple Main Door Door";
-	public static final String DOOR_VC = "Blr LTI Embassy Apple VC Room-1 Door";
-	public static final String DOOR_BP = "Blr LTI 3F Embassy Apple BP Room -1 Door";
-	public static final String DOOR_SR = "Blr LTI Embassy Apple Server Room Door";
-	public static final String DOOR_TR = "(006) Blr LTI 3F Embassy Apple Training Room Door";
-	public static final String DOOR_T1 = "(0007) Blr LTI 3F Embassy Apple Turnstile - 1";
-	public static final String DOOR_TW = "(008) Blr LTI 3F Embassy Apple Turnstile WG";
-	public static final String DOOR_T2 = "(0009) Blr LTI 3F Embassy Apple Turnstile - 2";
+	public static final String DOOR_MD = "Apple Main Door";
+	public static final String DOOR_VC = "Apple VC Room-1";
+	public static final String DOOR_BP = "Apple BP Room -1";
+	public static final String DOOR_SR = "Apple Server Room";
+	public static final String DOOR_TR = "Apple Training Room";
+	public static final String DOOR_T1 = "Apple Turnstile - 1";
+	public static final String DOOR_TW = "Apple Turnstile WG";
+	public static final String DOOR_T2 = "Apple Turnstile - 2";
+	public static final String DOOR_TS = "Apple Turnstile";
 
 	// Event Codes
 	public static final int DENIED1 = 199;
