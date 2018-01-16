@@ -10,5 +10,4 @@ public interface EmployeeRepositoryCustom {
 
     Integer saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList);
 
-    void resetAccess(List<String> psNumberList);
 }

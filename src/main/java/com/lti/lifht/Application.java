@@ -2,6 +2,9 @@ package com.lti.lifht;
 
 import static com.lti.lifht.constant.PathConstant.PATH_LOGIN;
 
+import java.util.Base64;
+import java.util.Base64.Decoder;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -30,6 +33,11 @@ public class Application extends WebMvcConfigurerAdapter {
 	@Bean
 	public RedirectStrategy redirectStrategy() {
 		return new DefaultRedirectStrategy();
+	}
+
+	@Bean
+	public Decoder b64Decoder() {
+		return Base64.getDecoder();
 	}
 
 	@Override

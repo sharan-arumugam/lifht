@@ -11,7 +11,7 @@ public class PathConstant {
     public static final String PATH_EMPLOYEE = "/employee";
 
     public static final String PATH_PASSWORD = "/password";
-    public static final String PATH_PASSWORD_ANY = "/password/**";
+    public static final String PATH_PASSWORD_FORGOT = "/password/forgot";
     public static final String PATH_RESET = "/reset";
     public static final String PATH_SAVE = "/save";
 
