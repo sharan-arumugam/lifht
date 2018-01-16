@@ -53,18 +53,15 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
 		};
 
 		authentication.getAuthorities().forEach(grantedAuthority -> {
-
 			switch (grantedAuthority.getAuthority()) {
 
 			case "ROLE_EMPLOYEE":
 				redirect.accept("/staff");
-				logger.info("staff login");
 				break;
 
 			case "ROLE_SUPER":
 			case "ROLE_ADMIN":
 				redirect.accept("/admin");
-				logger.info("admin login");
 				break;
 
 			default:
@@ -73,7 +70,6 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
 		});
 
 		if (response.isCommitted()) {
-			logger.debug("response committed");
 			return;
 		}
 
