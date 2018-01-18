@@ -114,8 +114,14 @@ body {
 .report {
   display: none;
 }
+#result-table-single, #result-table-range {
+  display: table !important;
+}
 #result-table-single, #result-table-range, table tbody, table thead {
   width: 100% !important;
+}
+#submit-staff-form {
+  width: 100%;
 }
 .download-xl {
   margin-top: 25px;
@@ -206,7 +212,7 @@ input[type=file] {
   padding: 40px;
   border: 1px solid #f5f5f5;
   box-shadow: 1px 2px 13px 0 rgba(29,29,29,.12);
-  margin-top: 60px;
+  margin-top: 15px;
   border-radius: 5px;
 }
 #changePassword button {
@@ -221,4 +227,11 @@ input[type=file] {
 .pwd-label {
   font-size: 15px;
   margin: 10px 0;
+}
+.pass-success, .pass-error {
+  margin-top: 15px;
+  display: none;
+}
+.pass-success div, .pass-errordiv {
+  margin: 0;
 }
