@@ -50,12 +50,9 @@ public class EmployeeController {
 	@GetMapping("/all")
 	@PreAuthorize(HAS_ANY_ROLE_ADMIN)
 	public List<EmployeeBean> getAllEmployees() {
-		return service.getAllEmployees()
-				.stream()
-				.filter(entry -> null != entry.getPsName())
+		return service.getAllEmployees().stream().filter(entry -> null != entry.getPsName())
 				.filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
-				.sorted(Comparator.comparing(EmployeeBean::getPsName))
-				.collect(Collectors.toList());
+				.sorted(Comparator.comparing(EmployeeBean::getPsName)).collect(Collectors.toList());
 	}
 
 	@PostMapping("/swipe/date-single-ps")
@@ -85,15 +82,19 @@ public class EmployeeController {
 	@PostMapping("/changepassword")
 	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
 	public ResponseEntity<Object> changePassowrd(@RequestBody Map<String, String> requestParams, HttpSession session) {
+		
+//		Map<String, String> status = new HashMap<>();
+//		status.put("", value)
 
-		Employee employee = miscService.changePassword(requestParams.get("currentPass"),
-				requestParams.get("newPass"),
+		Employee employee = miscService.changePassword(requestParams.get("currentPass"), requestParams.get("newPass"),
 				session.getAttribute("psNumber").toString());
-
+		System.out.println("::inside::change");
 		if (null != employee) {
-			return accepted().build();
+			System.out.println("::success");
+			return ResponseEntity.ok().body("{status:success}");
 		} else {
-			return status(HttpStatus.PRECONDITION_FAILED).build();
+			System.out.println("::failed");
+			return ResponseEntity.unprocessableEntity().build();
 		}
 	}
 

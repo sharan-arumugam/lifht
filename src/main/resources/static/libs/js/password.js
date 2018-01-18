@@ -8,7 +8,8 @@ $(document).ready(function() {
     $(".admin-dropdown").toggle();
   });
   /** password **/
-	$('#changePassword').on('submit', function(submitEvent) {
+	$('#changePassword').on('submit', function(e) {
+				e.preventDefault();
 				let currentPass = $("#currentPassword").val();
 				let confirm_pass = $("#confirmPassword").val();
 				let newPassword = $("#newPassword").val();
@@ -33,12 +34,13 @@ $(document).ready(function() {
 		            	newPass: btoa(encode_newPass)
             		}),
             contentType:"application/json; charset=utf-8",
-            dataType:"json",
-            success: function(response) {
-	            alert(response);
-            }
-          });
-        submitEvent.preventDefault();
+            success: function(xml, textStatus, xhr) {
+							console.log(xhr);
+            },
+						error: function(jqXHR, textStatus, errorThrown) {
+							console.log(jqXHR);
+						}
+        })
     });
   /** password end **/
 });
