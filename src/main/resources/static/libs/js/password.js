@@ -27,7 +27,7 @@ $(document).ready(function() {
         var encode_newPass = btoa(btoa(newPassword));
         $.ajax({
             method: "POST",
-            url: "change",
+            url: "api/changepassword",
             data: JSON.stringify({
 		            	currentPass: btoa(encode_Current),
 		            	newPass: btoa(encode_newPass)

@@ -12,6 +12,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.boot.autoconfigure.web.ErrorController;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/")
 @PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
-public class PageController {
+public class PageController implements ErrorController {
 
 	@GetMapping("/")
 	public String defaultIndex(HttpSession session, HttpServletResponse response) {
@@ -57,4 +58,13 @@ public class PageController {
 		return "upload";
 	}
 
+	@Override
+	public String getErrorPath() {
+		return "/error";
+	}
+
+	@GetMapping("/error")
+	public String error() {
+		return "error";
+	}
 }
