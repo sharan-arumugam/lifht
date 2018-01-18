@@ -89,3 +89,17 @@ $(document).ready(function() {
       $(".loading").hide(); // hide the gif image when ajax completes
   });
 });
+
+$(document).on("click", "body", function(e) {
+  const container = $(".admin-dropdown");
+  const mainContainer = $("#admin-actions-toggle");
+  if (mainContainer.is(e.target) || mainContainer.has(e.target).length > 0) {
+    if (container.css("display") == 'block') {
+        container.hide();
+      } else {
+        container.show();
+      }
+  } else if (!container.is(e.target) && container.has(e.target).length === 0) {
+     container.hide();
+  }
+});

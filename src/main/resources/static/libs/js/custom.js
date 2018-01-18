@@ -33,14 +33,19 @@ $(document).ready(function() {
 
   /***** Admin *****/
 
-  $(document).on("click", "#admin-actions-toggle", function() {
-    if ($(".admin-dropdown").is(":visible")) {
-      $("#admin-actions-toggle").find("span").attr("class", 'glyphicon glyphicon-menu-down');
-    } else {
-      $("#admin-actions-toggle").find("span").attr("class", 'glyphicon glyphicon-menu-up');
+  $(document).on("click", "body", function(e) {
+		const container = $(".admin-dropdown");
+		const mainContainer = $("#admin-actions-toggle");
+		if (mainContainer.is(e.target) || mainContainer.has(e.target).length > 0) {
+			if (container.css("display") == 'block') {
+		      container.hide();
+		    } else {
+					container.show();
+				}
+		} else if (!container.is(e.target) && container.has(e.target).length === 0) {
+       container.hide();
     }
-    $(".admin-dropdown").toggle();
-  });
+	});
 
   // Generate Emplyee list from API for Admin only
   // Mock data

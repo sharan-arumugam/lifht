@@ -2,8 +2,11 @@ package com.lti.lifht.controller;
 
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_EMPLOYEE;
+import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 import static org.springframework.http.ResponseEntity.accepted;
+import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
+import static org.springframework.http.ResponseEntity.unprocessableEntity;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -82,19 +85,13 @@ public class EmployeeController {
 	@PostMapping("/changepassword")
 	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
 	public ResponseEntity<Object> changePassowrd(@RequestBody Map<String, String> requestParams, HttpSession session) {
-		
-//		Map<String, String> status = new HashMap<>();
-//		status.put("", value)
 
 		Employee employee = miscService.changePassword(requestParams.get("currentPass"), requestParams.get("newPass"),
 				session.getAttribute("psNumber").toString());
-		System.out.println("::inside::change");
 		if (null != employee) {
-			System.out.println("::success");
-			return ResponseEntity.ok().body("{status:success}");
+			return ok().build();
 		} else {
-			System.out.println("::failed");
-			return ResponseEntity.unprocessableEntity().build();
+			return status(PRECONDITION_FAILED).build();
 		}
 	}
 
