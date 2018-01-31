@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,8 +17,6 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -27,10 +24,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.lti.lifht.entity.Employee;
 import com.lti.lifht.service.AdminService;
 import com.lti.lifht.service.MailService;
-import com.lti.lifht.service.MiscService;
 
 @Controller
-@RequestMapping("/password")
 public class PasswordController {
 
 	@Autowired
@@ -42,15 +37,12 @@ public class PasswordController {
 	@Autowired
 	private BCryptPasswordEncoder encoder;
 
-	@Autowired
-	private MiscService miscService;
-
-	@GetMapping("/forgot")
+	@GetMapping("/forgotpassword")
 	public String forgotPassword() {
 		return "forgotPassword";
 	}
 
-	@PostMapping("/forgot")
+	@PostMapping("/forgotpassword")
 	public ModelAndView forgotPassword(ModelAndView modelAndView, @RequestParam("psNumber") String psNumber,
 			HttpServletRequest request) throws MessagingException {
 
@@ -73,7 +65,7 @@ public class PasswordController {
 		return modelAndView;
 	}
 
-	@GetMapping("/reset")
+	@GetMapping("/resetpassword")
 	public ModelAndView resetPassword(ModelAndView modelAndView, @RequestParam("token") String token) {
 
 		Optional<Employee> user = userService.findByResetToken(token);
@@ -88,7 +80,7 @@ public class PasswordController {
 		return modelAndView;
 	}
 
-	@PostMapping("/reset")
+	@PostMapping("/resetpassword")
 	public ModelAndView resetPassword(ModelAndView modelAndView, @RequestParam Map<String, String> requestParams,
 			RedirectAttributes redir) {
 
@@ -115,29 +107,8 @@ public class PasswordController {
 	}
 
 	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
-	@GetMapping("/change")
+	@GetMapping("/changepassword")
 	public ModelAndView changePassowrd(ModelAndView modelAndView) {
-		modelAndView.setViewName("changePassword");
-		return modelAndView;
-	}
-
-	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
-	@PostMapping("/change")
-	public ModelAndView changePassowrd(ModelAndView modelAndView, @RequestParam Map<String, String> requestParams,
-			@RequestBody Map<String, String> body,
-			RedirectAttributes redir, HttpSession session) {
-
-		Employee employee = miscService.changePassword(body.get("currentPass"),
-				body.get("newPass"),
-				session.getAttribute("psNumber")
-						.toString());
-
-		if (null == employee) {
-			modelAndView.addObject("errorMessage", "Failed");
-		} else {
-			modelAndView.addObject("successMessage", "Changed");
-		}
-
 		modelAndView.setViewName("changePassword");
 		return modelAndView;
 	}

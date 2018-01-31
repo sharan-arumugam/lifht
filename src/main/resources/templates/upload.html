@@ -10,99 +10,70 @@
 
 	<body>
 		<header class='header'>
-	      <div class="content-mid col-sm-1 pull-left">
-	      	<a title="home" href="/">
-	      		<img src='./assests/images/LTI_Lets_solve.png' class="btn-md" alt="Home">
-	      	</a>
-	      </div>
-	      <div class="col-md-2 pull-left">
-		      <a href="/" class="btn btn-md btn-primary">
-		      	<span class="glyphicon glyphicon-home"></span> Home &nbsp;
-		      </a>
-	      </div>
-	      <div class="col-md-2 pull-left">
-		      <a href="/password/change" class="btn btn-md">
-		      	<span class="glyphicon glyphicon-pencil"></span> Password
-		      </a>
-	      </div>
-	      <div class="col-md-2 pull-left">
-		      <span class="btn btn-lg">
-		      	<span class="glyphicon glyphicon-open"></span> Lifht - Upload
-		      </span>
-	      </div>
-	      <div class="col-md-2 pull-right">
-			<a href="#" data-toggle="modal" data-target="#logoutModal" class="btn btn-info btn-md">
-	        		<span class="glyphicon glyphicon-log-out"></span> Log out
-	      	</a>      
-	      </div>
-	    </header>
-    
-	    <!-- Log out modal -->
-		<div class="modal" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
-		  <div class="modal-dialog modal-sm">
-		    <div class="modal-content">
-		      <div class="modal-header">
-		        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-		        <h4>Confirm<i class="fa fa-lock"></i></h4>
-		      </div>
-		      <div class="modal-body">
-		        <div>
-			        <div class="col-md-12 text-center">
-	        		        <a href="#" onclick="location.href='/logout'" class="btn btn-md col-xs-12 btn-danger" data-dismiss="modal">
-	        		        		<span class="glyphicon glyphicon-log-out"></span> Log out
-	        		        	</a>
-			        </div>
-	   	    		    <br />
-	           		<br />
-		        </div>
-		      </div>
-		    </div>
-		  </div>
-		</div>
-    
-   		<br />
+      <div class="col-md-3 col-sm-3 pull-left" style="text-align: left;">
+      	<a title="home" href="/">
+      		<img src='./assests/images/LTI_Lets_solve.png' class="btn-md" alt="Home">
+      	</a>
+      </div>
+      <div class="col-md-6 col-sm-6">
+	      <h1 style="margin: 0; font-size: 18px; padding: 7px 0;">Lifht - Upload</h1>
+      </div>
+			<div class="col-md-3 col-sm-3 admin-actions">
+      	<div class="pull-right admin-actions-name">
+          <button id=admin-actions-toggle class="btn btn-default" type="button" name="button">
+            <label th:text="${session.psName}" th:unless="${session == null}"></label>
+            <span class="glyphicon glyphicon-menu-down"></span>
+          </button>
+      	</div>
+        <div class="admin-dropdown">
+          <ul>
+            <li>
+              <a href="/changepassword">
+      	      	<span class="glyphicon glyphicon-pencil"></span> Password
+      	      </a>
+            </li>
+            <li>
+              <a href="#" onclick="location.href='/logout'">
+                <span class="glyphicon glyphicon-log-out"></span> Log out
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
 		<div class='container'>
 			<div class='row'>
-				<form method="POST" name="swipe" action="/io/import/swipe-data" enctype="multipart/form-data">
-					<label> Swipe data: <input type="file" class="form-input" name="swipe-data" /></label> 
-					<br /> 
-					<input type="submit" value="Submit" /> 
-					<label th:if="null != ${messageSwipe}" class="alert alert-warning" th:text="${messageSwipe}"></label>
+				<form id="swipe-data" class="col-md-4 col-sm-12 upload-form" enctype="multipart/form-data">
+					<div class="form-content">
+						<h3> Swipe data: </h3>
+						<input type="file" class="form-input" name="swipe-data" class="btn btn-default" />
+						<input type="submit" value="Submit" class="btn btn-primary" />
+						<span class="swipe-data-ack-msg alert"></span>
+					</div>
 				</form>
-				<br /> 
-				<br />
-			</div>
-	
-			<div class='row'>
-				<form method="POST" action="/io/import/head-count" enctype="multipart/form-data">
-					<label> Head-count: <input type="file" name="head-count" /></label>
-					<br /> 
-					<input type="submit" value="Submit" /> <label style="font-size: 12pt; color: gray;" th:text="${messageHc}"></label>
+				<form id="head-count" class="col-md-4 col-sm-12 upload-form" enctype="multipart/form-data">
+					<div class="form-content">
+						<h3> Head-count:</h3>
+						<input type="file" name="head-count" class="btn btn-default" />
+						<input type="submit" value="Submit" class="btn btn-primary" />
+						<span class="head-count-ack-msg alert"></span>
+					</div>
 				</form>
-	
-				<br /> <br />
-			</div>
-	
-			<div class='row'>
-				<form method="POST" action="/io/import/project-allocation" enctype="multipart/form-data">
-					<label> Project allocation: <input type="file" name="project-allocation" /></label> 
-					<br /> 
-					<input type="submit" value="Submit" /> 
-					<label style="font-size: 12pt; color: gray;" th:text="${messagePa}"> </label>
+				<form id="project-allocation" class="col-md-4 col-sm-12 upload-form" enctype="multipart/form-data">
+					<div class="form-content">
+						<h3> Project allocation: </h3>
+						<input type="file" name="project-allocation" class="btn btn-default" />
+						<input type="submit" value="Submit" class="btn btn-primary" />
+						<span class="project-all-ack-msg alert"></span>
+					</div>
 				</form>
-				<br /> <br />
 			</div>
 		</div>
-	
-	<form enctype="multipart/form-data" method="post" name="fileinfo">
-		  <label>File to stash:</label>
-		  <input type="file" name="head-count" required />
-		  <input type="submit" value="Stash the file!" />
-	</form>
-	<div></div>	
-		
+		<div class="loading">
+			<img src='./assests/images/uploading-2.gif' alt="Home">
+		</div>
 	</body>
-	
+
 	<script type='text/javascript' src='./libs/js/jquery.min.js'></script>
 	<script type='text/javascript' src='./libs/bootstrap/js/bootstrap.min.js'></script>
 	<script type='text/javascript' src='./libs/js/upload.js'></script>

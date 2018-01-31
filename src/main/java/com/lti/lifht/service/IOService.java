@@ -3,9 +3,12 @@ package com.lti.lifht.service;
 import static com.lti.lifht.constant.ExcelConstant.ALC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.HC_MAP;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
+import static com.lti.lifht.constant.SwipeConstant.DOOR_MD;
 import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -25,12 +28,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -40,6 +41,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.lti.lifht.constant.CommonConstant;
@@ -72,6 +74,12 @@ public class IOService {
 	@Autowired
 	EntryDateRepository entryDateRepo;
 
+	@Value("#{'${access.200}'.split(',')}")
+	List<String> adminList;
+
+	@Value("#{'${access.300}'.split(',')}")
+	List<String> superAdminList;
+
 	Logger LOG = LoggerFactory.getLogger(IOService.class);
 
 	public Integer saveOrUpdateRawEntry(List<Map<String, String>> entries) {
@@ -90,8 +98,10 @@ public class IOService {
 		List<EntryRaw> entryList = entries.stream()
 				.filter(Objects::nonNull)
 				.filter(validEvent)
-				.filter(entry -> entry.get(SWP_MAP.get("swipeDoor"))
-						.contains("Apple Main Door"))
+				.filter(entry -> {
+					String doorName = entry.get(SWP_MAP.get("swipeDoor"));
+					return doorName.contains(DOOR_MD);
+				})
 				.map(EntryRaw::new)
 				.sorted(byPsNumDateTime)
 				.collect(toList());
@@ -250,7 +260,7 @@ public class IOService {
 		List<EmployeeBean> offshoreList = rows
 				.stream()
 				.filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
-				.filter(row -> StringUtils.isNotBlank(row.get(HC_MAP.get("psNumber"))))
+				.filter(row -> isNotBlank(row.get(HC_MAP.get("psNumber"))))
 				.map(row -> new EmployeeBean(row, HC_MAP))
 				.collect(toList());
 
@@ -259,6 +269,10 @@ public class IOService {
 		List<String> psNumberList = offshoreList.stream()
 				.map(EmployeeBean::getPsNumber)
 				.collect(toList());
+
+		// do not reset access for admin
+		psNumberList.removeAll(adminList);
+		psNumberList.removeAll(superAdminList);
 
 		employeeRepo.resetAccess(psNumberList, roleMasterRepo.findByRole("ROLE_EMPLOYEE"));
 
@@ -308,7 +322,7 @@ public class IOService {
 		Font font = workbook.createFont();
 		font.setBold(true);
 		CellStyle headerStyle = workbook.createCellStyle();
-		headerStyle.setAlignment(HorizontalAlignment.CENTER);
+		headerStyle.setAlignment(CENTER);
 		headerStyle.setFont(font);
 
 		return createDatedTable(sheet, headerStyle, cumulativeDateRange, cumulativeHeaders,

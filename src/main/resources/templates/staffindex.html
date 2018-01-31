@@ -10,40 +10,39 @@
     <title>Lifht</title>
   </head>
   <body data-page="staff">
-    
-
-	<header class='header'>
-      <div class="content-mid col-sm-1 pull-left">
-      	<a title="home" href="/">
-      		<img src='./assests/images/LTI_Lets_solve.png' class="btn-md" alt="Home">
-      	</a>
+    <header class='header'>
+      <div class="col-md-2 col-sm-2" style="text-align: left;">
+        <a title="home" href="/">
+          <img src='./assests/images/LTI_Lets_solve.png' class="btn-md" alt="Home">
+        </a>
       </div>
-      <div class="col-md-2 pull-left">
-	      <a href="/password/change" class="btn btn-md">
-	      	<span class="glyphicon glyphicon-pencil"></span> Password
-	      </a>
+      <div class="col-md-8 col-sm-8 header-title">
+        <h1 style="margin: 0; font-size: 18px; padding: 7px 0;">Lifht - Home</h1>
       </div>
-      <div class="col-md-6 text-center pull-left">
-		<span class="btn btn-lg">
-			<span class="glyphicon glyphicon-open"></span> Lifht - Home
-		</span>
+      <div class="col-md-2 col-sm-2 admin-actions">
+        <div class="pull-right admin-actions-name">
+          <button id=admin-actions-toggle class="btn btn-default" type="button" name="button">
+            <label th:text="${session.psName}" th:unless="${session == null}"></label>
+            <span class="glyphicon glyphicon-menu-down"></span>
+          </button>
+        </div>
+        <div class="admin-dropdown">
+          <ul>
+            <li>
+              <a href="/changepassword">
+                <span class="glyphicon glyphicon-pencil"></span> Password
+              </a>
+            </li>
+            <li>
+              <a href="#" onclick="location.href='/logout'">
+                <span class="glyphicon glyphicon-log-out"></span> Log out
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
-      
-     <div class="col-md-3 pull-right">
-      	<div class="col-md-5 text-right"> 
-      		<label th:text="${session.psName}" th:unless="${session == null}"></label> 
-      	</div>
-      	<div class="col-md-1">
-			<a href="#" data-toggle="modal" data-target="#logoutModal" class="btn btn-info btn-md">
-	        		<span class="glyphicon glyphicon-log-out"></span> Log out
-	      	</a>
-      	</div>
-      </div>
-      
     </header>
-    
-    <!-- Log out modal -->
-	<div class="modal" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
+	  <div class="modal" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
 	  <div class="modal-dialog modal-sm">
 	    <div class="modal-content">
 	      <div class="modal-header">
@@ -64,14 +63,11 @@
 	    </div>
 	  </div>
 	</div>
-    
-    <br />
-
-    <div class="container">
+    <div class="container" style="margin-top: 25px;">
       <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12">
           <div class="row">
-            <div class="col-md-3 col-sm-12 col-xs-12 input-field">
+            <div class="col-md-4 col-sm-12 col-xs-12 input-field">
               <div class="input-group date from-date" data-provide="datepicker">
                   <input type="text" class="form-control" id="from-date-staff" placeholder="From Date">
                   <div class="input-group-addon">
@@ -80,7 +76,7 @@
               </div>
               <span class="error">Please select from date</span>
             </div>
-            <div class="col-md-3 col-sm-12 col-xs-12 input-field">
+            <div class="col-md-4 col-sm-12 col-xs-12 input-field">
               <div class="input-group date to-date" data-provide="datepicker">
                   <input type="text" class="form-control" id="to-date-staff" placeholder="From Date">
                   <div class="input-group-addon">
@@ -95,6 +91,18 @@
             <div class="col-md-12 col-sm-12 col-xs-12 report">
               <h4 class="report-title report-title-staff">
               </h4>
+              <table id="summary" class="table table table-responsive table-bordered">
+                <thead>
+                  <tr>
+                    <th>Date Range</th>
+                    <th>Days Present</th>
+                    <th>Floor Hours</th>
+                    <th>Compliance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
               <table id="result-table-range" class="table table-responsive">
                 <thead>
                   <tr>
@@ -108,7 +116,7 @@
 
                 </tbody>
               </table>
-              <table id="result-table-single" class="table table-responsive">
+              <!-- <table id="result-table-single" class="table table-responsive">
                 <thead>
                   <tr class="single-date">
                     <td>Date</td>
@@ -120,7 +128,7 @@
                 <tbody>
 
                 </tbody>
-              </table>
+              </table> -->
               <!--High Charts-->
               <div id="container" class="col-md-12 col-sm-12 col-xs-12"></div>
             </div>

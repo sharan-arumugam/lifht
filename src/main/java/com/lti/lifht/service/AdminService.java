@@ -166,4 +166,77 @@ public class AdminService {
 				.collect(Collectors.toList());
 	}
 
+	public EntryRange getRangeSingleSum(RangeSinglePs request) {
+
+		List<EntryRange> aggregateList = new ArrayList<>();
+		List<EntryDateBean> rangeSingleList = getRangeSingle(request);
+		Map<String, LocalDate> psValidSinceMap = entryDateRepo.getValidSince(
+				request.getFromDate(),
+				request.getToDate());
+
+		rangeSingleList.stream()
+				.filter(entry -> NumberUtils.isCreatable(entry.getPsNumber()))
+				.collect(Collectors.groupingBy(EntryDateBean::getPsNumber))
+				.forEach((psNumber, groupedList) -> {
+
+					String door = groupedList.stream()
+							.map(EntryDateBean::getSwipeDoor)
+							.findAny()
+							.orElse("Invalid");
+
+					EmployeeBean employee = groupedList.stream()
+							.map(EntryDateBean::getEmployee)
+							.findAny()
+							.orElse(null);
+
+					Duration durationSum = groupedList.stream()
+							.filter(Objects::nonNull)
+							.filter(entry -> null != entry.getSwipeDate())
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+							.map(EntryDateBean::getDuration)
+							.reduce(Duration::plus)
+							.orElse(Duration.ofMillis(0));
+
+					Duration complianceSum = groupedList.stream()
+							.filter(Objects::nonNull)
+							.filter(entry -> null != entry.getSwipeDate())
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+							.map(EntryDateBean::getCompliance)
+							.reduce(Duration::plus)
+							.orElse(Duration.ofMillis(0));
+
+					Duration filoSum = groupedList.stream()
+							.filter(Objects::nonNull)
+							.filter(entry -> null != entry.getSwipeDate())
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+							.map(EntryDateBean::getFilo)
+							.reduce(Duration::plus)
+							.orElse(Duration.ofMillis(0));
+
+					Long daysPresent = groupedList.stream()
+							.filter(Objects::nonNull)
+							.filter(entry -> null != entry.getSwipeDate())
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SATURDAY)
+							.filter(entry -> entry.getSwipeDate().getDayOfWeek() != DayOfWeek.SUNDAY)
+							.count();
+
+					aggregateList.add(new EntryRange(
+							request.getFromDate(),
+							request.getToDate(),
+							psValidSinceMap.get(psNumber),
+							daysPresent.intValue(),
+							durationSum,
+							complianceSum,
+							filoSum,
+							door,
+							psNumber,
+							employee));
+				});
+
+		return aggregateList.get(0);
+	}
+
 }

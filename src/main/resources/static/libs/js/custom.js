@@ -7,16 +7,11 @@ $(document).ready(function() {
   var allpsNumber = [];
   var psNumber_hard = sessionPsNumber;
   var tableoptions = {
-    columnDefs: [
-        {
-            targets: [ 0, 1, 2 ],
-            className: 'mdl-data-table__cell--non-numeric'
-        }
-    ],
-    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]] // Will change depend on the count
-  };
-  
-  console.log("sessionPsNumber: "+sessionPsNumber);
+    "ordering": true,
+    columnDefs: [{
+      orderable: false,
+      targets: "no-sort"
+    }]};
 
   // Calender
   var startDate = new Date();
@@ -37,6 +32,20 @@ $(document).ready(function() {
   });
 
   /***** Admin *****/
+
+  $(document).on("click", "body", function(e) {
+		const container = $(".admin-dropdown");
+		const mainContainer = $("#admin-actions-toggle");
+		if (mainContainer.is(e.target) || mainContainer.has(e.target).length > 0) {
+			if (container.css("display") == 'block') {
+		      container.hide();
+		    } else {
+					container.show();
+				}
+		} else if (!container.is(e.target) && container.has(e.target).length === 0) {
+       container.hide();
+    }
+	});
 
   // Generate Emplyee list from API for Admin only
   // Mock data
@@ -237,7 +246,6 @@ $(document).ready(function() {
     var tableHtml = '';
     if (type === 'single-ps-multi-date') {
       response.map((val) => {
-        console.log(val);
         date.push(val.swipeDate);
         name = val.employee.psName;
         inTime.push(val.durationString);
@@ -247,7 +255,6 @@ $(document).ready(function() {
       createChart(chartType,date,name,inTime);
     } else if (type === 'multi-ps-multi-date') {
       response.map((val) => {
-        console.log(val);
         date = val.dateRange;
         name.push(val.employee.psName);
         inTime.push(val.durationString);
@@ -317,7 +324,33 @@ $(document).ready(function() {
         url = "api/swipe/range-single-ps";
         callType = "range";
       }
+      console.log('outside');
       if (clear) {
+        // Get compliance sum
+        console.log('here inside');
+        $.ajax({
+          method: 'POST',
+          url: 'api/swipe/range-single-ps-sum',
+          data: JSON.stringify({
+            psNumber: psNumber_hard,
+            fromDate: form_fromDate,
+            toDate: form_toDate
+          }),
+          contentType : "application/json",
+          success: function(response) {
+            var html = "<td>"+response.dateRange+"</td><td>"+response.daysPresent+"</td><td>"+response.durationString+"</td><td>"+response.complianceString+"</td>";
+            $("#summary tbody").html(html);
+            // const res = {
+            //   daysPresent: response.daysPresent,
+            //   dateRange: response.dateRange,
+            //   durationString: response.durationString,
+            //   complianceString: response.complianceString
+            // }
+          },
+          error: function(error) {
+            console.log(error);
+          }
+        });
         $.ajax({
           method : "POST",
           url,
@@ -411,13 +444,4 @@ function convertstrtotime(timeStr) {
     arr.push(str);
   });
   return arr;
-}
-
-var a = 10;
-function test() {
-  var a = 20;
-  function a() {
-    console.log(hi);
-  }
-  console.log(typeof a);
 }
