@@ -18,8 +18,8 @@
       		<img src='./assests/images/LTI_Lets_solve.png' class="btn-md" alt="Home">
       	</a>
       </div>
-      <div class="col-md-2 col-sm-2" th:unless="${session.authorities.contains('ROLE_SUPER')}">
-	      <a href="/upload" class="btn btn-md btn-primary">
+      <div class="col-md-2 col-sm-2">
+	      <a href="/upload" class="btn btn-md btn-primary" th:if="${#strings.equals(session.authorities[0], 'ROLE_SUPER')}">
 	      	<span class="glyphicon glyphicon-open"></span> Upload
 	      </a>
       </div>
