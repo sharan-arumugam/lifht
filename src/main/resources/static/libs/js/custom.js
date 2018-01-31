@@ -324,7 +324,33 @@ $(document).ready(function() {
         url = "api/swipe/range-single-ps";
         callType = "range";
       }
+      console.log('outside');
       if (clear) {
+        // Get compliance sum
+        console.log('here inside');
+        $.ajax({
+          method: 'POST',
+          url: 'api/swipe/range-single-ps-sum',
+          data: JSON.stringify({
+            psNumber: psNumber_hard,
+            fromDate: form_fromDate,
+            toDate: form_toDate
+          }),
+          contentType : "application/json",
+          success: function(response) {
+            var html = "<td>"+response.dateRange+"</td><td>"+response.daysPresent+"</td><td>"+response.durationString+"</td><td>"+response.complianceString+"</td>";
+            $("#summary tbody").html(html);
+            // const res = {
+            //   daysPresent: response.daysPresent,
+            //   dateRange: response.dateRange,
+            //   durationString: response.durationString,
+            //   complianceString: response.complianceString
+            // }
+          },
+          error: function(error) {
+            console.log(error);
+          }
+        });
         $.ajax({
           method : "POST",
           url,

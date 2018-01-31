@@ -28,12 +28,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -43,6 +41,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.lti.lifht.constant.CommonConstant;
@@ -74,6 +73,12 @@ public class IOService {
 
 	@Autowired
 	EntryDateRepository entryDateRepo;
+
+	@Value("#{'${access.200}'.split(',')}")
+	List<String> adminList;
+
+	@Value("#{'${access.300}'.split(',')}")
+	List<String> superAdminList;
 
 	Logger LOG = LoggerFactory.getLogger(IOService.class);
 
@@ -264,6 +269,10 @@ public class IOService {
 		List<String> psNumberList = offshoreList.stream()
 				.map(EmployeeBean::getPsNumber)
 				.collect(toList());
+
+		// do not reset access for admin
+		psNumberList.removeAll(adminList);
+		psNumberList.removeAll(superAdminList);
 
 		employeeRepo.resetAccess(psNumberList, roleMasterRepo.findByRole("ROLE_EMPLOYEE"));
 
