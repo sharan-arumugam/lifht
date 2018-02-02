@@ -58,7 +58,9 @@ public class IOController {
 	@PreAuthorize(HAS_ROLE_SUPER)
 	public ResponseEntity<Object> importHeadCount(@RequestParam("head-count") MultipartFile headCount) {
 		try {
-			service.saveOrUpdateHeadCount(parseXlsx.apply(headCount.getInputStream()));
+			List<Map<String, String>> rows = parseXlsx.apply(headCount.getInputStream());
+			service.saveOrUpdateHeadCount(rows);
+			service.saveHeadCountForReconciliation(rows);
 			return accepted().build();
 		} catch (Exception e) {
 			return status(NOT_MODIFIED).build();
@@ -69,7 +71,9 @@ public class IOController {
 	@PreAuthorize(HAS_ROLE_SUPER)
 	public ResponseEntity<Object> importAllocation(@RequestParam("project-allocation") MultipartFile allocation) {
 		try {
-			service.saveOrUpdateProjectAllocation(parseXlsx.apply(allocation.getInputStream()));
+			List<Map<String, String>> rows = parseXlsx.apply(allocation.getInputStream());
+			service.saveOrUpdateProjectAllocation(rows);
+			service.saveAllocationForReconciliation(rows);
 			return accepted().build();
 		} catch (Exception e) {
 			return status(NOT_MODIFIED).build();

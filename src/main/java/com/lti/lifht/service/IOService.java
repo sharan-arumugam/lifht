@@ -45,15 +45,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.lti.lifht.constant.CommonConstant;
+import com.lti.lifht.entity.Allocation;
 import com.lti.lifht.entity.EntryDate;
 import com.lti.lifht.entity.EntryPair;
+import com.lti.lifht.entity.HeadCount;
+import com.lti.lifht.model.AllocationRaw;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
 import com.lti.lifht.model.EntryRaw;
+import com.lti.lifht.model.HeadCountRaw;
+import com.lti.lifht.repository.AllocationRepository;
 import com.lti.lifht.repository.EmployeeRepository;
 import com.lti.lifht.repository.EntryDateRepository;
 import com.lti.lifht.repository.EntryPairRepository;
+import com.lti.lifht.repository.HeadCountRepository;
 import com.lti.lifht.repository.RoleMasterRepository;
 import com.lti.lifht.util.CommonUtil;
 
@@ -73,6 +79,12 @@ public class IOService {
 
 	@Autowired
 	EntryDateRepository entryDateRepo;
+
+	@Autowired
+	HeadCountRepository headCountRepo;
+
+	@Autowired
+	AllocationRepository allocationRepo;
 
 	@Value("#{'${access.200}'.split(',')}")
 	List<String> adminList;
@@ -416,6 +428,32 @@ public class IOService {
 			});
 		});
 		return sheet.getWorkbook();
+	}
+
+	public void saveHeadCountForReconciliation(List<Map<String, String>> rows) {
+
+		List<HeadCount> headCountList = rows
+				.stream()
+				.skip(1)
+				.map(HeadCountRaw::new)
+				.map(HeadCount::new)
+				.collect(toList());
+
+		headCountRepo.save(headCountList);
+	}
+
+	public void saveAllocationForReconciliation(List<Map<String, String>> rows) {
+
+		List<Allocation> allocationList = rows
+				.stream()
+				.skip(1)
+				.filter(row -> null != row.get(ALC_MAP.get("customer"))
+						&& row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+				.map(AllocationRaw::new)
+				.map(Allocation::new)
+				.collect(toList());
+
+		allocationRepo.save(allocationList);
 	}
 
 }
