@@ -53,9 +53,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, String>, Emp
 	 * @param employeeRole
 	 */
 	default void setNewAccess(RoleMaster employeeRole) {
-		Supplier<Stream<Employee>> stream = () -> findAll().stream();
+		Supplier<Stream<Employee>> newEmployeeStream = () -> findAll()
+				.stream()
+				.filter(emp -> null == emp.getPassword());
 
-		Map<String, String> cryptMap = cryptTupleMap(stream
+		Map<String, String> cryptMap = cryptTupleMap(newEmployeeStream
 				.get()
 				.map(Employee::getPsNumber)
 				.collect(toList()));
@@ -64,9 +66,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, String>, Emp
 
 		Set<RoleMaster> roles = new HashSet<>(asList(employeeRole));
 
-		save(stream
+		save(newEmployeeStream
 				.get()
-				.filter(emp -> null == emp.getPassword())
+				.filter(emp -> 'A' != emp.getActive())
 				.filter(emp -> cryptSet.contains(emp.getPsNumber()))
 				.map(employee -> {
 					return employee

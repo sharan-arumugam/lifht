@@ -270,10 +270,6 @@ public class IOService {
 				.map(EmployeeBean::getPsNumber)
 				.collect(toList());
 
-		// do not reset access for admin
-		psNumberList.removeAll(adminList);
-		psNumberList.removeAll(superAdminList);
-
 		employeeRepo.resetAccess(psNumberList, roleMasterRepo.findByRole("ROLE_EMPLOYEE"));
 
 		return updateCount;

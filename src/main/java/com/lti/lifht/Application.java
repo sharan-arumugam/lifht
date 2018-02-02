@@ -56,7 +56,7 @@ public class Application extends WebMvcConfigurerAdapter {
 		registry.addViewController(PATH_LOGIN);
 
 		registry.addViewController(PATH_NOT_FOUND)
-				.setViewName(PathConstant.PATH_LOGIN);
+				.setViewName("login");
 	}
 
 }
