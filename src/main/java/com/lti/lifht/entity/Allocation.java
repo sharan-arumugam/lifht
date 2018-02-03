@@ -10,10 +10,12 @@ import javax.persistence.Id;
 import com.lti.lifht.model.AllocationRaw;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false, of = { "psNumber" })
 @Entity
 public class Allocation {
 
