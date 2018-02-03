@@ -11,55 +11,55 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class HeadCountRaw {
 
-	HashMap<String, String> headCountMap = new HashMap<String, String>() {
-		private static final long serialVersionUID = 1L;
+    HashMap<String, String> headCountMap = new HashMap<String, String>() {
+        private static final long serialVersionUID = 1L;
 
-		{
-			put("dsId", "DSID");
-			put("psName", "Name");
-			put("imt", "IMT");
-			put("offshore", "Offshore");
-			put("location", "Location");
-			put("manager", "Manager");
-			put("billable", "Billable");
-			put("weeksNonBillable", "Weeks Non-Billable");
-			put("badge", "Badge");
-			put("bageExpiry", "Badge Expiry");
-			put("po", "PO #");
-			put("poDesc", "PO Description");
-			put("poExpiry", "PO Expiry");
-			put("psNumber", "External Emp ID");
-			put("bcpEndDate", "BCP End Date");
-		}
-	};
+        {
+            put("dsId", "DSID");
+            put("psName", "Name");
+            put("imt", "IMT");
+            put("offshore", "Offshore");
+            put("location", "Location");
+            put("manager", "Manager");
+            put("billable", "Billable");
+            put("weeksNonBillable", "Weeks Non-Billable");
+            put("badge", "Badge");
+            put("bageExpiry", "Badge Expiry");
+            put("po", "PO #");
+            put("poDesc", "PO Description");
+            put("poExpiry", "PO Expiry");
+            put("psNumber", "External Emp ID");
+            put("bcpEndDate", "BCP End Date");
+        }
+    };
 
-	private String dsId;
-	private String psName;
-	private String psNumber;
-	private String imt;
-	private String offshore;
-	private String location;
-	private String manager;
-	private String billable;
-	private String weeksNonBillable;
-	private String badge;
-	private String bageExpiry;
-	private String po;
-	private String poDesc;
-	private String poExpiry;
-	private String bcpEndDate;
+    private String dsId;
+    private String psName;
+    private String psNumber;
+    private String imt;
+    private String offshore;
+    private String location;
+    private String manager;
+    private String billable;
+    private String weeksNonBillable;
+    private String badge;
+    private String badgeExpiry;
+    private String po;
+    private String poDesc;
+    private String poExpiry;
+    private String bcpEndDate;
 
-	public HeadCountRaw(Map<String, String> columnMap) {
-		Field[] fields = this.getClass().getDeclaredFields();
-		for (Field field : fields) {
-			try {
-				if (headCountMap.containsKey(field.getName())) {
-					field.set(this, columnMap.get(headCountMap.get(field.getName())));
-				}
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+    public HeadCountRaw(Map<String, String> columnMap) {
+        Field[] fields = this.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            try {
+                if (headCountMap.containsKey(field.getName())) {
+                    field.set(this, columnMap.get(headCountMap.get(field.getName())));
+                }
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 }
