@@ -16,6 +16,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -68,392 +69,425 @@ import one.util.streamex.StreamEx;
 @Service
 public class IOService {
 
-	@Autowired
-	EmployeeRepository employeeRepo;
-
-	@Autowired
-	RoleMasterRepository roleMasterRepo;
-
-	@Autowired
-	EntryPairRepository entryPairRepo;
-
-	@Autowired
-	EntryDateRepository entryDateRepo;
-
-	@Autowired
-	HeadCountRepository headCountRepo;
-
-	@Autowired
-	AllocationRepository allocationRepo;
-
-	@Value("#{'${access.200}'.split(',')}")
-	List<String> adminList;
-
-	@Value("#{'${access.300}'.split(',')}")
-	List<String> superAdminList;
-
-	Logger LOG = LoggerFactory.getLogger(IOService.class);
-
-	public Integer saveOrUpdateRawEntry(List<Map<String, String>> entries) {
-
-		Comparator<EntryRaw> byPsNumDateTime = Comparator.comparing(EntryRaw::getPsNumber)
-				.thenComparing(EntryRaw::getSwipeDate)
-				.thenComparing(EntryRaw::getSwipeTime);
-
-		Predicate<Map<String, String>> validEvent = entry -> {
-			String eventNumber = entry.get(SWP_MAP.get("eventNumber"));
-			eventNumber = eventNumber != null ? eventNumber : "201";
-			return !(eventNumber.equals("200") || eventNumber.equals("215") || eventNumber.startsWith("---"));
-		};
-
-		// parse row to EntryRaw
-		List<EntryRaw> entryList = entries.stream()
-				.filter(Objects::nonNull)
-				.filter(validEvent)
-				.filter(entry -> {
-					String doorName = entry.get(SWP_MAP.get("swipeDoor"));
-					return doorName.contains(DOOR_MD);
-				})
-				.map(EntryRaw::new)
-				.sorted(byPsNumDateTime)
-				.collect(toList());
-
-		int entrySize = entryList.size();
-
-		List<EntryRaw> filteredList = new ArrayList<>();
-
-		Predicate<Integer> doorNotNull = index -> null != entryList.get(index)
-				&& null != entryList.get(index).getSwipeDoor();
-
-		BiPredicate<EntryRaw, EntryRaw> validRow = (current, adjacent) -> {
-			return current.getPsNumber().equals(adjacent.getPsNumber())
-					&& current.getSwipeDate().equals(adjacent.getSwipeDate());
-		};
-
-		BiPredicate<EntryRaw, EntryRaw> doorPair = (current, next) -> {
-			return current.getSwipeDoor().endsWith(CommonConstant.ENTRY) &&
-					next.getSwipeDoor().endsWith(CommonConstant.EXIT);
-		};
-
-		BiPredicate<EntryRaw, EntryRaw> sameDoor = (current, adjacent) -> {
-			return current.getSwipeDoor().equals(adjacent.getSwipeDoor());
-		};
-
-		BiPredicate<EntryRaw, EntryRaw> timeNotNull = (current, adjacent) -> {
-			return null != current
-					&& null != current.getSwipeTime()
-					&& null != adjacent
-					&& null != adjacent.getSwipeTime();
-		};
-
-		// filter repeating doors
-		Predicate<Integer> duplicateEntry = index -> {
-			EntryRaw current = entryList.get(index);
-
-			if (index > 0) { // filter duplicate door entries
-				EntryRaw previous = entryList.get(index - 1);
-				return validRow.test(current, previous)
-						? !sameDoor.test(current, previous)
-						: true;
-
-			} else if (index == 0 && index + 1 < entrySize) { // validate first pair
-				EntryRaw next = entryList.get(index + 1);
-
-				return validRow.test(current, next)
-						? doorPair.test(current, next)
-						: false;
-			}
-			return true;
-		};
-
-		Consumer<Integer> addToFilteredList = index -> filteredList.add(entryList.get(index));
-
-		// parse EntryRaw to EntryPair
-		BiFunction<EntryRaw, EntryRaw, EntryPairBean> toEntryPair = (current, next) -> {
-			if (timeNotNull.test(current, next)
-					&& validRow.test(current, next)
-					&& doorPair.test(current, next)) {
-
-				EntryPairBean pair = new EntryPairBean(current);
-				pair.setSwipeIn(current.getSwipeTime());
-				pair.setSwipeOut(next.getSwipeTime());
-				return pair;
-			}
-			return null;
-		};
-
-		// filter duplicates
-		IntStream.range(0, entrySize)
-				.boxed()
-				.filter(doorNotNull)
-				.filter(duplicateEntry)
-				.forEach(addToFilteredList);
-
-		// map to pairs
-		List<EntryPairBean> pairList = StreamEx.of(filteredList)
-				.sorted(byPsNumDateTime)
-				.nonNull()
-				.pairMap(toEntryPair)
-				.nonNull()
-				.collect(toList());
-
-		entryPairRepo.saveOrUpdatePair(pairList
-				.stream()
-				.map(EntryPair::new)
-				.filter(pair -> NumberUtils.isCreatable(pair.getPsNumber()))
-				.collect(toList()));
-
-		LocalDate minDate = pairList.stream()
-				.map(EntryPairBean::getSwipeDate)
-				.findFirst()
-				.orElse(null);
-
-		LocalDate maxDate = pairList.stream()
-				.map(EntryPairBean::getSwipeDate)
-				.reduce((current, next) -> next)
-				.orElse(null);
-
-		return saveOrUpdateEntryDate(minDate, maxDate);
-	}
-
-	public Integer saveOrUpdateEntryDate(LocalDate minDate, LocalDate maxDate) {
-
-		List<EntryPair> entityList = entryPairRepo.findBetween(minDate, maxDate);
-
-		List<EntryPairBean> pairList = entityList
-				.stream()
-				.map(EntryPairBean::new)
-				.collect(toList());
-
-		List<EntryDateBean> entryDateList = new ArrayList<>();
-
-		pairList.stream()
-				.collect(groupingBy(EntryPairBean::getSwipeDate))
-				.forEach((date, psList) -> {
-
-					psList.stream()
-							.filter(entry -> null != entry.getPsNumber())
-							.collect(groupingBy(EntryPairBean::getPsNumber))
-							.forEach((psNumber, groupedList) -> {
-
-								LocalTime firstIn = groupedList.stream()
-										.findFirst()
-										.get()
-										.getSwipeIn();
-
-								LocalTime lastOut = groupedList.stream()
-										.reduce((current, next) -> next)
-										.get()
-										.getSwipeOut();
-
-								String door = groupedList.stream()
-										.map(EntryPairBean::getSwipeDoor)
-										.findAny()
-										.orElse("Invalid");
-
-								Duration durationSum = groupedList.stream()
-										.map(EntryPairBean::getDuration)
-										.reduce(Duration::plus)
-										.orElse(null);
-
-								entryDateList
-										.add(new EntryDateBean(psNumber, date, door, durationSum, firstIn, lastOut));
-							});
-				});
-
-		return entryDateRepo.saveOrUpdateDate(entryDateList
-				.stream()
-				.map(EntryDate::new)
-				.collect(toList()));
-	}
-
-	public Integer saveOrUpdateHeadCount(List<Map<String, String>> rows) {
-
-		List<EmployeeBean> offshoreList = rows
-				.stream()
-				.filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
-				.filter(row -> isNotBlank(row.get(HC_MAP.get("psNumber"))))
-				.map(row -> new EmployeeBean(row, HC_MAP))
-				.collect(toList());
-
-		int updateCount = employeeRepo.saveOrUpdateHeadCount(offshoreList);
-
-		List<String> psNumberList = offshoreList.stream()
-				.map(EmployeeBean::getPsNumber)
-				.collect(toList());
-
-		employeeRepo.resetAccess(psNumberList, roleMasterRepo.findByRole("ROLE_EMPLOYEE"));
-
-		return updateCount;
-	}
-
-	public Integer saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
-
-		Set<String> psNumbers = employeeRepo.findAllpsNumber();
-
-		rows = rows
-				.stream()
-				.filter(row -> null != row.get(ALC_MAP.get("customer"))
-						&& row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
-				.filter(row -> psNumbers.contains(row.get(ALC_MAP.get("psNumber"))))
-				.collect(toList());
-
-		List<EmployeeBean> employeeList = rows
-				.stream()
-				.map(row -> new EmployeeBean(row, ALC_MAP))
-				.collect(toList());
-
-		return employeeRepo.saveOrUpdateProjectAllocation(employeeList);
-	}
-
-	public Workbook generateRangeMultiDatedReport(XSSFWorkbook workbook, StringJoiner cumulativeHeaders,
-			Set<LocalDate> datedHeaders, Object[] reportData) {
-
-		LocalDate from = datedHeaders.stream()
-				.sorted(Comparator.comparing(LocalDate::atStartOfDay))
-				.findFirst()
-				.orElse(null);
-
-		LocalDate to = datedHeaders.stream()
-				.sorted(Comparator.comparing(LocalDate::atStartOfDay))
-				.reduce((d1, d2) -> d2)
-				.orElse(null);
-
-		String cumulativeDateRange = null != from && null != to
-				? "Cumulative"
-						+ " from " + from.format(reportDateFormatter)
-						+ " to " + to.format(reportDateFormatter)
-				: "Invalid dates";
-
-		XSSFSheet sheet = (XSSFSheet) workbook.createSheet();
-
-		Font font = workbook.createFont();
-		font.setBold(true);
-		CellStyle headerStyle = workbook.createCellStyle();
-		headerStyle.setAlignment(CENTER);
-		headerStyle.setFont(font);
-
-		return createDatedTable(sheet, headerStyle, cumulativeDateRange, cumulativeHeaders,
-				datedHeaders, reportData);
-
-	}
-
-	private Workbook createDatedTable(XSSFSheet sheet, CellStyle headerStyle, String cumulativeDateRange,
-			StringJoiner cumulativeHeaders, Set<LocalDate> datedHeaders, Object[] reportData) {
-
-		int rowLength = reportData.length;
-
-		List<String> dateHeaderList = new ArrayList<>();
-		dateHeaderList.add(""); // bu
-		dateHeaderList.add(""); // dsId
-		dateHeaderList.add(""); // psNumber
-		dateHeaderList.add(""); // psName
-		dateHeaderList.add(""); // validSince
-		dateHeaderList.add(""); // daysPresent
-		dateHeaderList.add(""); // filo
-		dateHeaderList.add(""); // floor
-		dateHeaderList.add(""); // compliance
-
-		datedHeaders.stream()
-				.sorted(Comparator.comparing(LocalDate::atStartOfDay))
-				.forEach(e -> {
-					dateHeaderList.add(e.format(reportDateFormatter));
-					dateHeaderList.add(""); // colspan for filo-floor
-				});
-
-		List<String> headersList2 = new ArrayList<>();
-		headersList2.addAll(Arrays.asList(cumulativeHeaders.toString().split(",")));
-
-		datedHeaders.stream().forEach(e -> {
-			headersList2.add("FILO");
-			headersList2.add("Floor");
-		});
-
-		Object[] dateHeader = dateHeaderList.toArray();
-		Object[] reportHeaders2 = headersList2.toArray();
-
-		// set headers
-		int colLength = dateHeader.length;
-		XSSFRow headerRow = sheet.createRow(0); // first row as column names
-		IntStream.range(0, colLength).forEach(colIndex -> {
-			XSSFCell cell = headerRow.createCell(colIndex);
-			cell.setCellValue(String.valueOf(dateHeader[colIndex]));
-		});
-
-		Cell cumulativeTitleCell = sheet.getRow(0).getCell(4);
-		cumulativeTitleCell.setCellValue(cumulativeDateRange);
-		cumulativeTitleCell.setCellStyle(headerStyle);
-		sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 8));
-
-		int cellCount = 8;
-
-		List<Cell> dateHederStreamList = CommonUtil.toStream(sheet.getRow(0).cellIterator())
-				.collect(Collectors.toList());
-
-		for (Cell cell : dateHederStreamList) {
-			if (cellCount < dateHederStreamList.size()) {
-				sheet.addMergedRegion(new CellRangeAddress(
-						0,
-						0,
-						++cellCount,
-						++cellCount));
-			}
-			cell.setCellStyle(headerStyle);
-		}
-
-		// set headers
-		XSSFRow headerRow2 = sheet.createRow(1); // first row as column names
-		IntStream.range(0, colLength).forEach(colIndex -> {
-			XSSFCell cell = headerRow2.createCell(colIndex);
-			cell.setCellValue(String.valueOf(reportHeaders2[colIndex]));
-			cell.setCellStyle(headerStyle);
-		});
-
-		// set row, column values
-		IntStream.range(0, rowLength).forEach(rowIndex -> {
-			String[] colArr = reportData[rowIndex].toString().split(",");
-			XSSFRow row = sheet.createRow(rowIndex + 2); // +1 as first row for headers
-
-			IntStream.range(0, colLength).forEach(colIndex -> {
-				XSSFCell cell = row.createCell(colIndex);
-				if (NumberUtils.isCreatable(colArr[colIndex])) {
-					cell.setCellValue(Double.valueOf(colArr[colIndex]));
-				} else {
-					cell.setCellValue(null != colArr[colIndex]
-							&& !"null".equals(colArr[colIndex])
-									? colArr[colIndex]
-									: "");
-				}
-				sheet.autoSizeColumn(colIndex);
-			});
-		});
-		return sheet.getWorkbook();
-	}
-
-	public void saveHeadCountForReconciliation(List<Map<String, String>> rows) {
-
-		List<HeadCount> headCountList = rows
-				.stream()
-				.skip(1)
-				.map(HeadCountRaw::new)
-				.map(HeadCount::new)
-				.collect(toList());
-
-		headCountRepo.save(headCountList);
-	}
-
-	public void saveAllocationForReconciliation(List<Map<String, String>> rows) {
-
-		List<Allocation> allocationList = rows
-				.stream()
-				.skip(1)
-				.filter(row -> null != row.get(ALC_MAP.get("customer"))
-						&& row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
-				.map(AllocationRaw::new)
-				.map(Allocation::new)
-				.collect(toList());
-
-		allocationRepo.save(allocationList);
-	}
+    @Autowired
+    EmployeeRepository employeeRepo;
+
+    @Autowired
+    RoleMasterRepository roleMasterRepo;
+
+    @Autowired
+    EntryPairRepository entryPairRepo;
+
+    @Autowired
+    EntryDateRepository entryDateRepo;
+
+    @Autowired
+    HeadCountRepository headCountRepo;
+
+    @Autowired
+    AllocationRepository allocationRepo;
+
+    @Value("#{'${access.200}'.split(',')}")
+    List<String> adminList;
+
+    @Value("#{'${access.300}'.split(',')}")
+    List<String> superAdminList;
+
+    Logger LOG = LoggerFactory.getLogger(IOService.class);
+
+    public Integer saveOrUpdateRawEntry(List<Map<String, String>> entries) {
+
+        Comparator<EntryRaw> byPsNumDateTime = Comparator.comparing(EntryRaw::getPsNumber)
+                .thenComparing(EntryRaw::getSwipeDate)
+                .thenComparing(EntryRaw::getSwipeTime);
+
+        Predicate<Map<String, String>> validEvent = entry -> {
+            String eventNumber = entry.get(SWP_MAP.get("eventNumber"));
+            eventNumber = eventNumber != null ? eventNumber : "201";
+            return !(eventNumber.equals("200") || eventNumber.equals("215") || eventNumber.startsWith("---"));
+        };
+
+        // parse row to EntryRaw
+        List<EntryRaw> entryList = entries.stream()
+                .filter(Objects::nonNull)
+                .filter(validEvent)
+                .filter(entry -> {
+                    String doorName = entry.get(SWP_MAP.get("swipeDoor"));
+                    return doorName.contains(DOOR_MD);
+                })
+                .map(EntryRaw::new)
+                .sorted(byPsNumDateTime)
+                .collect(toList());
+
+        int entrySize = entryList.size();
+
+        List<EntryRaw> filteredList = new ArrayList<>();
+
+        Predicate<Integer> doorNotNull = index -> null != entryList.get(index)
+                && null != entryList.get(index).getSwipeDoor();
+
+        BiPredicate<EntryRaw, EntryRaw> validRow = (current, adjacent) -> {
+            return current.getPsNumber().equals(adjacent.getPsNumber())
+                    && current.getSwipeDate().equals(adjacent.getSwipeDate());
+        };
+
+        BiPredicate<EntryRaw, EntryRaw> doorPair = (current, next) -> {
+            return current.getSwipeDoor().endsWith(CommonConstant.ENTRY) &&
+                    next.getSwipeDoor().endsWith(CommonConstant.EXIT);
+        };
+
+        BiPredicate<EntryRaw, EntryRaw> sameDoor = (current, adjacent) -> {
+            return current.getSwipeDoor().equals(adjacent.getSwipeDoor());
+        };
+
+        BiPredicate<EntryRaw, EntryRaw> timeNotNull = (current, adjacent) -> {
+            return null != current
+                    && null != current.getSwipeTime()
+                    && null != adjacent
+                    && null != adjacent.getSwipeTime();
+        };
+
+        // filter repeating doors
+        Predicate<Integer> duplicateEntry = index -> {
+            EntryRaw current = entryList.get(index);
+
+            if (index > 0) { // filter duplicate door entries
+                EntryRaw previous = entryList.get(index - 1);
+                return validRow.test(current, previous)
+                        ? !sameDoor.test(current, previous)
+                        : true;
+
+            } else if (index == 0 && index + 1 < entrySize) { // validate first pair
+                EntryRaw next = entryList.get(index + 1);
+
+                return validRow.test(current, next)
+                        ? doorPair.test(current, next)
+                        : false;
+            }
+            return true;
+        };
+
+        Consumer<Integer> addToFilteredList = index -> filteredList.add(entryList.get(index));
+
+        // parse EntryRaw to EntryPair
+        BiFunction<EntryRaw, EntryRaw, EntryPairBean> toEntryPair = (current, next) -> {
+            if (timeNotNull.test(current, next)
+                    && validRow.test(current, next)
+                    && doorPair.test(current, next)) {
+
+                EntryPairBean pair = new EntryPairBean(current);
+                pair.setSwipeIn(current.getSwipeTime());
+                pair.setSwipeOut(next.getSwipeTime());
+                return pair;
+            }
+            return null;
+        };
+
+        // filter duplicates
+        IntStream.range(0, entrySize)
+                .boxed()
+                .filter(doorNotNull)
+                .filter(duplicateEntry)
+                .forEach(addToFilteredList);
+
+        // map to pairs
+        List<EntryPairBean> pairList = StreamEx.of(filteredList)
+                .sorted(byPsNumDateTime)
+                .nonNull()
+                .pairMap(toEntryPair)
+                .nonNull()
+                .collect(toList());
+
+        entryPairRepo.saveOrUpdatePair(pairList
+                .stream()
+                .map(EntryPair::new)
+                .filter(pair -> NumberUtils.isCreatable(pair.getPsNumber()))
+                .collect(toList()));
+
+        LocalDate minDate = pairList.stream()
+                .map(EntryPairBean::getSwipeDate)
+                .findFirst()
+                .orElse(null);
+
+        LocalDate maxDate = pairList.stream()
+                .map(EntryPairBean::getSwipeDate)
+                .reduce((current, next) -> next)
+                .orElse(null);
+
+        return saveOrUpdateEntryDate(minDate, maxDate);
+    }
+
+    public Integer saveOrUpdateEntryDate(LocalDate minDate, LocalDate maxDate) {
+
+        List<EntryPair> entityList = entryPairRepo.findBetween(minDate, maxDate);
+
+        List<EntryPairBean> pairList = entityList
+                .stream()
+                .map(EntryPairBean::new)
+                .collect(toList());
+
+        List<EntryDateBean> entryDateList = new ArrayList<>();
+
+        pairList.stream()
+                .collect(groupingBy(EntryPairBean::getSwipeDate))
+                .forEach((date, psList) -> {
+
+                    psList.stream()
+                            .filter(entry -> null != entry.getPsNumber())
+                            .collect(groupingBy(EntryPairBean::getPsNumber))
+                            .forEach((psNumber, groupedList) -> {
+
+                                LocalTime firstIn = groupedList.stream()
+                                        .findFirst()
+                                        .get()
+                                        .getSwipeIn();
+
+                                LocalTime lastOut = groupedList.stream()
+                                        .reduce((current, next) -> next)
+                                        .get()
+                                        .getSwipeOut();
+
+                                String door = groupedList.stream()
+                                        .map(EntryPairBean::getSwipeDoor)
+                                        .findAny()
+                                        .orElse("Invalid");
+
+                                Duration durationSum = groupedList.stream()
+                                        .map(EntryPairBean::getDuration)
+                                        .reduce(Duration::plus)
+                                        .orElse(null);
+
+                                entryDateList
+                                        .add(new EntryDateBean(psNumber, date, door, durationSum, firstIn, lastOut));
+                            });
+                });
+
+        return entryDateRepo.saveOrUpdateDate(entryDateList
+                .stream()
+                .map(EntryDate::new)
+                .collect(toList()));
+    }
+
+    public Integer saveOrUpdateHeadCount(List<Map<String, String>> rows) {
+
+        List<EmployeeBean> offshoreList = rows
+                .stream()
+                .filter(row -> row.get(HC_MAP.get("offshore")).equalsIgnoreCase("Yes"))
+                .filter(row -> isNotBlank(row.get(HC_MAP.get("psNumber"))))
+                .map(row -> new EmployeeBean(row, HC_MAP))
+                .collect(toList());
+
+        int updateCount = employeeRepo.saveOrUpdateHeadCount(offshoreList);
+
+        List<String> psNumberList = offshoreList.stream()
+                .map(EmployeeBean::getPsNumber)
+                .collect(toList());
+
+        employeeRepo.resetAccess(psNumberList, roleMasterRepo.findByRole("ROLE_EMPLOYEE"));
+
+        return updateCount;
+    }
+
+    public Integer saveOrUpdateProjectAllocation(List<Map<String, String>> rows) {
+
+        Set<String> psNumbers = employeeRepo.findAllpsNumber();
+
+        rows = rows
+                .stream()
+                .filter(row -> null != row.get(ALC_MAP.get("customer"))
+                        && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+                .filter(row -> psNumbers.contains(row.get(ALC_MAP.get("psNumber"))))
+                .collect(toList());
+
+        List<EmployeeBean> employeeList = rows
+                .stream()
+                .map(row -> new EmployeeBean(row, ALC_MAP))
+                .collect(toList());
+
+        return employeeRepo.saveOrUpdateProjectAllocation(employeeList);
+    }
+
+    public Workbook generateRangeMultiDatedReport(XSSFWorkbook workbook, StringJoiner cumulativeHeaders,
+            Set<LocalDate> datedHeaders, Object[] reportData) {
+
+        LocalDate from = datedHeaders.stream()
+                .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                .findFirst()
+                .orElse(null);
+
+        LocalDate to = datedHeaders.stream()
+                .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                .reduce((d1, d2) -> d2)
+                .orElse(null);
+
+        String cumulativeDateRange = null != from && null != to
+                ? "Cumulative"
+                        + " from " + from.format(reportDateFormatter)
+                        + " to " + to.format(reportDateFormatter)
+                : "Invalid dates";
+
+        XSSFSheet sheet = (XSSFSheet) workbook.createSheet();
+
+        Font font = workbook.createFont();
+        font.setBold(true);
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setAlignment(CENTER);
+        headerStyle.setFont(font);
+
+        return createDatedTable(sheet, headerStyle, cumulativeDateRange, cumulativeHeaders,
+                datedHeaders, reportData);
+
+    }
+
+    private Workbook createDatedTable(XSSFSheet sheet, CellStyle headerStyle, String cumulativeDateRange,
+            StringJoiner cumulativeHeaders, Set<LocalDate> datedHeaders, Object[] reportData) {
+
+        int rowLength = reportData.length;
+
+        List<String> dateHeaderList = new ArrayList<>();
+        dateHeaderList.add(""); // bu
+        dateHeaderList.add(""); // dsId
+        dateHeaderList.add(""); // psNumber
+        dateHeaderList.add(""); // psName
+        dateHeaderList.add(""); // validSince
+        dateHeaderList.add(""); // daysPresent
+        dateHeaderList.add(""); // filo
+        dateHeaderList.add(""); // floor
+        dateHeaderList.add(""); // compliance
+
+        datedHeaders.stream()
+                .sorted(Comparator.comparing(LocalDate::atStartOfDay))
+                .forEach(e -> {
+                    dateHeaderList.add(e.format(reportDateFormatter));
+                    dateHeaderList.add(""); // colspan for filo-floor
+                });
+
+        List<String> headersList2 = new ArrayList<>();
+        headersList2.addAll(Arrays.asList(cumulativeHeaders.toString().split(",")));
+
+        datedHeaders.stream().forEach(e -> {
+            headersList2.add("FILO");
+            headersList2.add("Floor");
+        });
+
+        Object[] dateHeader = dateHeaderList.toArray();
+        Object[] reportHeaders2 = headersList2.toArray();
+
+        // set headers
+        int colLength = dateHeader.length;
+        XSSFRow headerRow = sheet.createRow(0); // first row as column names
+        IntStream.range(0, colLength).forEach(colIndex -> {
+            XSSFCell cell = headerRow.createCell(colIndex);
+            cell.setCellValue(String.valueOf(dateHeader[colIndex]));
+        });
+
+        Cell cumulativeTitleCell = sheet.getRow(0).getCell(4);
+        cumulativeTitleCell.setCellValue(cumulativeDateRange);
+        cumulativeTitleCell.setCellStyle(headerStyle);
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 8));
+
+        int cellCount = 8;
+
+        List<Cell> dateHederStreamList = CommonUtil.toStream(sheet.getRow(0).cellIterator())
+                .collect(Collectors.toList());
+
+        for (Cell cell : dateHederStreamList) {
+            if (cellCount < dateHederStreamList.size()) {
+                sheet.addMergedRegion(new CellRangeAddress(
+                        0,
+                        0,
+                        ++cellCount,
+                        ++cellCount));
+            }
+            cell.setCellStyle(headerStyle);
+        }
+
+        // set headers
+        XSSFRow headerRow2 = sheet.createRow(1); // first row as column names
+        IntStream.range(0, colLength).forEach(colIndex -> {
+            XSSFCell cell = headerRow2.createCell(colIndex);
+            cell.setCellValue(String.valueOf(reportHeaders2[colIndex]));
+            cell.setCellStyle(headerStyle);
+        });
+
+        // set row, column values
+        IntStream.range(0, rowLength).forEach(rowIndex -> {
+            String[] colArr = reportData[rowIndex].toString().split(",");
+            XSSFRow row = sheet.createRow(rowIndex + 2); // +1 as first row for headers
+
+            IntStream.range(0, colLength).forEach(colIndex -> {
+                XSSFCell cell = row.createCell(colIndex);
+                if (NumberUtils.isCreatable(colArr[colIndex])) {
+                    cell.setCellValue(Double.valueOf(colArr[colIndex]));
+                } else {
+                    cell.setCellValue(null != colArr[colIndex]
+                            && !"null".equals(colArr[colIndex])
+                                    ? colArr[colIndex]
+                                    : "");
+                }
+                sheet.autoSizeColumn(colIndex);
+            });
+        });
+        return sheet.getWorkbook();
+    }
+
+    @SuppressWarnings("serial")
+    public HashMap<String, List<HeadCount>> saveHeadCountForReconciliation(List<Map<String, String>> rows) {
+
+        List<HeadCount> currentList = headCountRepo.findAll();
+
+        List<HeadCount> newList = rows
+                .stream()
+                .skip(1)
+                .map(HeadCountRaw::new)
+                .map(HeadCount::new)
+                .collect(toList());
+
+        Predicate<HeadCount> newContains = newList::contains;
+        Predicate<HeadCount> currentContains = currentList::contains;
+
+        List<HeadCount> toDelete = currentList.stream()
+                .filter(newContains.negate())
+                .collect(toList());
+
+        headCountRepo.delete(toDelete);
+        List<HeadCount> updatedList = headCountRepo.save(newList);
+
+        System.out.println(updatedList);
+
+        List<HeadCount> added = newList.stream()
+                .filter(currentContains.negate())
+                .collect(toList());
+
+        List<HeadCount> updated = newList.stream()
+                .filter(currentContains)
+                .collect(toList());
+
+        List<HeadCount> deleted = updatedList.stream()
+                .filter(currentContains.negate())
+                .collect(toList());
+
+        return new HashMap<String, List<HeadCount>>() {
+            {
+                put("added", added);
+                put("updated", updated);
+                put("deleted", deleted);
+            }
+        };
+    }
+
+    public void saveAllocationForReconciliation(List<Map<String, String>> rows) {
+
+        List<Allocation> allocationList = rows
+                .stream()
+                .skip(1)
+                .filter(row -> null != row.get(ALC_MAP.get("customer"))
+                        && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+                .map(AllocationRaw::new)
+                .map(Allocation::new)
+                .collect(toList());
+
+        allocationRepo.save(allocationList);
+    }
 
 }
