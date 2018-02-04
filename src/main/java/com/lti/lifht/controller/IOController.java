@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryRange;
@@ -53,6 +54,30 @@ public class IOController {
 
     @Autowired
     AdminService adminService;
+
+    @GetMapping("/reconcile/head-count")
+    @PreAuthorize(HAS_ROLE_SUPER)
+    public JsonNode reconcileHeadCount() {
+        return service.reconcileHeadCount();
+    }
+
+    @GetMapping("/reconcile/allocation")
+    @PreAuthorize(HAS_ROLE_SUPER)
+    public JsonNode reconcileAllocation() {
+        return service.reconcileAllocation();
+    }
+
+    @GetMapping("/reconcile/swipe")
+    @PreAuthorize(HAS_ROLE_SUPER)
+    public JsonNode reconcileSwipe() {
+        return service.reconcileSwipe();
+    }
+
+    @GetMapping("/reconcile/all")
+    @PreAuthorize(HAS_ROLE_SUPER)
+    public JsonNode reconcileAll() {
+        return service.reconcileAll();
+    }
 
     @PostMapping("/import/head-count")
     @PreAuthorize(HAS_ROLE_SUPER)

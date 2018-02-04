@@ -36,6 +36,10 @@ public class CommonUtil {
             ? parse(dateString, ofPattern("d-MMM-yy"))
             : null;
 
+    public static final Function<LocalDate, String> formatAllocationDate = date -> null != date
+            ? date.format(ofPattern("d-MMM-yy"))
+            : null;
+
     public static final Function<String, LocalDate> parseHeadCountDate = dateString -> isNotBlank(dateString)
             ? parse(dateString, ofPattern("MMM dd, yyyy"))
             : null;

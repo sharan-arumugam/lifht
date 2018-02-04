@@ -1,5 +1,6 @@
 package com.lti.lifht.entity;
 
+import static com.lti.lifht.util.CommonUtil.formatAllocationDate;
 import static com.lti.lifht.util.CommonUtil.parseHeadCountDate;
 import static com.lti.lifht.util.CommonUtil.parseStringInt;
 
@@ -8,6 +9,8 @@ import java.time.LocalDate;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lti.lifht.model.HeadCountRaw;
 
 import lombok.Data;
@@ -31,10 +34,13 @@ public class HeadCount {
     private Boolean billable;
     private Integer weeksNonBillable;
     private String badge;
+    @JsonIgnore
     private LocalDate badgeExpiry;
     private String po;
     private String poDesc;
+    @JsonIgnore
     private LocalDate poExpiry;
+    @JsonIgnore
     private LocalDate bcpEndDate;
 
     public HeadCount(HeadCountRaw ref) {
@@ -58,6 +64,21 @@ public class HeadCount {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    @JsonProperty(value = "badgeExpiry")
+    public String badgeExpiry() {
+        return formatAllocationDate.apply(badgeExpiry);
+    }
+
+    @JsonProperty(value = "poExpiry")
+    public String poExpiry() {
+        return formatAllocationDate.apply(poExpiry);
+    }
+
+    @JsonProperty(value = "bcpEndDate")
+    public String bcpEndDate() {
+        return formatAllocationDate.apply(bcpEndDate);
     }
 
 }

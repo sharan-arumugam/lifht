@@ -16,6 +16,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lti.lifht.constant.CommonConstant;
 import com.lti.lifht.entity.Allocation;
 import com.lti.lifht.entity.EntryDate;
@@ -85,6 +88,9 @@ public class IOService {
 
     @Autowired
     AllocationRepository allocationRepo;
+
+    @Autowired
+    ObjectMapper mapper;
 
     @Value("#{'${access.200}'.split(',')}")
     List<String> adminList;
@@ -472,6 +478,63 @@ public class IOService {
 
         allocationRepo.save(newList);
         allocationRepo.delete(toDelete);
+    }
+
+    public JsonNode reconcileHeadCount() {
+        List<String> hcPsList = headCountRepo.findAll()
+                .stream()
+                .map(HeadCount::getPsNumber)
+                .collect(toList());
+
+        List<Allocation> allocationRecon = allocationRepo.psNumberNotIn(hcPsList);
+        List<String> entryDateRecon = entryDateRepo.psNumberNotIn(hcPsList);
+
+        Map<String, List<?>> reconcileMap = new HashMap<>();
+        reconcileMap.put("allocationRecon", allocationRecon);
+        reconcileMap.put("entryDateRecon", entryDateRecon);
+        return mapper.valueToTree(reconcileMap);
+    }
+
+    public JsonNode reconcileAllocation() {
+        List<String> allocPsList = allocationRepo.findAll()
+                .stream()
+                .map(Allocation::getPsNumber)
+                .collect(toList());
+
+        List<HeadCount> headCountRecon = headCountRepo.psNumberNotIn(allocPsList);
+        List<String> entryDateRecon = entryDateRepo.psNumberNotIn(allocPsList);
+
+        Map<String, List<?>> reconcileMap = new HashMap<>();
+        reconcileMap.put("headCountRecon", headCountRecon);
+        reconcileMap.put("entryDateRecon", entryDateRecon);
+
+        return mapper.valueToTree(reconcileMap);
+    }
+
+    public JsonNode reconcileSwipe() {
+        List<String> swipePsList = entryDateRepo.findAll()
+                .stream()
+                .map(EntryDate::getPsNumber)
+                .distinct()
+                .collect(toList());
+
+        List<HeadCount> headCountRecon = headCountRepo.psNumberNotIn(swipePsList);
+        List<Allocation> allocationRecon = allocationRepo.psNumberNotIn(swipePsList);
+
+        Map<String, List<?>> reconcileMap = new HashMap<>();
+        reconcileMap.put("headCountRecon", headCountRecon);
+        reconcileMap.put("allocationRecon", allocationRecon);
+
+        return mapper.valueToTree(reconcileMap);
+    }
+
+    public JsonNode reconcileAll() {
+        Map<String, JsonNode> reconcileMap = new HashMap<>();
+        reconcileMap.put("headCount", reconcileHeadCount());
+        reconcileMap.put("allocation", reconcileAllocation());
+        reconcileMap.put("swipe", reconcileSwipe());
+
+        return mapper.valueToTree(reconcileMap);
     }
 
 }
