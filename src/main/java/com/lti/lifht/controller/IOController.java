@@ -36,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.lti.lifht.entity.HeadCount;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryRange;
@@ -61,9 +60,8 @@ public class IOController {
         try {
             List<Map<String, String>> rows = parseXlsx.apply(headCount.getInputStream());
             service.saveOrUpdateHeadCount(rows);
-            Map<String, List<HeadCount>> uploadSummary = service.saveHeadCountForReconciliation(rows);
-
-            return ResponseEntity.ok(uploadSummary);
+            service.saveHeadCountForReconciliation(rows);
+            return accepted().build();
         } catch (Exception e) {
             return status(NOT_MODIFIED).build();
         }

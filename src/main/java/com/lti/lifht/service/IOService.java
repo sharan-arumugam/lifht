@@ -16,7 +16,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -431,8 +430,7 @@ public class IOService {
         return sheet.getWorkbook();
     }
 
-    @SuppressWarnings("serial")
-    public HashMap<String, List<HeadCount>> saveHeadCountForReconciliation(List<Map<String, String>> rows) {
+    public void saveHeadCountForReconciliation(List<Map<String, String>> rows) {
 
         List<HeadCount> currentList = headCountRepo.findAll();
 
@@ -444,41 +442,20 @@ public class IOService {
                 .collect(toList());
 
         Predicate<HeadCount> newContains = newList::contains;
-        Predicate<HeadCount> currentContains = currentList::contains;
 
         List<HeadCount> toDelete = currentList.stream()
                 .filter(newContains.negate())
                 .collect(toList());
 
+        headCountRepo.save(newList);
         headCountRepo.delete(toDelete);
-        List<HeadCount> updatedList = headCountRepo.save(newList);
-
-        System.out.println(updatedList);
-
-        List<HeadCount> added = newList.stream()
-                .filter(currentContains.negate())
-                .collect(toList());
-
-        List<HeadCount> updated = newList.stream()
-                .filter(currentContains)
-                .collect(toList());
-
-        List<HeadCount> deleted = updatedList.stream()
-                .filter(currentContains.negate())
-                .collect(toList());
-
-        return new HashMap<String, List<HeadCount>>() {
-            {
-                put("added", added);
-                put("updated", updated);
-                put("deleted", deleted);
-            }
-        };
     }
 
     public void saveAllocationForReconciliation(List<Map<String, String>> rows) {
 
-        List<Allocation> allocationList = rows
+        List<Allocation> currentList = allocationRepo.findAll();
+
+        List<Allocation> newList = rows
                 .stream()
                 .skip(1)
                 .filter(row -> null != row.get(ALC_MAP.get("customer"))
@@ -487,7 +464,14 @@ public class IOService {
                 .map(Allocation::new)
                 .collect(toList());
 
-        allocationRepo.save(allocationList);
+        Predicate<Allocation> newContains = newList::contains;
+
+        List<Allocation> toDelete = currentList.stream()
+                .filter(newContains.negate())
+                .collect(toList());
+
+        allocationRepo.save(newList);
+        allocationRepo.delete(toDelete);
     }
 
 }

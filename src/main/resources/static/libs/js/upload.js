@@ -12,8 +12,7 @@ $(document).ready(function() {
       contentType: false,
       processData: false,
       success: function(data, textStatus, xhr) {
-        if (xhr.status === 200) {
-        	console.log(data)
+        if (xhr.status === 202) {
           $(".head-count-ack-msg").css("display", "block").html("File Uploaded Successfully.").addClass('alert-success');
         } else {
           $(".head-count-ack-msg").css("display", "block").html("Something went wrong. Please try again.").addClass('alert-danger');
