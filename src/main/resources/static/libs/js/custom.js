@@ -161,7 +161,7 @@ $(document).ready(function() {
       clear = false;
     }
 
-    // Chacking dates
+    // Checking dates
     if (fromDateForm.trim().length > 0) {
       $("#from-date-admin").parent().siblings('.error').css('visibility', 'hidden');
       fromDate = fromDateForm.split("/");
@@ -227,6 +227,7 @@ $(document).ready(function() {
         contentType:"application/json; charset=utf-8",
         dataType:"json",
         success: function(response) {
+          console.log(dateRange);
           var tableHtml = '';
           var tableHtml = structureTable(response, callType);
           $("#result-table tbody").html(tableHtml);
@@ -246,19 +247,22 @@ $(document).ready(function() {
     var tableHtml = '';
     if (type === 'single-ps-multi-date') {
       response.map((val) => {
-        date.push(val.swipeDate);
+        date.push(val.employee.swipeDateString);
         name = val.employee.psName;
         inTime.push(val.durationString);
-        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.swipeDate+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
+        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.swipeDateString+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
       });
       chartType = 'line';
       createChart(chartType,date,name,inTime);
     } else if (type === 'multi-ps-multi-date') {
       response.map((val) => {
-        date = val.dateRange;
-        name.push(val.employee.psName);
-        inTime.push(val.durationString);
-        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.dateRange+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
+        if(val.durationString!="0:00:00"){
+          date = val.dateRange;
+          name.push(val.employee.psName);
+          inTime.push(val.durationString);
+          console.log(name);
+          tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.dateRange+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
+        }
       });
         chartType = "column";
         createChart(chartType,name,date,inTime);
@@ -338,7 +342,7 @@ $(document).ready(function() {
           }),
           contentType : "application/json",
           success: function(response) {
-            var html = "<td>"+response.dateRange+"</td><td>"+response.daysPresent+"</td><td>"+response.durationString+"</td><td>"+response.complianceString+"</td>";
+            var html = "<td>"+response.dateRange+"</td><td>"+response.daysPresent+"</td><td>"+response.filoString+"</td><td>"+response.durationString+"</td><td>"+response.complianceString+"</td>";
             $("#summary tbody").html(html);
             // const res = {
             //   daysPresent: response.daysPresent,
@@ -379,7 +383,7 @@ $(document).ready(function() {
                 inTime.push(val.durationString);
                 name = val.employee.psName;
                 date = val.swipeDateString;
-              tableHtml += "<tr>/n<td>"+date+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
+              tableHtml += "<tr>/n<td>"+date+"</td><td>"+val.filoString+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
             });
             $("#result-table-range").css("display", "block");
             $("#result-table-range tbody").html(tableHtml);
@@ -417,7 +421,12 @@ function createChart(type,date,name,inTime){
     yAxis: {
         title: {
             text: 'Time spent in Floor (Hrs)'
-        }
+        },
+        plotLines: [{
+            color: 'red', // Color value
+            value: 8, // Value of where the line will appear
+            width: 1 // Width of the line
+  }]
     },
     plotOptions: {
         line: {
