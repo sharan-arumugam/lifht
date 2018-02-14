@@ -105,6 +105,20 @@ public class IOController {
 			return status(NOT_MODIFIED).build();
 		}
 	}
+	
+	@PostMapping("/import/exclusion")
+	@PreAuthorize(HAS_ROLE_SUPER)
+	public ResponseEntity<Object> importExclusion(@RequestParam("exclusion") MultipartFile exclusion) {
+		try {
+			System.out.println("came to controller");
+			List<Map<String, String>> rows = parseXlsx.apply(exclusion.getInputStream());
+			System.out.println(rows);
+			service.saveOrUpdateExclusion(rows);
+			return accepted().build();
+		} catch (Exception e) {
+			return status(NOT_MODIFIED).build();
+		}
+	}
 
 	@PostMapping("/import/swipe-data")
 	@PreAuthorize(HAS_ROLE_SUPER)

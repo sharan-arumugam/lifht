@@ -55,6 +55,7 @@ import com.lti.lifht.constant.CommonConstant;
 import com.lti.lifht.entity.Allocation;
 import com.lti.lifht.entity.EntryDate;
 import com.lti.lifht.entity.EntryPair;
+import com.lti.lifht.entity.Exclusion;
 import com.lti.lifht.entity.HeadCount;
 import com.lti.lifht.model.AllocationRaw;
 import com.lti.lifht.model.EmployeeBean;
@@ -62,12 +63,14 @@ import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryPairBean;
 import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.EntryRaw;
+import com.lti.lifht.model.ExclusionRaw;
 import com.lti.lifht.model.HeadCountRaw;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.repository.AllocationRepository;
 import com.lti.lifht.repository.EmployeeRepository;
 import com.lti.lifht.repository.EntryDateRepository;
 import com.lti.lifht.repository.EntryPairRepository;
+import com.lti.lifht.repository.ExclusionRepository;
 import com.lti.lifht.repository.HeadCountRepository;
 import com.lti.lifht.repository.RoleMasterRepository;
 import com.lti.lifht.util.CommonUtil;
@@ -100,6 +103,9 @@ public class IOService {
 
 	@Autowired
 	private AllocationRepository allocationRepo;
+
+	@Autowired
+	private ExclusionRepository exclusionRepo;
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -580,7 +586,7 @@ public class IOService {
 			return dataMap;
 		}).collect(toList());
 
-		nonCompliantRows.stream().limit(2).forEach(row -> {
+		nonCompliantRows.stream().limit(3).forEach(row -> {
 
 			StringBuilder htmlBody = new StringBuilder();
 
@@ -618,9 +624,19 @@ public class IOService {
 
 			htmlBody.append("</table>");
 
-			emailService.sendMail("10643503", "Compliance Hours " + row.get("Compliance"), htmlBody.toString());
+			emailService.sendMail("10643503", "Compliance " + row.get("Compliance"), htmlBody.toString());
 		});
 
+	}
+
+	public void saveOrUpdateExclusion(List<Map<String, String>> rows) {
+		List<Exclusion> exclusionList = rows.stream()
+				.skip(1)
+				.map(ExclusionRaw::new)
+				.map(Exclusion::new)
+				.collect(Collectors.toList());
+
+		exclusionRepo.save(exclusionList);
 	}
 
 }
