@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import microsoft.exchange.webservices.data.core.ExchangeService;
 import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
 import microsoft.exchange.webservices.data.credential.WebCredentials;
+import microsoft.exchange.webservices.data.property.complex.ItemId;
 import microsoft.exchange.webservices.data.property.complex.MessageBody;
 
 @Service
@@ -31,17 +32,21 @@ public class MailService {
 	@Async
 	public Future<String> sendMail(String psNumber, String subject, String messageBody) {
 
+		EmailMessage emailMessage = null;
 		String emailAddress = psNumber + "@lntinfotech.com";
 
 		try {
-			EmailMessage emailMessage = new EmailMessage(exchangeService);
 
-			emailMessage.setSubject(subject);
-			emailMessage.setBody(new MessageBody(messageBody));
-			emailMessage.getToRecipients().add(emailAddress);
-			emailMessage.sendAndSaveCopy();
+			synchronized (this) {
+				emailMessage = new EmailMessage(exchangeService);
 
-			return new AsyncResult<String>("email sent: " + emailAddress);
+				emailMessage.setSubject(subject);
+				emailMessage.setBody(new MessageBody(messageBody));
+				emailMessage.getToRecipients().add(emailAddress);
+				emailMessage.sendAndSaveCopy();
+
+				return new AsyncResult<String>("email sent: " + emailAddress);
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
