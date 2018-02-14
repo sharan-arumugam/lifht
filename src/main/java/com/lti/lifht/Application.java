@@ -20,7 +20,7 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import com.lti.lifht.constant.PathConstant;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @EntityScan(basePackageClasses = { Application.class })
 @PropertySource("file:${user.home}/odc_apps/lifht/application.properties")
@@ -44,6 +44,11 @@ public class Application extends WebMvcConfigurerAdapter {
 	@Bean
 	public Decoder b64Decoder() {
 		return Base64.getDecoder();
+	}
+
+	@Bean
+	public ObjectMapper mapper() {
+		return new ObjectMapper();
 	}
 
 	@Bean

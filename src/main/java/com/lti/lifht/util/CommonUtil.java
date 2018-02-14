@@ -1,9 +1,13 @@
 package com.lti.lifht.util;
 
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
+import static java.lang.Integer.parseInt;
+import static java.time.LocalDate.parse;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.map.UnmodifiableMap.unmodifiableMap;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -27,6 +31,22 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class CommonUtil {
 
     static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    public static final Function<String, LocalDate> parseAllocationDate = dateString -> isNotBlank(dateString)
+            ? parse(dateString, ofPattern("d-MMM-yy"))
+            : null;
+
+    public static final Function<LocalDate, String> formatAllocationDate = date -> null != date
+            ? date.format(ofPattern("d-MMM-yy"))
+            : null;
+
+    public static final Function<String, LocalDate> parseHeadCountDate = dateString -> isNotBlank(dateString)
+            ? parse(dateString, ofPattern("MMM dd, yyyy"))
+            : null;
+
+    public static final Function<String, Integer> parseStringInt = intString -> isCreatable(intString)
+            ? parseInt(intString)
+            : 0;
 
     static Function<String, SimpleEntry<String, String>> crypt = base -> new SimpleEntry<>(base, encoder.encode(base));
 

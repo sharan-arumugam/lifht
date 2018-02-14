@@ -11,7 +11,7 @@ $(document).ready(function() {
       data: oData,
       contentType: false,
       processData: false,
-      success: function(xml, textStatus, xhr) {
+      success: function(data, textStatus, xhr) {
         if (xhr.status === 202) {
           $(".head-count-ack-msg").css("display", "block").html("File Uploaded Successfully.").addClass('alert-success');
         } else {
@@ -68,6 +68,18 @@ $(document).ready(function() {
       data: oData,
       contentType: false,
       processData: false,
+      xhr: function () {
+          var xhr = new window.XMLHttpRequest();
+          xhr.upload.addEventListener("progress", function (evt) {
+              if (evt.lengthComputable) {
+                  var percentComplete = evt.loaded / evt.total;
+                  percentComplete = parseInt(percentComplete * 100);
+                  $('.myprogress').text(percentComplete + '%');
+                  $('.myprogress').css('width', percentComplete + '%');
+              }
+          }, false);
+          return xhr;
+      },
       success: function(xml, textStatus, xhr) {
         if (xhr.status === 202) {
           $(".project-all-ack-msg").css("display", "block").html("File Uploaded Successfully.").addClass('alert-success');
