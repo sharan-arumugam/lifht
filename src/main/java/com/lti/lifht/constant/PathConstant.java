@@ -13,8 +13,9 @@ public class PathConstant {
 	public static final String PATH_UPLOAD = "/upload";
 
 	public static final String PATH_PASSWORD = "/password";
-	public static final String PATH_PASSWORD_FORGOT = "/password/forgot";
-	public static final String PATH_RESET = "/reset";
+	public static final String PATH_PASSWORD_FORGOT = "/forgotpassword";
+	public static final String PATH_RESET = "/resetpassword";
+	public static final String PATH_RESET_ANY = "/resetpassword**";
 	public static final String PATH_SAVE = "/save";
 
 	public static final String PATH_LIB_ANY = "/libs/**";

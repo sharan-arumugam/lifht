@@ -1,5 +1,6 @@
 package com.lti.lifht.controller;
 
+import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
@@ -105,11 +106,35 @@ public class IOController {
         }
     }
 
+    @PostMapping("/import/exclusion")
+    @PreAuthorize(HAS_ROLE_SUPER)
+    public ResponseEntity<Object> importExclusion(@RequestParam("exclusion") MultipartFile exclusion) {
+        try {
+            List<Map<String, String>> rows = parseXlsx.apply(exclusion.getInputStream());
+            service.saveOrUpdateExclusion(rows);
+            return accepted().build();
+        } catch (Exception e) {
+            return status(NOT_MODIFIED).build();
+        }
+    }
+
     @PostMapping("/import/swipe-data")
     @PreAuthorize(HAS_ROLE_SUPER)
     public ResponseEntity<Object> importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData) {
         try {
-            service.saveOrUpdateRawEntry(autoParse.apply(swipeData.getOriginalFilename(), swipeData.getInputStream()));
+            List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(),
+                    swipeData.getInputStream());
+
+            service.saveOrUpdateRawEntry(rows);
+
+            String swipeDate = rows.stream()
+                    .filter(row -> !row.get(SWP_MAP.get("eventNumber")).startsWith("--"))
+                    .findAny()
+                    .get()
+                    .get(SWP_MAP.get("swipeDate"));
+
+            service.notifyNonCompliant(swipeDate);
+
             return accepted().build();
         } catch (Exception e) {
             return status(NOT_MODIFIED).build();

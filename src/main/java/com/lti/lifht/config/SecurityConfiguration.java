@@ -8,6 +8,7 @@ import static com.lti.lifht.constant.PathConstant.PATH_LOGIN;
 import static com.lti.lifht.constant.PathConstant.PATH_LOGIN_ERROR;
 import static com.lti.lifht.constant.PathConstant.PATH_LOGOUT;
 import static com.lti.lifht.constant.PathConstant.PATH_PASSWORD_FORGOT;
+import static com.lti.lifht.constant.PathConstant.PATH_RESET_ANY;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +42,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests()
 				.anyRequest().authenticated()
-				.antMatchers(PATH_PASSWORD_FORGOT).permitAll()
+				.antMatchers(PATH_PASSWORD_FORGOT, PATH_RESET_ANY).permitAll()
 				.and().formLogin().loginPage(PATH_LOGIN).permitAll()
 				.failureUrl(PATH_LOGIN_ERROR)
 				.usernameParameter(PARAM_PS_NUMBER)
@@ -53,7 +54,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	}
 
 	public void configure(WebSecurity webSecurity) throws Exception {
-		webSecurity.ignoring().antMatchers(PATH_LIB_ANY, PATH_ASSET_ANY);
+		webSecurity.ignoring().antMatchers(PATH_LIB_ANY, PATH_ASSET_ANY, PATH_PASSWORD_FORGOT, PATH_RESET_ANY);
 	}
 
 	@Override

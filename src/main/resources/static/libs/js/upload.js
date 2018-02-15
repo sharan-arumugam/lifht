@@ -54,6 +54,34 @@ $(document).ready(function() {
       }
     })
   });
+  
+  /**** Upload exclusion ****/
+  $("#exclusion").submit(function(e) {
+    e.preventDefault();
+    $(".exclusion-data-ack-msg").html('').removeClass('alert-success alert-danger').css("display", "none");
+    var form = document.forms.namedItem("exclusion");
+    var oData = new FormData(form);
+    $.ajax({
+      method: "POST",
+      url: "/io/import/exclusion",
+      data: oData,
+      contentType: false,
+      processData: false,
+      success: function(xml, textStatus, xhr) {
+        if (xhr.status === 202) {
+          $(".exclusion-data-ack-msg").css("display", "block").html("File Uploaded Successfully.").addClass('alert-success');
+        } else {
+          $(".exclusion-data-ack-msg").css("display", "block").html("Something went wrong. Please try again.").addClass('alert-danger');
+        }
+        $(".exclusion-data-ack-msg").fadeOut(60000, function() {
+          $(".exclusion-data-ack-msg").removeClass('alert-success alert-danger')
+        });
+      },
+      error: function(err) {
+        console.log(err);
+      }
+    })
+  });
 
   /**** Upload Project allocation ****/
   $("#project-allocation").submit(function(e) {
