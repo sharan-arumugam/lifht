@@ -19,40 +19,40 @@ import microsoft.exchange.webservices.data.property.complex.MessageBody;
 @Service
 public class MailService {
 
-    private ExchangeService exchangeService;
+	private ExchangeService exchangeService;
 
-    public MailService(@Value("${exchange.url}") String exchangeUrl,
-            @Value("${exchange.username}") String username,
-            @Value("${exchange.password}") String password) throws URISyntaxException {
+	public MailService(@Value("${exchange.url}") String exchangeUrl,
+			@Value("${exchange.username}") String username,
+			@Value("${exchange.password}") String password) throws URISyntaxException {
 
-        exchangeService = new ExchangeService();
-        exchangeService.setUrl(new URI(exchangeUrl));
-        exchangeService.setCredentials(new WebCredentials(username, password));
-    }
+		exchangeService = new ExchangeService();
+		exchangeService.setUrl(new URI(exchangeUrl));
+		exchangeService.setCredentials(new WebCredentials(username, password));
+	}
 
-    @Async
-    public Future<String> sendMail(String psNumber, String subject, String messageBody) {
+	@Async
+	public Future<String> sendMail(String psNumber, String subject, String messageBody) {
 
-        EmailMessage emailMessage = null;
-        String emailAddress = psNumber + "@lntinfotech.com";
+		EmailMessage emailMessage = null;
+		String emailAddress = psNumber + "@lntinfotech.com";
 
-        try {
-            sleep(1000);
-            synchronized (this) {
-                emailMessage = new EmailMessage(exchangeService);
+		try {
+			synchronized (this) {
+				sleep(5000);
+				emailMessage = new EmailMessage(exchangeService);
 
-                emailMessage.setSubject(subject);
-                emailMessage.setBody(new MessageBody(messageBody));
-                emailMessage.getToRecipients().add(emailAddress);
-                emailMessage.sendAndSaveCopy();
+				emailMessage.setSubject(subject);
+				emailMessage.setBody(new MessageBody(messageBody));
+				emailMessage.getToRecipients().add(emailAddress);
+				emailMessage.sendAndSaveCopy();
 
-                return new AsyncResult<String>("email sent: " + emailAddress);
-            }
+				return new AsyncResult<String>("email sent: " + emailAddress);
+			}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-        return new AsyncResult<String>("failed to email: " + emailAddress);
-    }
+		return new AsyncResult<String>("failed to email: " + emailAddress);
+	}
 }

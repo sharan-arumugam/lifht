@@ -127,7 +127,7 @@ public class AdminService {
                             .filter(Objects::nonNull)
                             .filter(entry -> null != entry.getSwipeDate())
                             .filter(entry -> exclusionMap.containsKey(psNumber)
-                                    ? entry.getSwipeDate().isAfter(exclusionMap.get(psNumber).getStartDate())
+                                    ? entry.getSwipeDate().isAfter(exclusionMap.get(psNumber).getStartDate().minusDays(1))
                                     : true)
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != SATURDAY)
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != SUNDAY);
@@ -194,7 +194,7 @@ public class AdminService {
                             .filter(Objects::nonNull)
                             .filter(entry -> null != entry.getSwipeDate())
                             .filter(entry -> exclusionMap.containsKey(psNumber)
-                                    ? entry.getSwipeDate().isAfter(exclusionMap.get(psNumber).getStartDate())
+                                    ? entry.getSwipeDate().isAfter(exclusionMap.get(psNumber).getStartDate().minusDays(1))
                                     : true)
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != SATURDAY)
                             .filter(entry -> entry.getSwipeDate().getDayOfWeek() != SUNDAY);
