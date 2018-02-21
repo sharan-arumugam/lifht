@@ -544,7 +544,7 @@ public class IOService {
 		return mapper.valueToTree(reconcileMap);
 	}
 
-	public void notifyNonCompliant(String swipeDate) {
+	public void notifyNonCompliant(String swipeDate, String appUrl) {
 
 		LocalDate toDate = parseMDY.apply(swipeDate);
 		LocalDate fromDate = toDate.with(firstDayOfMonth());
@@ -612,6 +612,16 @@ public class IOService {
 			htmlBody.append("</tr></tbody>");
 
 			htmlBody.append("</table>");
+			
+		 htmlBody.append("<br>");
+   htmlBody.append("<br>");
+   
+   String appLink = "<a href=" + appUrl +">"+"<b>"+"LTI Floor Hour Tracker [Lifht]"+"</b></a>";
+   
+   htmlBody.append("For more details, please check your compliance @ ").append(appLink);
+   htmlBody.append("<br>");
+   htmlBody.append("PS: Kindly disconnect VPN before accessing the portal");
+   htmlBody.append("<br>");
 
 			emailService.sendMail(row.get("PS Number"), "Compliance " + row.get("Compliance"), htmlBody.toString());
 		});

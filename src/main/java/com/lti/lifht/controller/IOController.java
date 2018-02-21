@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -120,7 +121,7 @@ public class IOController {
 
     @PostMapping("/import/swipe-data")
     @PreAuthorize(HAS_ROLE_SUPER)
-    public ResponseEntity<Object> importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData) {
+    public ResponseEntity<Object> importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData, HttpServletRequest request) {
         try {
             List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(),
                     swipeData.getInputStream());
@@ -132,8 +133,10 @@ public class IOController {
                     .findAny()
                     .get()
                     .get(SWP_MAP.get("swipeDate"));
+            
+            String appUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 
-            service.notifyNonCompliant(swipeDate);
+            service.notifyNonCompliant(swipeDate, appUrl);
 
             return accepted().build();
         } catch (Exception e) {
