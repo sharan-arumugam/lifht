@@ -82,6 +82,12 @@ public class EmployeeController {
 	public List<EntryRange> getRangeMulti(@RequestBody RangeMultiPs request) {
 		return service.getRangeMulti(request, false);
 	}
+	
+ @PostMapping("/swipe/range-multi-ps-sum")
+ @PreAuthorize(HAS_ANY_ROLE_ADMIN)
+ public Map<String, String> getRangeMultiSum(@RequestBody RangeMultiPs request) {
+  return service.getRangeMultiSum(request, false);
+ }
 
 	@PostMapping("/changepassword")
 	@PreAuthorize(HAS_ANY_ROLE_EMPLOYEE)
