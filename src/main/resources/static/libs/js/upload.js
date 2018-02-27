@@ -35,7 +35,7 @@ $(document).ready(function() {
     var oData = new FormData(form);
     $.ajax({
       method: "POST",
-      url: "/io/import/swipe-data",
+      url: "/io/import/swipe-data" + "?send-mail="+ $('#sendMail').is(':checked'),
       data: oData,
       contentType: false,
       processData: false,

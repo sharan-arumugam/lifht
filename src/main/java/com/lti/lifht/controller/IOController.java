@@ -121,22 +121,24 @@ public class IOController {
 
     @PostMapping("/import/swipe-data")
     @PreAuthorize(HAS_ROLE_SUPER)
-    public ResponseEntity<Object> importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData, HttpServletRequest request) {
+    public ResponseEntity<Object> importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData,
+            @RequestParam("send-mail") String sendMail, HttpServletRequest request) {
         try {
             List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(),
                     swipeData.getInputStream());
 
             service.saveOrUpdateRawEntry(rows);
+            if (Boolean.valueOf(sendMail)) {
+                String swipeDate = rows.stream()
+                        .filter(row -> !row.get(SWP_MAP.get("eventNumber")).startsWith("--"))
+                        .findAny()
+                        .get()
+                        .get(SWP_MAP.get("swipeDate"));
 
-            String swipeDate = rows.stream()
-                    .filter(row -> !row.get(SWP_MAP.get("eventNumber")).startsWith("--"))
-                    .findAny()
-                    .get()
-                    .get(SWP_MAP.get("swipeDate"));
-            
-            String appUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                String appUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 
-            service.notifyNonCompliant(swipeDate, appUrl);
+                service.notifyNonCompliant(swipeDate, appUrl);
+            }
 
             return accepted().build();
         } catch (Exception e) {
