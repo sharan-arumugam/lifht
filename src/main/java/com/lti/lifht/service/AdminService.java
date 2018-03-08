@@ -1,19 +1,26 @@
 package com.lti.lifht.service;
 
+import static com.lti.lifht.util.CommonUtil.formatDuration;
 import static java.time.DayOfWeek.SATURDAY;
 import static java.time.DayOfWeek.SUNDAY;
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.averagingLong;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.summingLong;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -150,7 +157,16 @@ public class AdminService {
                     Duration complianceSum = summer.apply(groupedStream.get().map(EntryDateBean::getCompliance));
                     Duration filoSum = summer.apply(groupedStream.get().map(EntryDateBean::getFilo));
                     Long daysPresent = groupedStream.get().count();
+                    
 
+                    long averageMillis = groupedStream
+                            .get()
+                            .map(EntryDateBean::getDuration)
+                            .collect(averagingLong(Duration::toMillis))
+                            .longValue();
+                    
+                    Duration average = Duration.of(averageMillis, MILLIS);
+                    
                     aggregateList.add(new EntryRange(
                             request.getFromDate(),
                             request.getToDate(),
@@ -159,6 +175,7 @@ public class AdminService {
                             durationSum,
                             complianceSum,
                             filoSum,
+                            average,
                             door,
                             psNumber,
                             employee));
@@ -217,6 +234,14 @@ public class AdminService {
                     Duration complianceSum = summer.apply(groupedStream.get().map(EntryDateBean::getCompliance));
                     Duration filoSum = summer.apply(groupedStream.get().map(EntryDateBean::getFilo));
                     Long daysPresent = groupedStream.get().count();
+                    
+                    long averageMillis = groupedStream
+                            .get()
+                            .map(EntryDateBean::getDuration)
+                            .collect(averagingLong(Duration::toMillis))
+                            .longValue();
+                    
+                    Duration average = Duration.of(averageMillis, MILLIS);
 
                     aggregateList.add(new EntryRange(
                             request.getFromDate(),
@@ -226,12 +251,38 @@ public class AdminService {
                             durationSum,
                             complianceSum,
                             filoSum,
+                            average,
                             door,
                             psNumber,
                             employee));
                 });
 
         return aggregateList.size() > 0 ? aggregateList.get(0) : null;
+    }
+
+    public Map<String, String> getRangeMultiSum(RangeMultiPs request, boolean isReport) {
+        List<EntryRange> rangeList = getRangeMulti(request, isReport);
+        
+        long floorSumMillis = rangeList.stream()
+                .map(EntryRange::getDuration)
+                .collect(summingLong(Duration::toMillis));
+        
+        Duration floorSum = Duration.of(floorSumMillis, MILLIS);
+        
+        long averageFloorSumMillis = rangeList.stream()
+                .map(EntryRange::getAverage)
+                .collect(summingLong(Duration::toMillis));
+
+        Duration averageFloorSum = Duration.of(averageFloorSumMillis, MILLIS);
+        
+        int employeeCount = rangeList.size();
+        
+        Map<String, String> rangMultiSum = new HashMap<>();
+        rangMultiSum.put("floorSum", null != floorSum ? formatDuration(floorSum) : "");
+        rangMultiSum.put("averageFloorSum", null != averageFloorSum ? formatDuration(averageFloorSum) : "");
+        rangMultiSum.put("employeeCount", String.valueOf(employeeCount));
+        
+        return rangMultiSum;
     }
 
 }

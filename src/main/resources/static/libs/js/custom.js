@@ -32,7 +32,14 @@ $(document).ready(function() {
   });
 
   /***** Admin *****/
-
+  // Injecting thead
+  function injectth(flag) {
+    if (flag) {
+      $("#result-table thead tr").append("<th class='average-col'>Average Floor</th>");
+    } else {
+      $(".average-col").remove();
+    }
+  }
   $(document).on("click", "body", function(e) {
 		const container = $(".admin-dropdown");
 		const mainContainer = $("#admin-actions-toggle");
@@ -143,6 +150,7 @@ $(document).ready(function() {
   $(document).on("click", "#submit-admin-form", function() {
     var table = $('#result-table').DataTable();
     table.destroy();
+    injectth(false);
     var staff = $("input[name=user-select]").val();
     var fromDateForm = $("#from-date-admin").val();
     var fromDate = '';
@@ -220,6 +228,20 @@ $(document).ready(function() {
       var query_toDate = toDateForm.replace(/\//g, '-');
       var excel_url = "io/export/range-multi-ps?fromDate="+query_fromdate+"&toDate="+query_toDate+"&psNumberList="+query_psList.join(",");
       $(".download-xl").attr("href", excel_url);
+      
+      $.ajax({
+          method: "POST",
+          data: JSON.stringify(data),
+          url: 'api/swipe/range-multi-ps-sum', //total billable
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+          success: function(response) {
+    	  		console.log("res")
+    	        totalBillableHtml = '<span class="pull-right"><b>Total Billed Hours: '+response.floorSum+'<b></span> <br/><br/>';
+    	        $("#total-billable").html(totalBillableHtml);
+          }
+        });
+      
       $.ajax({
         method: "POST",
         data: JSON.stringify(data),
@@ -227,7 +249,6 @@ $(document).ready(function() {
         contentType:"application/json; charset=utf-8",
         dataType:"json",
         success: function(response) {
-          console.log(dateRange);
           var tableHtml = '';
           var tableHtml = structureTable(response, callType);
           $("#result-table tbody").html(tableHtml);
@@ -250,18 +271,18 @@ $(document).ready(function() {
         date.push(val.employee.swipeDateString);
         name = val.employee.psName;
         inTime.push(val.durationString);
-        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.swipeDateString+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
+        tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.swipeDateString+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td></tr>";
       });
       chartType = 'line';
       createChart(chartType,date,name,inTime);
     } else if (type === 'multi-ps-multi-date') {
+      injectth(true);
       response.map((val) => {
         if(val.durationString!="0:00:00"){
           date = val.dateRange;
           name.push(val.employee.psName);
           inTime.push(val.durationString);
-          console.log(name);
-          tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.dateRange+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
+          tableHtml += "<tr>/n<td>"+val.employee.psName+"</td><td>"+val.dateRange+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td>"+val.filoString+"</td><td>"+val.averageString+"</td></tr>";
         }
       });
         chartType = "column";
@@ -342,14 +363,8 @@ $(document).ready(function() {
           }),
           contentType : "application/json",
           success: function(response) {
-            var html = "<td>"+response.dateRange+"</td><td>"+response.daysPresent+"</td><td>"+response.filoString+"</td><td>"+response.durationString+"</td><td>"+response.complianceString+"</td>";
+            var html = "<td>"+response.dateRange+"</td><td>"+response.daysPresent+"</td><td>"+response.durationString+"</td><td>"+response.complianceString+"</td>";
             $("#summary tbody").html(html);
-            // const res = {
-            //   daysPresent: response.daysPresent,
-            //   dateRange: response.dateRange,
-            //   durationString: response.durationString,
-            //   complianceString: response.complianceString
-            // }
           },
           error: function(error) {
             console.log(error);
@@ -383,7 +398,7 @@ $(document).ready(function() {
                 inTime.push(val.durationString);
                 name = val.employee.psName;
                 date = val.swipeDateString;
-              tableHtml += "<tr>/n<td>"+date+"</td><td>"+val.filoString+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
+              tableHtml += "<tr>/n<td>"+date+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
             });
             $("#result-table-range").css("display", "block");
             $("#result-table-range tbody").html(tableHtml);

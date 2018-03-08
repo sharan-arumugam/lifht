@@ -363,7 +363,6 @@ public class IOService {
 		dateHeaderList.add(""); // psName
 		dateHeaderList.add(""); // validSince
 		dateHeaderList.add(""); // daysPresent
-		dateHeaderList.add(""); // filo
 		dateHeaderList.add(""); // floor
 		dateHeaderList.add(""); // compliance
 
@@ -371,14 +370,12 @@ public class IOService {
 				.sorted(Comparator.comparing(LocalDate::atStartOfDay))
 				.forEach(e -> {
 					dateHeaderList.add(e.format(reportDateFormatter));
-					dateHeaderList.add(""); // colspan for filo-floor
 				});
 
 		List<String> headersList2 = new ArrayList<>();
 		headersList2.addAll(Arrays.asList(cumulativeHeaders.toString().split(",")));
 
 		datedHeaders.stream().forEach(e -> {
-			headersList2.add("FILO");
 			headersList2.add("Floor");
 		});
 
@@ -396,21 +393,12 @@ public class IOService {
 		Cell cumulativeTitleCell = sheet.getRow(0).getCell(4);
 		cumulativeTitleCell.setCellValue(cumulativeDateRange);
 		cumulativeTitleCell.setCellStyle(headerStyle);
-		sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 8));
-
-		int cellCount = 8;
+		sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 7));
 
 		List<Cell> dateHederStreamList = CommonUtil.toStream(sheet.getRow(0).cellIterator())
 				.collect(Collectors.toList());
 
 		for (Cell cell : dateHederStreamList) {
-			if (cellCount < dateHederStreamList.size()) {
-				sheet.addMergedRegion(new CellRangeAddress(
-						0,
-						0,
-						++cellCount,
-						++cellCount));
-			}
 			cell.setCellStyle(headerStyle);
 		}
 
@@ -544,7 +532,7 @@ public class IOService {
 		return mapper.valueToTree(reconcileMap);
 	}
 
-	public void notifyNonCompliant(String swipeDate) {
+	public void notifyNonCompliant(String swipeDate, String appUrl) {
 
 		LocalDate toDate = parseMDY.apply(swipeDate);
 		LocalDate fromDate = toDate.with(firstDayOfMonth());
@@ -569,7 +557,6 @@ public class IOService {
 			dataMap.put("From", entryRange.getFromDate().toString());
 			dataMap.put("To", entryRange.getToDate().toString());
 			dataMap.put("Days", String.valueOf(entryRange.getDaysPresent()));
-			dataMap.put("FILO", entryRange.getFiloString());
 			dataMap.put("Floor", entryRange.getDurationString());
 			dataMap.put("Compliance", entryRange.getComplianceString());
 			return dataMap;
@@ -612,6 +599,16 @@ public class IOService {
 			htmlBody.append("</tr></tbody>");
 
 			htmlBody.append("</table>");
+			
+		 htmlBody.append("<br>");
+   htmlBody.append("<br>");
+   
+   String appLink = "<a href=" + appUrl +">"+"<b>"+"LTI Floor Hour Tracker [Lifht]"+"</b></a>";
+   
+   htmlBody.append("For more details, please check your compliance @ ").append(appLink);
+   htmlBody.append("<br>");
+   htmlBody.append("PS: Kindly disconnect VPN before accessing the portal");
+   htmlBody.append("<br>");
 
 			emailService.sendMail(row.get("PS Number"), "Compliance " + row.get("Compliance"), htmlBody.toString());
 		});

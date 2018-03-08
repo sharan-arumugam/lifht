@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -120,20 +121,24 @@ public class IOController {
 
     @PostMapping("/import/swipe-data")
     @PreAuthorize(HAS_ROLE_SUPER)
-    public ResponseEntity<Object> importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData) {
+    public ResponseEntity<Object> importSwipeData(@RequestParam("swipe-data") MultipartFile swipeData,
+            @RequestParam("send-mail") String sendMail, HttpServletRequest request) {
         try {
             List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(),
                     swipeData.getInputStream());
 
             service.saveOrUpdateRawEntry(rows);
+            if (Boolean.valueOf(sendMail)) {
+                String swipeDate = rows.stream()
+                        .filter(row -> !row.get(SWP_MAP.get("eventNumber")).startsWith("--"))
+                        .findAny()
+                        .get()
+                        .get(SWP_MAP.get("swipeDate"));
 
-            String swipeDate = rows.stream()
-                    .filter(row -> !row.get(SWP_MAP.get("eventNumber")).startsWith("--"))
-                    .findAny()
-                    .get()
-                    .get(SWP_MAP.get("swipeDate"));
+                String appUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 
-            service.notifyNonCompliant(swipeDate);
+                service.notifyNonCompliant(swipeDate, appUrl);
+            }
 
             return accepted().build();
         } catch (Exception e) {
@@ -179,7 +184,7 @@ public class IOController {
                     .add(null != employee.getDsId() ? employee.getDsId() : "").add(ps)
                     .add(null != employee.getPsName() ? employee.getPsName() : "")
                     .add(entryRangeBean.getValidSince() + "").add(entryRangeBean.getDaysPresent() + "")
-                    .add(entryRangeBean.getFiloString()).add(entryRangeBean.getDurationString())
+                    .add(entryRangeBean.getDurationString())
                     .add(entryRangeBean.getComplianceString());
             reportMap.put(ps, joiner);
         });
@@ -188,7 +193,6 @@ public class IOController {
                 .forEach(psEntryBeanMap -> {
                     psEmpMap.forEach((ps, employee) -> {
                         reportMap.get(ps)
-                                .add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getFiloString() : "-")
                                 .add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getDurationString() : "-");
                     });
                 });

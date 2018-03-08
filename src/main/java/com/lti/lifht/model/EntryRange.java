@@ -18,6 +18,7 @@ public class EntryRange {
 	private Duration filo;
 	private int daysPresent;
 	private LocalDate validSince;
+	private Duration average;
 
 	public Duration getFilo() {
 		return filo;
@@ -41,7 +42,7 @@ public class EntryRange {
 	}
 
 	public EntryRange(LocalDate from, LocalDate to, LocalDate validSince, int daysPresent, Duration durationSum,
-			Duration complianceSum, Duration filoSum, String door, String psNumber, EmployeeBean employee) {
+			Duration complianceSum, Duration filoSum, Duration average, String door, String psNumber, EmployeeBean employee) {
 		super();
 		this.fromDate = from;
 		this.toDate = to;
@@ -53,6 +54,7 @@ public class EntryRange {
 		this.psNumber = psNumber;
 		this.employee = employee;
 		this.filo = filoSum;
+		this.average = average;
 	}
 
 	public LocalDate getFromDate() {
@@ -149,7 +151,6 @@ public class EntryRange {
 				.add(null != employee && null != employee.getPsName() ? employee.getPsName() : "")
 				.add(null != validSince ? validSince + "" : "")
 				.add(daysPresent + "")
-				.add(getFiloString())
 				.add(getDurationString())
 				.add(getComplianceString())
 				.toString();
@@ -167,8 +168,19 @@ public class EntryRange {
 				.add("PS Name")
 				.add("Valid Since")
 				.add("Days")
-				.add("FILO Hours")
-				.add("Floor Hours")
+				.add("Total Floor")
 				.add("Compliance");
 	}
+
+    public Duration getAverage() {
+        return average;
+    }
+
+    public void setAverage(Duration average) {
+        this.average = average;
+    }
+
+    public String getAverageString() {
+        return null != average ? formatDuration(average) : "";
+    }
 }
