@@ -184,7 +184,7 @@ public class IOController {
                     .add(null != employee.getDsId() ? employee.getDsId() : "").add(ps)
                     .add(null != employee.getPsName() ? employee.getPsName() : "")
                     .add(entryRangeBean.getValidSince() + "").add(entryRangeBean.getDaysPresent() + "")
-                    .add(entryRangeBean.getFiloString()).add(entryRangeBean.getDurationString())
+                    .add(entryRangeBean.getDurationString())
                     .add(entryRangeBean.getComplianceString());
             reportMap.put(ps, joiner);
         });
@@ -193,7 +193,6 @@ public class IOController {
                 .forEach(psEntryBeanMap -> {
                     psEmpMap.forEach((ps, employee) -> {
                         reportMap.get(ps)
-                                .add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getFiloString() : "-")
                                 .add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getDurationString() : "-");
                     });
                 });
