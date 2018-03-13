@@ -3,6 +3,7 @@ package com.lti.lifht.controller;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
+import static com.lti.lifht.util.CommonUtil.formatDuration2;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
 import static com.lti.lifht.util.ExcelUtil.parseXlsx;
 import static java.util.Comparator.comparing;
@@ -184,8 +185,8 @@ public class IOController {
                     .add(null != employee.getDsId() ? employee.getDsId() : "").add(ps)
                     .add(null != employee.getPsName() ? employee.getPsName() : "")
                     .add(entryRangeBean.getValidSince() + "").add(entryRangeBean.getDaysPresent() + "")
-                    .add(entryRangeBean.getDurationString())
-                    .add(entryRangeBean.getComplianceString());
+                    .add(formatDuration2(entryRangeBean.getDuration()))
+                    .add(formatDuration2(entryRangeBean.getCompliance()));
             reportMap.put(ps, joiner);
         });
 
@@ -193,7 +194,7 @@ public class IOController {
                 .forEach(psEntryBeanMap -> {
                     psEmpMap.forEach((ps, employee) -> {
                         reportMap.get(ps)
-                                .add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getDurationString() : "-");
+                                .add(null != psEntryBeanMap.get(ps) ? formatDuration2(psEntryBeanMap.get(ps).getDuration()) : "-");
                     });
                 });
 
