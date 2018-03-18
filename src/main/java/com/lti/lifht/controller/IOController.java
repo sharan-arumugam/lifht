@@ -3,6 +3,7 @@ package com.lti.lifht.controller;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
+import static com.lti.lifht.constant.SwipeConstant.DOOR_TS;
 import static com.lti.lifht.util.CommonUtil.formatDuration2;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
 import static com.lti.lifht.util.ExcelUtil.parseXlsx;
@@ -128,7 +129,11 @@ public class IOController {
             List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(),
                     swipeData.getInputStream());
 
-            service.saveOrUpdateRawEntry(rows);
+            String doorName = DOOR_TS;
+            // String doorName = DOOR_MD;
+
+            service.saveOrUpdateTurnstileEntry(rows, doorName);
+
             if (Boolean.valueOf(sendMail)) {
                 String swipeDate = rows.stream()
                         .filter(row -> !row.get(SWP_MAP.get("eventNumber")).startsWith("--"))
@@ -194,7 +199,9 @@ public class IOController {
                 .forEach(psEntryBeanMap -> {
                     psEmpMap.forEach((ps, employee) -> {
                         reportMap.get(ps)
-                                .add(null != psEntryBeanMap.get(ps) ? formatDuration2(psEntryBeanMap.get(ps).getDuration()) : "-");
+                                .add(null != psEntryBeanMap.get(ps)
+                                        ? formatDuration2(psEntryBeanMap.get(ps).getDuration())
+                                        : "-");
                     });
                 });
 

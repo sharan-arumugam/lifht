@@ -1,5 +1,7 @@
 package com.lti.lifht.repository;
 
+import static com.lti.lifht.constant.SwipeConstant.DOOR_TS;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,13 +27,15 @@ public class EntryPairRepositoryImpl implements EntryPairRepositoryCustom {
     EntityManager entityManager;
 
     @Override
-    public void saveOrUpdatePair(List<EntryPair> pairList) {
+    public void saveOrUpdatePair(List<EntryPair> pairList, String doorName) {
+
+        String table = doorName.equals(DOOR_TS) ? "pair_ts" : "entry_pair";
 
         pairList.forEach(entry -> {
 
             StringBuilder sql = new StringBuilder();
             String params = IntStream.rangeClosed(1, 6).boxed().map(e -> "?").collect(Collectors.joining(","));
-            sql.append("INSERT INTO entry_pair (swipe_date, swipe_in, swipe_out, swipe_door, duration, ps_number)")
+            sql.append("INSERT INTO " + table + " (swipe_date, swipe_in, swipe_out, swipe_door, duration, ps_number)")
                     .append(" VALUES (" + params + ") ON DUPLICATE KEY UPDATE ps_number = VALUES (ps_number)");
 
             Query insert = entityManager.createNativeQuery(sql.toString());
