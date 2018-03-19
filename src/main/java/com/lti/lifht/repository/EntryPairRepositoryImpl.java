@@ -29,7 +29,7 @@ public class EntryPairRepositoryImpl implements EntryPairRepositoryCustom {
     @Override
     public void saveOrUpdatePair(List<EntryPair> pairList, String doorName) {
 
-        String table = doorName.equals(DOOR_TS) ? "pair_ts" : "entry_pair";
+        String table = doorName.equals(DOOR_TS) ? "entry_pair" : "entry_pair_odc";
 
         pairList.forEach(entry -> {
 

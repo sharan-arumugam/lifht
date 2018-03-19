@@ -12,7 +12,7 @@ import com.lti.lifht.model.request.RangeSinglePs;
 
 public interface EntryDateRepositoryCustom {
 
-    Integer saveOrUpdateDate(List<EntryDate> entryDateList);
+    Integer saveOrUpdateDate(List<EntryDate> entryDateList, String doorName);
 
     List<EntryDateBean> getPsEntryDate(RangeSinglePs request);
 

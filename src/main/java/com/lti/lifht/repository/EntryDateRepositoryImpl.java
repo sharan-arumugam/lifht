@@ -1,5 +1,6 @@
 package com.lti.lifht.repository;
 
+import static com.lti.lifht.constant.SwipeConstant.DOOR_TS;
 import static java.util.stream.IntStream.rangeClosed;
 
 import java.time.Duration;
@@ -35,16 +36,19 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
     EntityManager entityManager;
 
     @Override
-    public Integer saveOrUpdateDate(List<EntryDate> entryDateList) {
+    public Integer saveOrUpdateDate(List<EntryDate> entryDateList, String doorName) {
 
         List<Integer> updateCountList = new ArrayList<>();
+
+        String table = doorName.equals(DOOR_TS) ? "entry_date" : "entry_date_odc";
 
         entryDateList.forEach(entry -> {
 
             StringBuilder sql = new StringBuilder();
             String params = IntStream.rangeClosed(1, 8).boxed().map(e -> "?").collect(Collectors.joining(","));
             sql.append(
-                    "INSERT INTO entry_date (swipe_date, swipe_door, duration, compliance, first_in, last_out, filo, ps_number)")
+                    "INSERT INTO " + table
+                            + " (swipe_date, swipe_door, duration, compliance, first_in, last_out, filo, ps_number)")
                     .append(" VALUES (" + params + ")")
                     .append(" ON DUPLICATE KEY UPDATE ps_number = VALUES (ps_number)");
 
@@ -80,7 +84,7 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
 
         StringBuilder sql = new StringBuilder();
 
-        sql.append("SELECT e.ps_number, e.ps_name, e.business_unit, e.lti_mail, e.ds_id,")
+        sql.append("SELECT e.ps_number, e.ps_name, e.business_unit, e.lti_mail, e.ds_id, e.billable,")
                 .append(" d.swipe_date, d.duration, d.filo, d.compliance, d.swipe_door, e.active")
                 .append(" FROM entry_date d right outer join employee e on e.ps_number = d.ps_number where e.active <> 'N'")
                 .append(paramConstraint + " AND d.swipe_date BETWEEN ? AND ?");
@@ -118,7 +122,7 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
         String paramConstraint = isReport ? "" : " AND d.ps_number in (" + psParams + ")";
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT e.ps_number, e.ps_name, e.business_unit, e.lti_mail, e.ds_id,")
+        sql.append("SELECT e.ps_number, e.ps_name, e.business_unit, e.lti_mail, e.ds_id, e.billable,")
                 .append(" d.swipe_date, d.duration, d.filo, d.compliance, d.swipe_door, d.first_in, d.last_out")
                 .append(" FROM entry_date d right outer join employee e on e.ps_number = d.ps_number and e.active = 'Y'")
                 .append(paramConstraint + " AND d.swipe_date = ? ORDER BY e.ps_name");
@@ -137,7 +141,7 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
         List<EntryDateBean> entryDateList = new ArrayList<>();
 
         resultList.forEach(rs -> {
-            entryDateList.add(new EntryDateBean(rs, rs[10], rs[11]));
+            entryDateList.add(new EntryDateBean(rs, rs[11], rs[12]));
         });
 
         return entryDateList;
@@ -149,7 +153,7 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
         StringBuilder sql = new StringBuilder();
 
         sql.append("SELECT e.ps_number, e.ps_name,")
-                .append(" e.business_unit, e.lti_mail, e.ds_id,")
+                .append(" e.business_unit, e.lti_mail, e.ds_id, e.billable,")
                 .append(" d.swipe_date, d.duration, d.filo,")
                 .append(" d.compliance, d.swipe_door,")
                 .append(" d.first_in, d.last_out")
@@ -166,7 +170,7 @@ public class EntryDateRepositoryImpl implements EntryDateRepositoryCustom {
 
         List<EntryDateBean> entryDateList = new ArrayList<>();
         resultList.forEach(rs -> {
-            entryDateList.add(new EntryDateBean(rs, rs[10], rs[11]));
+            entryDateList.add(new EntryDateBean(rs, rs[11], rs[12]));
         });
 
         return entryDateList;

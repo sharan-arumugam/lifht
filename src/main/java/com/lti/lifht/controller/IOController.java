@@ -3,6 +3,7 @@ package com.lti.lifht.controller;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
+import static com.lti.lifht.constant.SwipeConstant.DOOR_MD;
 import static com.lti.lifht.constant.SwipeConstant.DOOR_TS;
 import static com.lti.lifht.util.CommonUtil.formatDuration2;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
@@ -129,10 +131,9 @@ public class IOController {
             List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(),
                     swipeData.getInputStream());
 
-            String doorName = DOOR_TS;
-            // String doorName = DOOR_MD;
+            service.saveOrUpdateEntry(rows, DOOR_TS);
 
-            service.saveOrUpdateTurnstileEntry(rows, doorName);
+            service.saveOrUpdateEntry(rows, DOOR_MD); // TODO: TBD
 
             if (Boolean.valueOf(sendMail)) {
                 String swipeDate = rows.stream()
@@ -160,6 +161,12 @@ public class IOController {
         RangeMultiPs request = new RangeMultiPs(fromDate, toDate, null);
         List<EntryRange> cumulative = adminService.getRangeMulti(request, true);
 
+        List<EntryRange> billable = cumulative.stream()
+                .filter(range -> null != range.getEmployee().getBillable()
+                        ? range.getEmployee().getBillable().equalsIgnoreCase("yes")
+                        : false)
+                .collect(Collectors.toList());
+
         Workbook workbook;
         LocalDateStream localDateStream = new LocalDateStream(request.getFromDate(), request.getToDate());
         Map<LocalDate, Map<String, EntryDateBean>> datePsBeanMap = new HashMap<>();
@@ -175,7 +182,7 @@ public class IOController {
             });
         });
 
-        Map<String, EmployeeBean> psEmpMap = cumulative.stream().filter(Objects::nonNull)
+        Map<String, EmployeeBean> psEmpMap = billable.stream().filter(Objects::nonNull)
                 .filter(entry -> null != entry.getPsNumber())
                 .collect(toMap(EntryRange::getPsNumber,
                         entryRange -> null != entryRange.getEmployee() && null != entryRange.getEmployee()
@@ -183,7 +190,7 @@ public class IOController {
                                 : new EmployeeBean(),
                         (value, duplicate) -> value));
 
-        cumulative.stream().collect(toMap(EntryRange::getPsNumber, identity())).forEach((ps, entryRangeBean) -> {
+        billable.stream().collect(toMap(EntryRange::getPsNumber, identity())).forEach((ps, entryRangeBean) -> {
             StringJoiner joiner = new StringJoiner(",");
             EmployeeBean employee = entryRangeBean.getEmployee();
             joiner.add(null != employee.getBusinessUnit() ? employee.getBusinessUnit() : "")

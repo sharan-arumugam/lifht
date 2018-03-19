@@ -75,6 +75,7 @@ import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.repository.AllocationRepository;
 import com.lti.lifht.repository.EmployeeRepository;
 import com.lti.lifht.repository.EntryDateRepository;
+import com.lti.lifht.repository.EntryPairOdcRepository;
 import com.lti.lifht.repository.EntryPairRepository;
 import com.lti.lifht.repository.ExclusionRepository;
 import com.lti.lifht.repository.HeadCountRepository;
@@ -102,6 +103,9 @@ public class IOService {
     private EntryPairRepository entryPairRepo;
 
     @Autowired
+    private EntryPairOdcRepository entryPairOdcRepo;
+
+    @Autowired
     private EntryDateRepository entryDateRepo;
 
     @Autowired
@@ -116,7 +120,7 @@ public class IOService {
     @Autowired
     private ObjectMapper mapper;
 
-    public Integer saveOrUpdateTurnstileEntry(List<Map<String, String>> entries, String doorName) {
+    public Integer saveOrUpdateEntry(List<Map<String, String>> entries, String doorName) {
 
         Comparator<EntryRaw> byPsNumDateTime = Comparator.comparing(EntryRaw::getPsNumber)
                 .thenComparing(EntryRaw::getSwipeDate)
@@ -263,7 +267,12 @@ public class IOService {
 
     public Integer saveOrUpdateEntryDate(LocalDate minDate, LocalDate maxDate, String doorName) {
 
-        List<EntryPair> entityList = entryPairRepo.findBetween(minDate, maxDate);
+        List<EntryPair> entityList = doorName.equals(DOOR_TS)
+                ? entryPairRepo.findBetween(minDate, maxDate)
+                : entryPairOdcRepo.findBetween(minDate, maxDate)
+                        .stream()
+                        .map(EntryPair::new)
+                        .collect(toList());
 
         List<EntryPairBean> pairList = entityList
                 .stream()
@@ -309,7 +318,7 @@ public class IOService {
         return entryDateRepo.saveOrUpdateDate(entryDateList
                 .stream()
                 .map(EntryDate::new)
-                .collect(toList()));
+                .collect(toList()), doorName);
     }
 
     public Integer saveOrUpdateHeadCount(List<Map<String, String>> rows) {
@@ -575,7 +584,11 @@ public class IOService {
 
         List<EntryRange> cumulative = adminService.getRangeMulti(request, true);
 
-        List<EntryRange> nonCompliant = cumulative.stream()
+        List<EntryRange> billable = cumulative.stream()
+                .filter(range -> range.getEmployee().getBillable().equalsIgnoreCase("yes"))
+                .collect(Collectors.toList());
+
+        List<EntryRange> nonCompliant = billable.stream()
                 .filter(entryRange -> null != entryRange.getEmployee().getPsName())
                 .filter(entryRange -> entryRange
                         .getCompliance()

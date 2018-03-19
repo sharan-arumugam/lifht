@@ -34,14 +34,15 @@ public class EntryDateBean {
 				String.valueOf(rawResult[1]),
 				String.valueOf(rawResult[2]),
 				String.valueOf(rawResult[3]),
-				String.valueOf(rawResult[4]));
+				String.valueOf(rawResult[4]),
+				String.valueOf(rawResult[5]));
 
 		psNumber = String.valueOf(rawResult[0]);
-		swipeDate = null != rawResult[5] ? LocalDate.parse(String.valueOf(rawResult[5])) : null;
-		duration = null != rawResult[6] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6]))) : null;
-		filo = null != rawResult[7] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7]))) : null;
-		compliance = null != rawResult[8] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8]))) : null;
-		swipeDoor = String.valueOf(rawResult[9]);
+		swipeDate = null != rawResult[6] ? LocalDate.parse(String.valueOf(rawResult[6])) : null;
+		duration = null != rawResult[7] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7]))) : null;
+		filo = null != rawResult[8] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8]))) : null;
+		compliance = null != rawResult[9] ? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[9]))) : null;
+		swipeDoor = String.valueOf(rawResult[10]);
 	}
 
 	public EntryDateBean(Object[] rawResult, Object fi, Object lo) {
@@ -51,22 +52,23 @@ public class EntryDateBean {
 				String.valueOf(rawResult[1]),
 				String.valueOf(rawResult[2]),
 				String.valueOf(rawResult[3]),
-				String.valueOf(rawResult[4]));
+				String.valueOf(rawResult[4]),
+				String.valueOf(rawResult[5]));
 
 		psNumber = String.valueOf(rawResult[0]);
-		swipeDate = null != rawResult[5]
-				? LocalDate.parse(String.valueOf(rawResult[5]))
+		swipeDate = null != rawResult[6]
+				? LocalDate.parse(String.valueOf(rawResult[6]))
 				: null;
-		duration = null != rawResult[6]
-				? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[6])))
-				: null;
-		filo = null != rawResult[7]
+		duration = null != rawResult[7]
 				? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[7])))
 				: null;
-		compliance = null != rawResult[8]
+		filo = null != rawResult[8]
 				? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[8])))
 				: null;
-		swipeDoor = String.valueOf(rawResult[9]);
+		compliance = null != rawResult[9]
+				? Duration.ofMillis(Long.valueOf(String.valueOf(rawResult[9])))
+				: null;
+		swipeDoor = String.valueOf(rawResult[10]);
 		firstIn = null != fi ? LocalTime.parse(String.valueOf(fi)) : null;
 		lastOut = null != lo ? LocalTime.parse(String.valueOf(lo)) : null;
 	}

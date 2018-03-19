@@ -17,68 +17,71 @@ import com.lti.lifht.model.EmployeeBean;
 @Transactional
 public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
 
-	@PersistenceContext
-	EntityManager entityManager;
+    @PersistenceContext
+    EntityManager entityManager;
 
-	@Override
-	public Integer saveOrUpdateHeadCount(List<EmployeeBean> employeeList) {
+    @Override
+    public Integer saveOrUpdateHeadCount(List<EmployeeBean> employeeList) {
 
-		List<Integer> updateCountList = new ArrayList<>();
+        List<Integer> updateCountList = new ArrayList<>();
 
-		employeeList.forEach(employee -> {
+        employeeList.forEach(employee -> {
 
-			StringBuilder sql = new StringBuilder();
+            StringBuilder sql = new StringBuilder();
 
-			sql.append("INSERT INTO employee(ps_number, ps_name, apple_manager, lti_mail, ds_id, active)")
-					.append(" VALUES (?, ?, ?, ?, ?, ?)")
-					.append(" ON DUPLICATE KEY UPDATE")
-					.append(" ps_name = VALUES (ps_name),")
-					.append(" apple_manager = VALUES (apple_manager),")
-					.append(" lti_mail = VALUES (lti_mail), ")
-					.append(" ds_id = VALUES (ds_id),")
-					.append(" active = VALUES (active)");
+            sql.append("INSERT INTO employee(ps_number, ps_name, apple_manager, lti_mail, ds_id, active, billable)")
+                    .append(" VALUES (?, ?, ?, ?, ?, ?, ?)")
+                    .append(" ON DUPLICATE KEY UPDATE")
+                    .append(" ps_name = VALUES (ps_name),")
+                    .append(" apple_manager = VALUES (apple_manager),")
+                    .append(" lti_mail = VALUES (lti_mail), ")
+                    .append(" ds_id = VALUES (ds_id),")
+                    .append(" billable = VALUES (billable),")
+                    .append(" active = VALUES (active)");
 
-			Query insert = entityManager.createNativeQuery(sql.toString());
+            Query insert = entityManager.createNativeQuery(sql.toString());
 
-			insert.setParameter(1, employee.getPsNumber());
-			insert.setParameter(2, employee.getPsName());
-			insert.setParameter(3, employee.getManager());
-			insert.setParameter(4, employee.getEmail());
-			insert.setParameter(5, employee.getDsId());
-			insert.setParameter(6, "Y"); // set active
-			updateCountList.add(insert.executeUpdate());
-		});
+            insert.setParameter(1, employee.getPsNumber());
+            insert.setParameter(2, employee.getPsName());
+            insert.setParameter(3, employee.getManager());
+            insert.setParameter(4, employee.getEmail());
+            insert.setParameter(5, employee.getDsId());
+            insert.setParameter(6, "Y"); // set active
+            insert.setParameter(7, employee.getBillable());
 
-		return updateCountList.stream()
-				.filter(Objects::nonNull)
-				.mapToInt(Integer::intValue)
-				.sum();
-	}
+            updateCountList.add(insert.executeUpdate());
+        });
 
-	@Override
-	public Integer saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList) {
+        return updateCountList.stream()
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+    }
 
-		List<Integer> updateCountList = new ArrayList<>();
+    @Override
+    public Integer saveOrUpdateProjectAllocation(List<EmployeeBean> employeeList) {
 
-		employeeList.forEach(employee -> {
+        List<Integer> updateCountList = new ArrayList<>();
 
-			StringBuilder sql = new StringBuilder();
+        employeeList.forEach(employee -> {
 
-			sql.append("INSERT INTO employee(ps_number, business_unit)")
-					.append(" VALUES (?, ?)")
-					.append(" ON DUPLICATE KEY UPDATE")
-					.append(" business_unit = VALUES (business_unit)");
+            StringBuilder sql = new StringBuilder();
 
-			Query insert = entityManager.createNativeQuery(sql.toString());
-			insert.setParameter(1, employee.getPsNumber());
-			insert.setParameter(2, employee.getBusinessUnit());
-			updateCountList.add(insert.executeUpdate());
-		});
+            sql.append("INSERT INTO employee(ps_number, business_unit)")
+                    .append(" VALUES (?, ?)")
+                    .append(" ON DUPLICATE KEY UPDATE")
+                    .append(" business_unit = VALUES (business_unit)");
 
-		return updateCountList.stream()
-				.filter(Objects::nonNull)
-				.mapToInt(Integer::intValue)
-				.sum();
-	}
+            Query insert = entityManager.createNativeQuery(sql.toString());
+            insert.setParameter(1, employee.getPsNumber());
+            insert.setParameter(2, employee.getBusinessUnit());
+            updateCountList.add(insert.executeUpdate());
+        });
+
+        return updateCountList.stream()
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+    }
 
 }

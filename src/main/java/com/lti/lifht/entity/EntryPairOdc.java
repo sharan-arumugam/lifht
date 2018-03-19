@@ -15,14 +15,14 @@ import javax.persistence.UniqueConstraint;
 import com.lti.lifht.model.EntryPairBean;
 
 @Entity
-@Table(name = "entry_pair", uniqueConstraints = @UniqueConstraint(columnNames = {
+@Table(name = "entry_pair_odc", uniqueConstraints = @UniqueConstraint(columnNames = {
         "psNumber",
         "swipeDate",
         "swipeIn",
         "swipeOut",
         "swipeDoor" }))
 
-public class EntryPair {
+public class EntryPairOdc {
 
     @Id
     @GeneratedValue(strategy = AUTO)
@@ -44,7 +44,7 @@ public class EntryPair {
         this.employee = employee;
     }
 
-    public EntryPair(EntryPairBean bean) {
+    public EntryPairOdc(EntryPairBean bean) {
         psNumber = bean.getPsNumber();
         swipeDate = bean.getSwipeDate();
         swipeIn = bean.getSwipeIn();
@@ -53,20 +53,11 @@ public class EntryPair {
         duration = bean.getDuration().toMillis();
     }
 
-    public EntryPair(EntryPairOdc odcEntry) {
-        psNumber = odcEntry.getPsNumber();
-        swipeDate = odcEntry.getSwipeDate();
-        swipeIn = odcEntry.getSwipeIn();
-        swipeOut = odcEntry.getSwipeOut();
-        swipeDoor = odcEntry.getSwipeDoor();
-        duration = odcEntry.getDuration();
-    }
-
-    public EntryPair() {
+    public EntryPairOdc() {
         super();
     }
 
-    public EntryPair(int id, String psNumber, LocalDate swipeDate, LocalTime swipeIn, LocalTime swipeOut,
+    public EntryPairOdc(int id, String psNumber, LocalDate swipeDate, LocalTime swipeIn, LocalTime swipeOut,
             String swipeDoor, long duration) {
         super();
         this.id = id;
