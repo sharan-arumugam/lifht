@@ -151,6 +151,7 @@ public class EntryRange {
 				.add(null != employee && null != employee.getPsName() ? employee.getPsName() : "")
 				.add(null != validSince ? validSince + "" : "")
 				.add(daysPresent + "")
+				.add(getFiloString())
 				.add(getDurationString())
 				.add(getComplianceString())
 				.toString();
@@ -168,6 +169,7 @@ public class EntryRange {
 				.add("PS Name")
 				.add("Valid Since")
 				.add("Days")
+				.add("Total FILO")
 				.add("Total Floor")
 				.add("Compliance");
 	}
