@@ -596,13 +596,17 @@ public class IOService {
 
 		List<EntryRange> cumulative = adminService.getRangeMulti(request, true);
 
-		List<EntryRange> billable = cumulative.stream()
-				.filter(range -> null != range.getEmployee().getBillable()
-						? range.getEmployee().getBillable().equalsIgnoreCase("yes")
-						: false)
-				.collect(Collectors.toList());
+//		List<EntryRange> billable = cumulative.stream()
+//				.filter(range -> null != range.getEmployee().getBillable()
+//						? range.getEmployee().getBillable().equalsIgnoreCase("yes")
+//						: false)
+//				.collect(Collectors.toList());
+		
+		List<EntryRange> withDsId = cumulative.stream()
+    		  	.filter(range -> null != range.getEmployee().getDsId())
+    		  	.collect(Collectors.toList());
 
-		List<EntryRange> nonCompliant = billable.stream()
+		List<EntryRange> nonCompliant = withDsId.stream()
 				.filter(entryRange -> null != entryRange.getEmployee().getPsName())
 				.filter(entryRange -> entryRange
 						.getCompliance()

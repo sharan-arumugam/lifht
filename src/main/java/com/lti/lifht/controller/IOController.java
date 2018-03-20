@@ -161,11 +161,15 @@ public class IOController {
         RangeMultiPs request = new RangeMultiPs(fromDate, toDate, null);
         List<EntryRange> cumulative = adminService.getRangeMulti(request, true);
 
-        List<EntryRange> billable = cumulative.stream()
-                .filter(range -> null != range.getEmployee().getBillable()
-                        ? range.getEmployee().getBillable().equalsIgnoreCase("yes")
-                        : false)
-                .collect(Collectors.toList());
+//        List<EntryRange> billable = cumulative.stream()
+//                .filter(range -> null != range.getEmployee().getBillable()
+//                        ? range.getEmployee().getBillable().equalsIgnoreCase("yes")
+//                        : false)
+//                .collect(Collectors.toList());
+        
+      List<EntryRange> withDsId = cumulative.stream()
+    		  	.filter(range -> null != range.getEmployee().getDsId())
+    		  	.collect(Collectors.toList());
 
         Workbook workbook;
         LocalDateStream localDateStream = new LocalDateStream(request.getFromDate(), request.getToDate());
@@ -182,7 +186,7 @@ public class IOController {
             });
         });
 
-        Map<String, EmployeeBean> psEmpMap = billable.stream().filter(Objects::nonNull)
+        Map<String, EmployeeBean> psEmpMap = withDsId.stream().filter(Objects::nonNull)
                 .filter(entry -> null != entry.getPsNumber())
                 .collect(toMap(EntryRange::getPsNumber,
                         entryRange -> null != entryRange.getEmployee() && null != entryRange.getEmployee()
@@ -190,7 +194,7 @@ public class IOController {
                                 : new EmployeeBean(),
                         (value, duplicate) -> value));
 
-        billable.stream().collect(toMap(EntryRange::getPsNumber, identity())).forEach((ps, entryRangeBean) -> {
+        withDsId.stream().collect(toMap(EntryRange::getPsNumber, identity())).forEach((ps, entryRangeBean) -> {
             StringJoiner joiner = new StringJoiner(",");
             EmployeeBean employee = entryRangeBean.getEmployee();
             joiner.add(null != employee.getBusinessUnit() ? employee.getBusinessUnit() : "")
