@@ -16,6 +16,7 @@ public class SwipeConstant {
     public static final String DOOR_TW = "Apple Turnstile WG";
     public static final String DOOR_T2 = "Apple Turnstile - 2";
     public static final String DOOR_TS = "Apple Turnstile";
+    public static final String DOOR_DT = "Apple Dormitory";
 
     // Event Codes
     public static final String DENIED1 = "199";
