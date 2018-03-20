@@ -63,7 +63,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lti.lifht.constant.SwipeConstant;
 import com.lti.lifht.entity.Allocation;
 import com.lti.lifht.entity.EntryDate;
 import com.lti.lifht.entity.EntryPair;
@@ -262,6 +261,8 @@ public class IOService {
         
         Entry<String, List<EntryPairBean>> pairEntryTraining = pairEntry(entries, DOOR_TR);
         Entry<String, List<EntryPairBean>> pairEntryDorm = pairEntry(entries, DOOR_DT);
+        
+        
 
         entryPairRepo.saveOrUpdatePair(pairEntryTurnstile.getValue()
                 .stream()
