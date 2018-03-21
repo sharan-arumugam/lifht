@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -536,14 +537,18 @@ public class IOService {
 
         AtomicInteger averageRowCount = new AtomicInteger(2);
 
-        averageMap.forEach((date, joiner) -> {
-            Row averageRow = sheet1.createRow(averageRowCount.getAndIncrement());
-            String[] values = joiner.toString().split(",");
+        averageMap.entrySet()
+                .stream()
+                .sorted(Entry.comparingByKey())
+                .map(Entry::getValue)
+                .forEach(joiner -> {
+                    Row averageRow = sheet1.createRow(averageRowCount.getAndIncrement());
+                    String[] values = joiner.toString().split(",");
 
-            averageRow.createCell(0).setCellValue(values[0]);
-            averageRow.createCell(1).setCellValue(Double.valueOf(values[1]));
-            averageRow.createCell(2).setCellValue(Double.valueOf(values[2]));
-        });
+                    averageRow.createCell(0).setCellValue(values[0]);
+                    averageRow.createCell(1).setCellValue(Double.valueOf(values[1]));
+                    averageRow.createCell(2).setCellValue(Double.valueOf(values[2]));
+                });
 
         sheet1.autoSizeColumn(0);
         sheet1.autoSizeColumn(1);
