@@ -92,8 +92,8 @@ public class EntryRange {
 	}
 
 	public String getDateRange() {
-		return fromDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " to "
-				+ toDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+		return fromDate.format(DateTimeFormatter.ofPattern("dd/MM")) + " to "
+				+ toDate.format(DateTimeFormatter.ofPattern("dd/MM"));
 	}
 
 	public String getPsNumber() {
