@@ -4,6 +4,7 @@ import static com.lti.lifht.util.CommonUtil.formatDuration;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.StringJoiner;
 
 public class EntryRange {
@@ -42,7 +43,8 @@ public class EntryRange {
 	}
 
 	public EntryRange(LocalDate from, LocalDate to, LocalDate validSince, int daysPresent, Duration durationSum,
-			Duration complianceSum, Duration filoSum, Duration average, String door, String psNumber, EmployeeBean employee) {
+			Duration complianceSum, Duration filoSum, Duration average, String door, String psNumber,
+			EmployeeBean employee) {
 		super();
 		this.fromDate = from;
 		this.toDate = to;
@@ -90,7 +92,8 @@ public class EntryRange {
 	}
 
 	public String getDateRange() {
-		return fromDate + " to " + toDate;
+		return fromDate.format(DateTimeFormatter.ofPattern("dd/MM")) + " to "
+				+ toDate.format(DateTimeFormatter.ofPattern("dd/MM"));
 	}
 
 	public String getPsNumber() {
@@ -151,6 +154,7 @@ public class EntryRange {
 				.add(null != employee && null != employee.getPsName() ? employee.getPsName() : "")
 				.add(null != validSince ? validSince + "" : "")
 				.add(daysPresent + "")
+				.add(getFiloString())
 				.add(getDurationString())
 				.add(getComplianceString())
 				.toString();
@@ -168,19 +172,20 @@ public class EntryRange {
 				.add("PS Name")
 				.add("Valid Since")
 				.add("Days")
+				.add("Total FILO")
 				.add("Total Floor")
 				.add("Compliance");
 	}
 
-    public Duration getAverage() {
-        return average;
-    }
+	public Duration getAverage() {
+		return average;
+	}
 
-    public void setAverage(Duration average) {
-        this.average = average;
-    }
+	public void setAverage(Duration average) {
+		this.average = average;
+	}
 
-    public String getAverageString() {
-        return null != average ? formatDuration(average) : "";
-    }
+	public String getAverageString() {
+		return null != average ? formatDuration(average) : "";
+	}
 }

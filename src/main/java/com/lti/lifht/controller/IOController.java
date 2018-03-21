@@ -3,8 +3,10 @@ package com.lti.lifht.controller;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
+import static com.lti.lifht.util.CommonUtil.formatDuration2;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
 import static com.lti.lifht.util.ExcelUtil.parseXlsx;
+import static java.time.format.DateTimeFormatter.ISO_DATE;
 import static java.util.Comparator.comparing;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
@@ -14,7 +16,9 @@ import static org.springframework.http.ResponseEntity.accepted;
 import static org.springframework.http.ResponseEntity.status;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,6 +50,7 @@ import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.service.AdminService;
 import com.lti.lifht.service.IOService;
+import com.lti.lifht.util.CommonUtil;
 import com.lti.lifht.util.LocalDateStream;
 
 @RequestMapping("/io")
@@ -127,7 +133,8 @@ public class IOController {
             List<Map<String, String>> rows = autoParse.apply(swipeData.getOriginalFilename(),
                     swipeData.getInputStream());
 
-            service.saveOrUpdateRawEntry(rows);
+            service.saveOrUpdateEntry(rows);
+
             if (Boolean.valueOf(sendMail)) {
                 String swipeDate = rows.stream()
                         .filter(row -> !row.get(SWP_MAP.get("eventNumber")).startsWith("--"))
@@ -154,6 +161,16 @@ public class IOController {
         RangeMultiPs request = new RangeMultiPs(fromDate, toDate, null);
         List<EntryRange> cumulative = adminService.getRangeMulti(request, true);
 
+        // List<EntryRange> billable = cumulative.stream()
+        // .filter(range -> null != range.getEmployee().getBillable()
+        // ? range.getEmployee().getBillable().equalsIgnoreCase("yes")
+        // : false)
+        // .collect(Collectors.toList());
+
+        List<EntryRange> withDsId = cumulative.stream()
+                .filter(range -> null != range.getEmployee().getDsId())
+                .collect(Collectors.toList());
+
         Workbook workbook;
         LocalDateStream localDateStream = new LocalDateStream(request.getFromDate(), request.getToDate());
         Map<LocalDate, Map<String, EntryDateBean>> datePsBeanMap = new HashMap<>();
@@ -169,7 +186,7 @@ public class IOController {
             });
         });
 
-        Map<String, EmployeeBean> psEmpMap = cumulative.stream().filter(Objects::nonNull)
+        Map<String, EmployeeBean> psEmpMap = withDsId.stream().filter(Objects::nonNull)
                 .filter(entry -> null != entry.getPsNumber())
                 .collect(toMap(EntryRange::getPsNumber,
                         entryRange -> null != entryRange.getEmployee() && null != entryRange.getEmployee()
@@ -177,15 +194,16 @@ public class IOController {
                                 : new EmployeeBean(),
                         (value, duplicate) -> value));
 
-        cumulative.stream().collect(toMap(EntryRange::getPsNumber, identity())).forEach((ps, entryRangeBean) -> {
+        withDsId.stream().collect(toMap(EntryRange::getPsNumber, identity())).forEach((ps, entryRangeBean) -> {
             StringJoiner joiner = new StringJoiner(",");
             EmployeeBean employee = entryRangeBean.getEmployee();
             joiner.add(null != employee.getBusinessUnit() ? employee.getBusinessUnit() : "")
                     .add(null != employee.getDsId() ? employee.getDsId() : "").add(ps)
                     .add(null != employee.getPsName() ? employee.getPsName() : "")
                     .add(entryRangeBean.getValidSince() + "").add(entryRangeBean.getDaysPresent() + "")
-                    .add(entryRangeBean.getDurationString())
-                    .add(entryRangeBean.getComplianceString());
+                    .add(formatDuration2(entryRangeBean.getFilo()))
+                    .add(formatDuration2(entryRangeBean.getDuration()))
+                    .add(formatDuration2(entryRangeBean.getCompliance()));
             reportMap.put(ps, joiner);
         });
 
@@ -193,11 +211,46 @@ public class IOController {
                 .forEach(psEntryBeanMap -> {
                     psEmpMap.forEach((ps, employee) -> {
                         reportMap.get(ps)
-                                .add(null != psEntryBeanMap.get(ps) ? psEntryBeanMap.get(ps).getDurationString() : "-");
+                                .add(null != psEntryBeanMap.get(ps) ? formatDuration2(psEntryBeanMap.get(ps).getFilo())
+                                        : "-")
+                                .add(null != psEntryBeanMap.get(ps)
+                                        ? formatDuration2(psEntryBeanMap.get(ps).getDuration())
+                                        : "-");
                     });
                 });
 
         StringJoiner cumulativeHeaders = EntryRange.fetchReportHeaders();
+
+        Map<String, StringJoiner> averageMap = new HashMap<>();
+
+        nestedDateMultiList.forEach(dateBeanListMap -> {
+            StringJoiner joiner = new StringJoiner(",");
+            dateBeanListMap.forEach((date, beanList) -> {
+
+                List<EntryDateBean> billableList = beanList
+                        .stream()
+                        .filter(bean -> null != bean.getEmployee().getBillable())
+                        .filter(bean -> bean.getEmployee().getBillable().equalsIgnoreCase("yes"))
+                        .collect(toList());
+
+                Duration averageSum = billableList
+                        .stream()
+                        .map(EntryDateBean::getDuration)
+                        .reduce(Duration::plus)
+                        .orElse(Duration.ZERO);
+
+                double averageFull = (double) averageSum.toMinutes() / (60 * billableList.size());
+
+                double average = (double) Math.round(averageFull * 100.0) / 100.0;
+
+                joiner.add(date.format(ISO_DATE))
+                        .add(String.valueOf(billableList.size()))
+                        .add(String.valueOf(average));
+
+                averageMap.put(date.format(ISO_DATE), joiner);
+            });
+
+        });
 
         response.setHeader("Content-Disposition",
                 "attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
@@ -206,7 +259,8 @@ public class IOController {
                 reportMap.values().stream().sorted(comparing(joiner -> {
                     String psName = joiner.toString().split(",")[3];
                     return null != psName && !"null".equals(psName) ? psName : "";
-                })).toArray());
+                })).toArray(),
+                averageMap);
 
         workbook.write(response.getOutputStream());
         workbook.close();

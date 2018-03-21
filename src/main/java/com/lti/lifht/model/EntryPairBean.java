@@ -83,7 +83,8 @@ public class EntryPairBean {
 				String.valueOf(rawResult[1]),
 				String.valueOf(rawResult[2]),
 				String.valueOf(rawResult[3]),
-				String.valueOf(rawResult[4]));
+				String.valueOf(rawResult[4]),
+				String.valueOf(rawResult[10]));
 
 		psNumber = String.valueOf(rawResult[0]);
 		swipeDate = LocalDate.parse(String.valueOf(rawResult[5]));

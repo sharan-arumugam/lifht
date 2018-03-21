@@ -36,6 +36,7 @@ public class ExcelConstant {
         HC_MAP.put("offshore", "Offshore");
         HC_MAP.put("manager", "Manager");
         HC_MAP.put("dsId", "DSID");
+        HC_MAP.put("billable", "Billable");
     }
 
     // project-allocation map
