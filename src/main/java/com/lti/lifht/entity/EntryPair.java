@@ -53,15 +53,6 @@ public class EntryPair {
         duration = bean.getDuration().toMillis();
     }
 
-    public EntryPair(EntryPairOdc odcEntry) {
-        psNumber = odcEntry.getPsNumber();
-        swipeDate = odcEntry.getSwipeDate();
-        swipeIn = odcEntry.getSwipeIn();
-        swipeOut = odcEntry.getSwipeOut();
-        swipeDoor = odcEntry.getSwipeDoor();
-        duration = odcEntry.getDuration();
-    }
-
     public EntryPair() {
         super();
     }

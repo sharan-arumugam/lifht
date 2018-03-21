@@ -12,17 +12,17 @@ import com.lti.lifht.model.request.RangeSinglePs;
 
 public interface EntryDateRepositoryCustom {
 
-    Integer saveOrUpdateDate(List<EntryDate> entryDateList, String doorName);
+	Integer saveOrUpdateDate(List<EntryDate> entryDateList);
 
-    List<EntryDateBean> getPsEntryDate(RangeSinglePs request);
+	List<EntryDateBean> getPsEntryDate(RangeSinglePs request);
 
-    List<EntryDateBean> getPsListEntryDate(DateMultiPs request, boolean isReport);
+	List<EntryDateBean> getPsListEntryDate(DateMultiPs request, boolean isReport);
 
-    List<EntryDateBean> getPsListEntryDateDelta(DateMultiPs request);
+	List<EntryDateBean> getPsListEntryDateDelta(DateMultiPs request);
 
-    List<EntryDateBean> getPsListForAggregate(RangeMultiPs request, boolean isReport);
+	List<EntryDateBean> getPsListForAggregate(RangeMultiPs request, boolean isReport);
 
-    List<EntryDateBean> getPsListForAggregateDelta(RangeMultiPs request);
+	List<EntryDateBean> getPsListForAggregateDelta(RangeMultiPs request);
 
-    Map<String, LocalDate> getValidSince(LocalDate fromDate, LocalDate toDate);
+	Map<String, LocalDate> getValidSince(LocalDate fromDate, LocalDate toDate);
 }

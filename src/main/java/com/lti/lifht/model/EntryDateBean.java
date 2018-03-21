@@ -217,7 +217,7 @@ public class EntryDateBean {
 
 	@JsonIgnore
 	public Duration getDuration() {
-		return duration;
+		return null != duration ? duration : Duration.ofMillis(0);
 	}
 
 	public void setDuration(Duration duration) {

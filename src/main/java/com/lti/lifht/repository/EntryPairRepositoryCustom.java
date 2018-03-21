@@ -8,7 +8,7 @@ import com.lti.lifht.model.request.DateSinglePs;
 
 public interface EntryPairRepositoryCustom {
 
-    void saveOrUpdatePair(List<EntryPair> pairList, String doorName);
+    void saveOrUpdatePair(List<EntryPair> pairList);
 
     List<EntryPairBean> getDateSinlgePs(DateSinglePs request);
 }
