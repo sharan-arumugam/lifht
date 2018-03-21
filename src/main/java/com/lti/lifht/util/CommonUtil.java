@@ -111,6 +111,19 @@ public class CommonUtil {
         return duration.getSeconds() < 0 ? "-" + unsigned : unsigned;
     }
 
+    public static String formatDuration2(Duration duration) {
+        if (null == duration) {
+            return null;
+        }
+
+        long seconds = Math.abs(duration.getSeconds());
+        double secondd = (double) seconds;
+
+        String unsigned = String.format("%.2f", secondd / 3600);
+
+        return duration.getSeconds() < 0 ? "-" + unsigned : unsigned;
+    }
+
     public static Map<String, String> cryptTupleMap(List<String> baseList) {
         return unmodifiableMap(baseList.stream()
                 .map(crypt)

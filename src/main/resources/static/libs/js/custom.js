@@ -363,7 +363,7 @@ $(document).ready(function() {
           }),
           contentType : "application/json",
           success: function(response) {
-            var html = "<td>"+response.dateRange+"</td><td>"+response.daysPresent+"</td><td>"+response.filoString+"</td><td>"+response.durationString+"</td><td>"+response.complianceString+"</td>";
+            var html = "<td>"+response.dateRange+"</td><td>"+response.daysPresent+"</td><td>"+response.durationString+"</td><td>"+response.complianceString+"</td>";
             $("#summary tbody").html(html);
           },
           error: function(error) {
@@ -398,7 +398,7 @@ $(document).ready(function() {
                 inTime.push(val.durationString);
                 name = val.employee.psName;
                 date = val.swipeDateString;
-              tableHtml += "<tr>/n<td>"+date+"</td><td>"+val.filoString+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
+              tableHtml += "<tr>/n<td>"+date+"</td><td>"+val.durationString+"</td><td>"+val.complianceString+"</td><td><button data-psNumber='"+val.employee.psNumber+"' class='btn btn-default btn-link' data-toggle='modal' data-target='#admin-detail'></button></td></tr>";
             });
             $("#result-table-range").css("display", "block");
             $("#result-table-range tbody").html(tableHtml);
