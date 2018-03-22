@@ -18,7 +18,6 @@ import static org.springframework.http.ResponseEntity.status;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +49,6 @@ import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.service.AdminService;
 import com.lti.lifht.service.IOService;
-import com.lti.lifht.util.CommonUtil;
 import com.lti.lifht.util.LocalDateStream;
 
 @RequestMapping("/io")
@@ -233,19 +231,20 @@ public class IOController {
                         .filter(bean -> bean.getEmployee().getBillable().equalsIgnoreCase("yes"))
                         .collect(toList());
 
-                Duration averageSum = billableList
+                Duration sum = billableList
                         .stream()
                         .map(EntryDateBean::getDuration)
                         .reduce(Duration::plus)
                         .orElse(Duration.ZERO);
 
-                double averageFull = (double) averageSum.toMinutes() / (60 * billableList.size());
+                double averageFull = (double) sum.toMinutes() / (60 * billableList.size());
 
                 double average = (double) Math.round(averageFull * 100.0) / 100.0;
 
                 joiner.add(date.format(ISO_DATE))
                         .add(String.valueOf(billableList.size()))
-                        .add(String.valueOf(average));
+                        .add(String.valueOf(average))
+                        .add(String.valueOf(sum.toHours()));
 
                 averageMap.put(date.format(ISO_DATE), joiner);
             });

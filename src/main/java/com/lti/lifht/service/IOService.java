@@ -14,16 +14,19 @@ import static com.lti.lifht.constant.SwipeConstant.GRANTED1;
 import static com.lti.lifht.constant.SwipeConstant.TIMEOUT;
 import static com.lti.lifht.util.CommonUtil.parseMDY;
 import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
+import static java.time.LocalDate.now;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.time.temporal.TemporalAdjusters.firstDayOfMonth;
 import static java.util.Comparator.comparing;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.summarizingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER;
+import static org.apache.poi.ss.usermodel.HorizontalAlignment.GENERAL;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -31,14 +34,15 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -49,6 +53,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -324,22 +329,15 @@ public class IOService {
                     ? turnstileEntryDate.getDuration()
                     : Duration.ZERO;
 
-            Duration filo = null != turnstileEntryDate.getFilo()
-                    ? turnstileEntryDate.getFilo()
-                    : Duration.ZERO;
-
             if (null != trainingSum.getDuration()) {
                 duration = duration.minus(trainingSum.getDuration());
-                filo = filo.minus(trainingSum.getFilo());
             }
 
             if (null != dormSum.getDuration()) {
                 duration = duration.minus(dormSum.getDuration());
-                filo = filo.minus(dormSum.getFilo());
             }
 
             turnstileEntryDate.setDuration(duration);
-            turnstileEntryDate.setFilo(filo);
         });
 
         return entryDateRepo.saveOrUpdateDate(dateMapTurnstile.values()
@@ -514,9 +512,7 @@ public class IOService {
         // Sheet 2: Average
         Row averageTitle = sheet1.createRow(0);
         Cell titleCell = averageTitle.createCell(0);
-        titleCell.setCellValue(LocalDate.now().getMonth().toString()
-                + ", "
-                + LocalDate.now().getYear());
+        titleCell.setCellValue("Billable Statistics: " + now().format(ofPattern("MMM, yyyy")));
         titleCell.setCellStyle(headerStyle);
 
         sheet1.addMergedRegion(new CellRangeAddress(0, 0, 0, 2));
@@ -549,6 +545,45 @@ public class IOService {
                     averageRow.createCell(1).setCellValue(Double.valueOf(values[1]));
                     averageRow.createCell(2).setCellValue(Double.valueOf(values[2]));
                 });
+
+        sheet1.createRow(averageRowCount.getAndIncrement()); // separator
+
+        Function<Integer, DoubleSummaryStatistics> statify = index -> averageMap
+                .values()
+                .stream()
+                .filter(Objects::nonNull)
+                .map(joiner -> joiner.toString().split(",")[index])
+                .filter(StringUtils::isNotEmpty)
+                .collect(summarizingDouble(Double::valueOf));
+
+        DoubleSummaryStatistics headCountStatistics = statify.apply(1);
+        DoubleSummaryStatistics averaeStatistics = statify.apply(2);
+        DoubleSummaryStatistics sumStatistics = statify.apply(3);
+
+        long days = averaeStatistics.getCount();
+        double countAverage = headCountStatistics.getAverage();
+        double grandAverage = averaeStatistics.getAverage();
+
+        double grandAverageRound = (double) Math.round(grandAverage * 100.0) / 100.0;
+
+        CellStyle footerStyle = sheet1.getWorkbook().createCellStyle();
+        Font boldFont = sheet1.getWorkbook().createFont();
+        boldFont.setBold(true);
+        footerStyle.setAlignment(GENERAL);
+        footerStyle.setFont(boldFont);
+
+        Row averageFooter = sheet1.createRow(averageRowCount.getAndIncrement());
+        Cell footerLabel = averageFooter.createCell(0);
+        footerLabel.setCellValue("Average(" + days + ")");
+        footerLabel.setCellStyle(footerStyle);
+
+        Cell footerCount = averageFooter.createCell(1);
+        footerCount.setCellValue(Double.valueOf(Math.round(countAverage)));
+        footerCount.setCellStyle(footerStyle);
+
+        Cell footerAverage = averageFooter.createCell(2);
+        footerAverage.setCellValue(Double.valueOf(grandAverageRound));
+        footerAverage.setCellStyle(footerStyle);
 
         sheet1.autoSizeColumn(0);
         sheet1.autoSizeColumn(1);
