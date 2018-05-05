@@ -558,7 +558,7 @@ public class IOService {
 
         DoubleSummaryStatistics headCountStatistics = statify.apply(1);
         DoubleSummaryStatistics averaeStatistics = statify.apply(2);
-        DoubleSummaryStatistics sumStatistics = statify.apply(3);
+        //DoubleSummaryStatistics sumStatistics = statify.apply(3);
 
         long days = averaeStatistics.getCount();
         double countAverage = headCountStatistics.getAverage();
