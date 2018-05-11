@@ -15,6 +15,7 @@ import static com.lti.lifht.constant.SwipeConstant.TIMEOUT;
 import static com.lti.lifht.util.CommonUtil.parseMDY;
 import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
 import static java.time.LocalDate.now;
+import static java.time.LocalDate.parse;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.time.temporal.TemporalAdjusters.firstDayOfMonth;
 import static java.util.Comparator.comparing;
@@ -23,50 +24,11 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.summarizingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.csv.CSVFormat.EXCEL;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER;
 import static org.apache.poi.ss.usermodel.HorizontalAlignment.GENERAL;
-
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.DoubleSummaryStatistics;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,6 +54,52 @@ import com.lti.lifht.repository.ExclusionRepository;
 import com.lti.lifht.repository.HeadCountRepository;
 import com.lti.lifht.repository.RoleMasterRepository;
 import com.lti.lifht.util.CommonUtil;
+
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import one.util.streamex.StreamEx;
 
@@ -558,7 +566,7 @@ public class IOService {
 
         DoubleSummaryStatistics headCountStatistics = statify.apply(1);
         DoubleSummaryStatistics averaeStatistics = statify.apply(2);
-        //DoubleSummaryStatistics sumStatistics = statify.apply(3);
+        // DoubleSummaryStatistics sumStatistics = statify.apply(3);
 
         long days = averaeStatistics.getCount();
         double countAverage = headCountStatistics.getAverage();
@@ -794,6 +802,87 @@ public class IOService {
                 .collect(Collectors.toList());
 
         exclusionRepo.save(exclusionList);
+    }
+
+    public List<Map<String, String>> getBanjoFormat(MultipartFile banjo) throws IOException {
+
+        System.out.println("came here..3");
+
+        Reader in = new InputStreamReader(banjo.getInputStream());
+        Iterable<CSVRecord> records = EXCEL.withFirstRecordAsHeader().parse(in);
+
+        Map<String, String> headers = new LinkedHashMap<>();
+        headers.put("Sequence", null);
+        headers.put("Date", null);
+        headers.put("Time", null);
+        headers.put("Event message", null);
+        headers.put("Event number", null);
+        headers.put("Object #1", null);
+        headers.put("Description #1", null);
+        headers.put("Object #2", null);
+        headers.put("Description #2", null);
+        headers.put("Object #3", null);
+        headers.put("Description #3", null);
+        headers.put("Object #4", null);
+        headers.put("Description #4", null);
+        headers.put("Card number", null);
+
+        List<Map<String, String>> rows = new ArrayList<>();
+
+        rows.add(headers);
+
+        System.out.println("came here..4");
+
+        int i = 0;
+        for (CSVRecord record : records) {
+
+            String door = record.get("Description #1");
+            String date = record.get("Date");
+            String psNumber = record.get("Description #2");
+
+            System.out.println("came here.. a" + i++);
+
+            if (isNotBlank(psNumber) && isNotBlank(door) && !door.contains("---")) {
+
+                LocalDate localDate = null;
+
+                localDate = date.contains("/")
+                        ? parse(date, ofPattern("dd/MM/yy"))
+                        : parse(date, ofPattern("dd-MM-yyyy"));
+
+                String[] arr = door.split(" ");
+
+                String entryType = arr[arr.length - 1];
+
+                if (door.contains("Apple Turnstile - 2")) {
+                    entryType = door.endsWith("Entry") ? "Exit" : "Entry";
+                }
+
+                Map<String, String> row = new HashMap<>();
+
+                row = record.toMap();
+
+                String dateString = "";
+                try {
+                    dateString = localDate.format(ofPattern("MM/dd/yy"));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+
+                row.put("Date", dateString);
+                row.put("Description #3", entryType);
+
+                rows.add(row);
+                System.out.println("came here.. b" + i++);
+            }
+        }
+
+        System.out.println("came here.. c" + i++);
+
+        return rows.stream()
+                .filter(Objects::nonNull)
+                .filter(row -> MapUtils.isNotEmpty(row))
+                .collect(toList());
     }
 
 }

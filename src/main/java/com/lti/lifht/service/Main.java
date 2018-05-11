@@ -1,8 +1,5 @@
 package com.lti.lifht.service;
 
-import static com.lti.lifht.constant.CommonConstant.ENTRY;
-import static com.lti.lifht.constant.CommonConstant.EXIT;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
@@ -24,12 +21,12 @@ public class Main {
 
     public static void main(String[] args) throws EncryptedDocumentException, InvalidFormatException, IOException {
 
-        InputStream stream = Main.class.getClassLoader().getResourceAsStream("april-2018.csv");
+        InputStream stream = Main.class.getClassLoader().getResourceAsStream("march2.csv");
 
         Reader in = new InputStreamReader(stream);
         Iterable<CSVRecord> records = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(in);
 
-        BufferedWriter writer = Files.newBufferedWriter(Paths.get("ODC_Access_LTI_04-01-2018.csv"));
+        BufferedWriter writer = Files.newBufferedWriter(Paths.get("ODC_Access_LTI_03-01-2018.csv"));
 
         CSVPrinter csvPrinter = new CSVPrinter(writer,
                 CSVFormat.DEFAULT.withHeader("Sequence", "Date", "Time", "Event message", "Event number", "Object #1",
@@ -56,7 +53,7 @@ public class Main {
                 String entryType = arr[arr.length - 1];
 
                 if (door.contains("Apple Turnstile - 2")) {
-                    entryType = door.endsWith(ENTRY) ? EXIT : ENTRY;
+                    entryType = door.endsWith("Entry") ? "Exit" : "Entry";
                 }
 
                 csvPrinter.printRecord(

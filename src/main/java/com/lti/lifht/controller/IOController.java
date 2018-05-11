@@ -15,6 +15,27 @@ import static org.springframework.http.HttpStatus.NOT_MODIFIED;
 import static org.springframework.http.ResponseEntity.accepted;
 import static org.springframework.http.ResponseEntity.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.lti.lifht.model.EmployeeBean;
+import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.EntryRange;
+import com.lti.lifht.model.request.RangeMultiPs;
+import com.lti.lifht.service.AdminService;
+import com.lti.lifht.service.IOService;
+import com.lti.lifht.util.LocalDateStream;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -29,27 +50,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.lti.lifht.model.EmployeeBean;
-import com.lti.lifht.model.EntryDateBean;
-import com.lti.lifht.model.EntryRange;
-import com.lti.lifht.model.request.RangeMultiPs;
-import com.lti.lifht.service.AdminService;
-import com.lti.lifht.service.IOService;
-import com.lti.lifht.util.LocalDateStream;
 
 @RequestMapping("/io")
 @RestController
@@ -83,6 +83,20 @@ public class IOController {
     @PreAuthorize(HAS_ROLE_SUPER)
     public JsonNode reconcileAll() {
         return service.reconcileAll();
+    }
+
+    @PostMapping("/import/banjo")
+    @PreAuthorize(HAS_ROLE_SUPER)
+    public ResponseEntity<Object> importBanjo(@RequestParam("banjo-file") MultipartFile banjo) {
+        System.out.println("came here..1");
+        try {
+            System.out.println("came here..2");
+            List<Map<String, String>> rows = service.getBanjoFormat(banjo);
+            return status(200).body(rows);
+
+        } catch (Exception e) {
+            return status(NOT_MODIFIED).body("Not processed");
+        }
     }
 
     @PostMapping("/import/head-count")
