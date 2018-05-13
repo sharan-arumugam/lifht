@@ -30,49 +30,6 @@ import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER;
 import static org.apache.poi.ss.usermodel.HorizontalAlignment.GENERAL;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lti.lifht.entity.Allocation;
-import com.lti.lifht.entity.EntryDate;
-import com.lti.lifht.entity.EntryPair;
-import com.lti.lifht.entity.Exclusion;
-import com.lti.lifht.entity.HeadCount;
-import com.lti.lifht.model.AllocationRaw;
-import com.lti.lifht.model.EmployeeBean;
-import com.lti.lifht.model.EntryDateBean;
-import com.lti.lifht.model.EntryPairBean;
-import com.lti.lifht.model.EntryRange;
-import com.lti.lifht.model.EntryRaw;
-import com.lti.lifht.model.ExclusionRaw;
-import com.lti.lifht.model.HeadCountRaw;
-import com.lti.lifht.model.request.RangeMultiPs;
-import com.lti.lifht.repository.AllocationRepository;
-import com.lti.lifht.repository.EmployeeRepository;
-import com.lti.lifht.repository.EntryDateRepository;
-import com.lti.lifht.repository.EntryPairRepository;
-import com.lti.lifht.repository.ExclusionRepository;
-import com.lti.lifht.repository.HeadCountRepository;
-import com.lti.lifht.repository.RoleMasterRepository;
-import com.lti.lifht.util.CommonUtil;
-
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -100,6 +57,50 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lti.lifht.entity.Allocation;
+import com.lti.lifht.entity.EntryDate;
+import com.lti.lifht.entity.EntryPair;
+import com.lti.lifht.entity.Exclusion;
+import com.lti.lifht.entity.HeadCount;
+import com.lti.lifht.model.AllocationRaw;
+import com.lti.lifht.model.EmployeeBean;
+import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.EntryPairBean;
+import com.lti.lifht.model.EntryRange;
+import com.lti.lifht.model.EntryRaw;
+import com.lti.lifht.model.ExclusionRaw;
+import com.lti.lifht.model.HeadCountRaw;
+import com.lti.lifht.model.request.RangeMultiPs;
+import com.lti.lifht.repository.AllocationRepository;
+import com.lti.lifht.repository.EmployeeRepository;
+import com.lti.lifht.repository.EntryDateRepository;
+import com.lti.lifht.repository.EntryPairRepository;
+import com.lti.lifht.repository.ExclusionRepository;
+import com.lti.lifht.repository.HeadCountRepository;
+import com.lti.lifht.repository.RoleMasterRepository;
+import com.lti.lifht.util.CommonUtil;
 
 import one.util.streamex.StreamEx;
 
@@ -272,12 +273,14 @@ public class IOService {
 
         pairList.stream()
                 .collect(groupingBy(EntryPairBean::getSwipeDate))
-                .forEach((date, psList) -> {
+                .forEach((date, psList) ->
+        {
 
                     psList.stream()
                             .filter(entry -> null != entry.getPsNumber())
                             .collect(groupingBy(EntryPairBean::getPsNumber))
-                            .forEach((psNumber, groupedList) -> {
+                            .forEach((psNumber, groupedList) ->
+            {
 
                                 LocalTime firstIn = groupedList.stream()
                                         .findFirst()
@@ -445,7 +448,8 @@ public class IOService {
 
         datedHeaders.stream()
                 .sorted(Comparator.comparing(LocalDate::atStartOfDay))
-                .forEach(e -> {
+                .forEach(e ->
+        {
                     dateHeaderList.add(e.format(reportDateFormatter));
                     dateHeaderList.add(""); // colspan for filo-floor
                 });
@@ -545,7 +549,8 @@ public class IOService {
                 .stream()
                 .sorted(Entry.comparingByKey())
                 .map(Entry::getValue)
-                .forEach(joiner -> {
+                .forEach(joiner ->
+        {
                     Row averageRow = sheet1.createRow(averageRowCount.getAndIncrement());
                     String[] values = joiner.toString().split(",");
 
@@ -831,24 +836,28 @@ public class IOService {
 
         rows.add(headers);
 
-        System.out.println("came here..4");
-
-        int i = 0;
         for (CSVRecord record : records) {
 
             String door = record.get("Description #1");
             String date = record.get("Date");
             String psNumber = record.get("Description #2");
+            String eventMsg = record.get("Event Message");
 
-            System.out.println("came here.. a" + i++);
-
-            if (isNotBlank(psNumber) && isNotBlank(door) && !door.contains("---")) {
+            if (isNotBlank(psNumber) &&
+                    !psNumber.equals("NULL") &&
+                    isNotBlank(door) &&
+                    !door.contains("---") &&
+                    door.contains("Turnstile")) {
 
                 LocalDate localDate = null;
 
-                localDate = date.contains("/")
-                        ? parse(date, ofPattern("dd/MM/yy"))
-                        : parse(date, ofPattern("dd-MM-yyyy"));
+                try {
+                    localDate = date.contains("/")
+                            ? parse(date, ofPattern("dd/MM/yyyy"))
+                            : parse(date, ofPattern("dd-MM-yyyy"));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
 
                 String[] arr = door.split(" ");
 
@@ -857,6 +866,8 @@ public class IOService {
                 if (door.contains("Apple Turnstile - 2")) {
                     entryType = door.endsWith("Entry") ? "Exit" : "Entry";
                 }
+
+                String eventMessageTrimmed = eventMsg.substring(0, 8);
 
                 Map<String, String> row = new HashMap<>();
 
@@ -869,19 +880,21 @@ public class IOService {
                     System.out.println(e.getMessage());
                 }
 
+                row.put("Event Message", row.remove("Event message"));
+                row.put("Event Number", row.remove("Event number"));
+
                 row.put("Date", dateString);
+                row.put("Event Message", eventMessageTrimmed);
                 row.put("Description #3", entryType);
 
                 rows.add(row);
-                System.out.println("came here.. b" + i++);
             }
         }
-
-        System.out.println("came here.. c" + i++);
 
         return rows.stream()
                 .filter(Objects::nonNull)
                 .filter(row -> MapUtils.isNotEmpty(row))
+                .filter(row -> CollectionUtils.isNotEmpty(row.values()))
                 .collect(toList());
     }
 

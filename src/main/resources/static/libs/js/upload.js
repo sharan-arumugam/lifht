@@ -140,21 +140,23 @@ $(document).ready(function() {
 	      data: oData,
 	      contentType: false,
 	      processData: false,
-	      success: (xml, textStatus, xhr) => {
+	      success: (json, textStatus, xhr) => {
 	    	  if (xhr.status === 200) {
-	    		  let data = xml;
-	    		  console.log(data);
-	    		  var fileName = "file.csv";
-	    		  var items = data;
+
+	    		  var items = json;
+	    		  
 
 	    		  const replacer = (key, value) => value === null ? '' : value;
 	    		  const header = Object.keys(items[0]);
+	    		  
+	    		  var date = items[3]['Date'];
+	    		  var dateSplit = date.split('/');
+	    		  
+	    		  var fileName = "ODC_Access_LTI_" + dateSplit[1] + dateSplit[0] + '20' + dateSplit[2];
 
 	    		  let csv = items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','));
 	    		  
 	    		  csv.unshift(header.join(','));
-	    		  csv.shift();
-
 	    		  csv = csv.join('\r\n');
 
 	    		  var downloadLink = document.createElement("a");
@@ -162,7 +164,7 @@ $(document).ready(function() {
 	    		  var url = URL.createObjectURL(blob);
 	                
 	    		  downloadLink.href = url;
-	    		  downloadLink.download = fileName;
+	    		  downloadLink.download = fileName + date + ".csv";
 	                
 	    		  document.body.appendChild(downloadLink);
 	    		  downloadLink.click();
@@ -174,10 +176,7 @@ $(document).ready(function() {
 	    	  
 	    	  $(".banjo-ack-msg").fadeOut(60000, () => $(".banjo-ack-msg").removeClass('alert-success alert-danger'));
 	      },
-	      error: function(err) {
-	    	$(".banjo-ack-msg").css("display", "block").html("Error - " + err.status).addClass('alert-danger');
-	        console.log(err.status);
-	      }
+	      error: (err) => $(".banjo-ack-msg").css("display", "block").html("Error - " + err.status).addClass('alert-danger')
 	    })
   });
   
