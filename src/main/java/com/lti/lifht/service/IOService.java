@@ -811,8 +811,7 @@ public class IOService {
 
     public List<Map<String, String>> getBanjoFormat(MultipartFile banjo) throws IOException {
 
-        System.out.println("came here..3");
-
+       
         Reader in = new InputStreamReader(banjo.getInputStream());
         Iterable<CSVRecord> records = EXCEL.withFirstRecordAsHeader().parse(in);
 
@@ -820,8 +819,8 @@ public class IOService {
         headers.put("Sequence", null);
         headers.put("Date", null);
         headers.put("Time", null);
-        headers.put("Event message", null);
-        headers.put("Event number", null);
+        headers.put("Event Message", null);
+        headers.put("Event Number", null);
         headers.put("Object #1", null);
         headers.put("Description #1", null);
         headers.put("Object #2", null);
@@ -867,27 +866,25 @@ public class IOService {
                     entryType = door.endsWith("Entry") ? "Exit" : "Entry";
                 }
 
-                String eventMessageTrimmed = eventMsg.substring(0, 8);
+                String eventMessageTrimmed = eventMsg.length() > 40 ? eventMsg.substring(0, 40) : eventMsg;
 
                 Map<String, String> row = new HashMap<>();
 
                 row = record.toMap();
-
+                
                 String dateString = "";
                 try {
                     dateString = localDate.format(ofPattern("MM/dd/yy"));
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
-
-                row.put("Event Message", row.remove("Event message"));
-                row.put("Event Number", row.remove("Event number"));
-
+                
                 row.put("Date", dateString);
                 row.put("Event Message", eventMessageTrimmed);
                 row.put("Description #3", entryType);
-
+                
                 rows.add(row);
+              
             }
         }
 

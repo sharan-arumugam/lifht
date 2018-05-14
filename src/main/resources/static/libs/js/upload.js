@@ -148,13 +148,14 @@ $(document).ready(function() {
 
 	    		  const replacer = (key, value) => value === null ? '' : value;
 	    		  const header = Object.keys(items[0]);
-	    		  
+	    		  items.splice(0,1);
 	    		  var date = items[3]['Date'];
 	    		  var dateSplit = date.split('/');
 	    		  
-	    		  var fileName = "ODC_Access_LTI_" + dateSplit[1] + dateSplit[0] + '20' + dateSplit[2];
+	    		  var fileName = "ODC_Access_LTI_" + dateSplit[1] +'-'+ dateSplit[0] + '-' + '20' + dateSplit[2];
 
 	    		  let csv = items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','));
+	    		  
 	    		  
 	    		  csv.unshift(header.join(','));
 	    		  csv = csv.join('\r\n');
@@ -164,7 +165,7 @@ $(document).ready(function() {
 	    		  var url = URL.createObjectURL(blob);
 	                
 	    		  downloadLink.href = url;
-	    		  downloadLink.download = fileName + date + ".csv";
+	    		  downloadLink.download = fileName + ".csv";
 	                
 	    		  document.body.appendChild(downloadLink);
 	    		  downloadLink.click();
