@@ -78,14 +78,28 @@
 						<span class="exclusion-data-ack-msg alert"></span>
 					</div>
 				</form>
+				
+				<form id="banjo" class="col-md-4 col-sm-12 upload-form" enctype="multipart/form-data">
+					<div class="form-content">
+						<h3> Banjo Format: </h3>
+						<label for="banjo-file" class="btn btn-default text-center" style="vertical-align:middle">
+							<span class="col-xs-2">
+								<span class="glyphicon glyphicon-transfer" style="font-size:150%"></span>
+							</span>
+							<span class="col-xs-10" style="font-size:110%"> Convert Raw CSV to Banjo format </span>
+						</label>
+					</div>
+					<input class="btn btn-default" style="visibility:hidden" type="file" id="banjo-file" name="banjo-file" accept=".csv"/>
+					<span class="banjo-ack-msg alert"></span>
+				</form>
+				
 			</div>
 		</div>
+		
 		<div class="loading">
 			<img src='./assests/images/uploading-2.gif' alt="Home">
-             <div class="progress">
-                 <div class="progress-bar progress-bar-success myprogress" role="progressbar" style="width:0%">0%</div>
-             </div>
 		</div>
+		
 	</body>
 
 	<script type='text/javascript' src='./libs/js/jquery.min.js'></script>

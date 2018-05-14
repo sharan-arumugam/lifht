@@ -43,6 +43,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryRange;
@@ -83,6 +85,18 @@ public class IOController {
     @PreAuthorize(HAS_ROLE_SUPER)
     public JsonNode reconcileAll() {
         return service.reconcileAll();
+    }
+
+    @PostMapping("/import/banjo")
+    @PreAuthorize(HAS_ROLE_SUPER)
+    public ResponseEntity<Object> importBanjo(@RequestParam("banjo-file") MultipartFile banjo) {
+        try {
+            List<Map<String, String>> rows = service.getBanjoFormat(banjo);
+            return status(200).body(rows);
+
+        } catch (Exception e) {
+            return status(NOT_MODIFIED).body("Not processed");
+        }
     }
 
     @PostMapping("/import/head-count")
@@ -206,7 +220,8 @@ public class IOController {
         });
 
         datePsBeanMap.entrySet().stream().sorted(Entry.comparingByKey()).map(Entry::getValue)
-                .forEach(psEntryBeanMap -> {
+                .forEach(psEntryBeanMap ->
+        {
                     psEmpMap.forEach((ps, employee) -> {
                         reportMap.get(ps)
                                 .add(null != psEntryBeanMap.get(ps) ? formatDuration2(psEntryBeanMap.get(ps).getFilo())
@@ -255,7 +270,8 @@ public class IOController {
                 "attachment; filename=report-" + LocalDate.now().toString() + ".xlsx");
 
         workbook = service.generateRangeMultiDatedReport(new XSSFWorkbook(), cumulativeHeaders, datePsBeanMap.keySet(),
-                reportMap.values().stream().sorted(comparing(joiner -> {
+                reportMap.values().stream().sorted(comparing(joiner ->
+                {
                     String psName = joiner.toString().split(",")[3];
                     return null != psName && !"null".equals(psName) ? psName : "";
                 })).toArray(),

@@ -15,6 +15,7 @@ import static com.lti.lifht.constant.SwipeConstant.TIMEOUT;
 import static com.lti.lifht.util.CommonUtil.parseMDY;
 import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
 import static java.time.LocalDate.now;
+import static java.time.LocalDate.parse;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.time.temporal.TemporalAdjusters.firstDayOfMonth;
 import static java.util.Comparator.comparing;
@@ -23,11 +24,15 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.summarizingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.csv.CSVFormat.EXCEL;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER;
 import static org.apache.poi.ss.usermodel.HorizontalAlignment.GENERAL;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -53,6 +58,9 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -67,6 +75,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -264,12 +273,14 @@ public class IOService {
 
         pairList.stream()
                 .collect(groupingBy(EntryPairBean::getSwipeDate))
-                .forEach((date, psList) -> {
+                .forEach((date, psList) ->
+        {
 
                     psList.stream()
                             .filter(entry -> null != entry.getPsNumber())
                             .collect(groupingBy(EntryPairBean::getPsNumber))
-                            .forEach((psNumber, groupedList) -> {
+                            .forEach((psNumber, groupedList) ->
+            {
 
                                 LocalTime firstIn = groupedList.stream()
                                         .findFirst()
@@ -437,7 +448,8 @@ public class IOService {
 
         datedHeaders.stream()
                 .sorted(Comparator.comparing(LocalDate::atStartOfDay))
-                .forEach(e -> {
+                .forEach(e ->
+        {
                     dateHeaderList.add(e.format(reportDateFormatter));
                     dateHeaderList.add(""); // colspan for filo-floor
                 });
@@ -537,7 +549,8 @@ public class IOService {
                 .stream()
                 .sorted(Entry.comparingByKey())
                 .map(Entry::getValue)
-                .forEach(joiner -> {
+                .forEach(joiner ->
+        {
                     Row averageRow = sheet1.createRow(averageRowCount.getAndIncrement());
                     String[] values = joiner.toString().split(",");
 
@@ -558,7 +571,7 @@ public class IOService {
 
         DoubleSummaryStatistics headCountStatistics = statify.apply(1);
         DoubleSummaryStatistics averaeStatistics = statify.apply(2);
-        DoubleSummaryStatistics sumStatistics = statify.apply(3);
+        // DoubleSummaryStatistics sumStatistics = statify.apply(3);
 
         long days = averaeStatistics.getCount();
         double countAverage = headCountStatistics.getAverage();
@@ -794,6 +807,92 @@ public class IOService {
                 .collect(Collectors.toList());
 
         exclusionRepo.save(exclusionList);
+    }
+
+    public List<Map<String, String>> getBanjoFormat(MultipartFile banjo) throws IOException {
+
+       
+        Reader in = new InputStreamReader(banjo.getInputStream());
+        Iterable<CSVRecord> records = EXCEL.withFirstRecordAsHeader().parse(in);
+
+        Map<String, String> headers = new LinkedHashMap<>();
+        headers.put("Sequence", null);
+        headers.put("Date", null);
+        headers.put("Time", null);
+        headers.put("Event Message", null);
+        headers.put("Event Number", null);
+        headers.put("Object #1", null);
+        headers.put("Description #1", null);
+        headers.put("Object #2", null);
+        headers.put("Description #2", null);
+        headers.put("Object #3", null);
+        headers.put("Description #3", null);
+        headers.put("Object #4", null);
+        headers.put("Description #4", null);
+        headers.put("Card number", null);
+
+        List<Map<String, String>> rows = new ArrayList<>();
+
+        rows.add(headers);
+
+        for (CSVRecord record : records) {
+
+            String door = record.get("Description #1");
+            String date = record.get("Date");
+            String psNumber = record.get("Description #2");
+            String eventMsg = record.get("Event Message");
+
+            if (isNotBlank(psNumber) &&
+                    !psNumber.equals("NULL") &&
+                    isNotBlank(door) &&
+                    !door.contains("---") &&
+                    door.contains("Turnstile")) {
+
+                LocalDate localDate = null;
+
+                try {
+                    localDate = date.contains("/")
+                            ? parse(date, ofPattern("dd/MM/yyyy"))
+                            : parse(date, ofPattern("dd-MM-yyyy"));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+
+                String[] arr = door.split(" ");
+
+                String entryType = arr[arr.length - 1];
+
+                if (door.contains("Apple Turnstile - 2")) {
+                    entryType = door.endsWith("Entry") ? "Exit" : "Entry";
+                }
+
+                String eventMessageTrimmed = eventMsg.length() > 40 ? eventMsg.substring(0, 40) : eventMsg;
+
+                Map<String, String> row = new HashMap<>();
+
+                row = record.toMap();
+                
+                String dateString = "";
+                try {
+                    dateString = localDate.format(ofPattern("MM/dd/yy"));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+                
+                row.put("Date", dateString);
+                row.put("Event Message", eventMessageTrimmed);
+                row.put("Description #3", entryType);
+                
+                rows.add(row);
+              
+            }
+        }
+
+        return rows.stream()
+                .filter(Objects::nonNull)
+                .filter(row -> MapUtils.isNotEmpty(row))
+                .filter(row -> CollectionUtils.isNotEmpty(row.values()))
+                .collect(toList());
     }
 
 }
