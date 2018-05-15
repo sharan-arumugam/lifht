@@ -52,9 +52,9 @@ public class LocalDateStream implements Iterable<LocalDate> {
 
 	public Stream<LocalDate> stream() {
 		Stream<LocalDate> dateStream = iterate(start, next -> next.plusDays(INTEGER_ONE))
+				.limit(DAYS.between(start, end) + INTEGER_ONE)
 				.filter(date -> date.getDayOfWeek() != SATURDAY)
-				.filter(date -> date.getDayOfWeek() != SUNDAY)
-				.limit(DAYS.between(start, end) + INTEGER_ONE);
+				.filter(date -> date.getDayOfWeek() != SUNDAY);
 
 		return weekend ? dateStream.filter(date -> date.getDayOfWeek() != SATURDAY)
 				.filter(date -> date.getDayOfWeek() != SUNDAY)
