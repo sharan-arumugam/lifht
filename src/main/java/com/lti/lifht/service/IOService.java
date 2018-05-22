@@ -852,7 +852,7 @@ public class IOService {
 
                 try {
                     localDate = date.contains("/")
-                            ? parse(date, ofPattern("dd/MM/yyyy"))
+                            ? parse(date, ofPattern("MM/dd/yyyy"))
                             : parse(date, ofPattern("dd-MM-yyyy"));
                 } catch (Exception e) {
                     System.out.println(e.getMessage());

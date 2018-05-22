@@ -152,7 +152,7 @@ $(document).ready(function() {
 	    		  var date = items[3]['Date'];
 	    		  var dateSplit = date.split('/');
 	    		  
-	    		  var fileName = "ODC_Access_LTI_" + dateSplit[1] +'-'+ dateSplit[0] + '-' + '20' + dateSplit[2];
+	    		  var fileName = "ODC_Access_LTI_" + dateSplit[0] +'-'+ dateSplit[1] + '-' + '20' + dateSplit[2];
 
 	    		  let csv = items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','));
 	    		  
