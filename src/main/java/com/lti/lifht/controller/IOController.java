@@ -5,6 +5,7 @@ import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
 import static com.lti.lifht.util.CommonUtil.formatDuration2;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
+import static com.lti.lifht.util.ExcelUtil.parseCsv;
 import static com.lti.lifht.util.ExcelUtil.parseXlsx;
 import static java.time.format.DateTimeFormatter.ISO_DATE;
 import static java.util.Comparator.comparing;
@@ -51,6 +52,7 @@ import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.service.AdminService;
 import com.lti.lifht.service.IOService;
+import com.lti.lifht.util.ExcelUtil;
 import com.lti.lifht.util.LocalDateStream;
 
 @RequestMapping("/io")
@@ -116,9 +118,9 @@ public class IOController {
     @PreAuthorize(HAS_ROLE_SUPER)
     public ResponseEntity<Object> importAllocation(@RequestParam("project-allocation") MultipartFile allocation) {
         try {
-            List<Map<String, String>> rows = parseXlsx.apply(allocation.getInputStream());
+            List<Map<String, String>> rows = parseCsv.apply(allocation.getInputStream());
             service.saveOrUpdateProjectAllocation(rows);
-            service.saveAllocationForReconciliation(rows);
+            //service.saveAllocationForReconciliation(rows);
             return accepted().build();
         } catch (Exception e) {
             return status(NOT_MODIFIED).build();

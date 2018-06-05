@@ -384,7 +384,7 @@ public class IOService {
         rows = rows
                 .stream()
                 .filter(row -> null != row.get(ALC_MAP.get("customer"))
-                        && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+                        && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple Inc."))
                 .filter(row -> psNumbers.contains(row.get(ALC_MAP.get("psNumber"))))
                 .collect(toList());
 

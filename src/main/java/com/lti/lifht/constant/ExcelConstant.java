@@ -42,9 +42,9 @@ public class ExcelConstant {
     // project-allocation map
     public static final Map<String, String> ALC_MAP = new HashMap<>();
     static {
-        ALC_MAP.put("psNumber", "EMPLID");
-        ALC_MAP.put("businessUnit", "DEPUTED BU");
-        ALC_MAP.put("customer", "CUSTOMER");
+        ALC_MAP.put("psNumber", "PS Number");
+        ALC_MAP.put("businessUnit", "Base BU");
+        ALC_MAP.put("customer", "Customer Name");
     }
 
     // swipe-data map
