@@ -12,6 +12,7 @@ import static com.lti.lifht.constant.SwipeConstant.DOOR_TR;
 import static com.lti.lifht.constant.SwipeConstant.DOOR_TS;
 import static com.lti.lifht.constant.SwipeConstant.GRANTED1;
 import static com.lti.lifht.constant.SwipeConstant.TIMEOUT;
+import static com.lti.lifht.util.CommonUtil.createMap;
 import static com.lti.lifht.util.CommonUtil.parseMDY;
 import static com.lti.lifht.util.CommonUtil.reportDateFormatter;
 import static java.time.LocalDate.now;
@@ -92,6 +93,7 @@ import com.lti.lifht.model.EntryRange;
 import com.lti.lifht.model.EntryRaw;
 import com.lti.lifht.model.ExclusionRaw;
 import com.lti.lifht.model.HeadCountRaw;
+import com.lti.lifht.model.ResourceDetails;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.repository.AllocationRepository;
 import com.lti.lifht.repository.EmployeeRepository;
@@ -273,14 +275,12 @@ public class IOService {
 
         pairList.stream()
                 .collect(groupingBy(EntryPairBean::getSwipeDate))
-                .forEach((date, psList) ->
-        {
+                .forEach((date, psList) -> {
 
                     psList.stream()
                             .filter(entry -> null != entry.getPsNumber())
                             .collect(groupingBy(EntryPairBean::getPsNumber))
-                            .forEach((psNumber, groupedList) ->
-            {
+                            .forEach((psNumber, groupedList) -> {
 
                                 LocalTime firstIn = groupedList.stream()
                                         .findFirst()
@@ -448,8 +448,7 @@ public class IOService {
 
         datedHeaders.stream()
                 .sorted(Comparator.comparing(LocalDate::atStartOfDay))
-                .forEach(e ->
-        {
+                .forEach(e -> {
                     dateHeaderList.add(e.format(reportDateFormatter));
                     dateHeaderList.add(""); // colspan for filo-floor
                 });
@@ -549,8 +548,7 @@ public class IOService {
                 .stream()
                 .sorted(Entry.comparingByKey())
                 .map(Entry::getValue)
-                .forEach(joiner ->
-        {
+                .forEach(joiner -> {
                     Row averageRow = sheet1.createRow(averageRowCount.getAndIncrement());
                     String[] values = joiner.toString().split(",");
 
@@ -634,7 +632,7 @@ public class IOService {
                 .stream()
                 .skip(1)
                 .filter(row -> null != row.get(ALC_MAP.get("customer"))
-                        && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple"))
+                        && row.get(ALC_MAP.get("customer")).equalsIgnoreCase("Apple Inc."))
                 .map(AllocationRaw::new)
                 .map(Allocation::new)
                 .collect(toList());
@@ -811,7 +809,6 @@ public class IOService {
 
     public List<Map<String, String>> getBanjoFormat(MultipartFile banjo) throws IOException {
 
-       
         Reader in = new InputStreamReader(banjo.getInputStream());
         Iterable<CSVRecord> records = EXCEL.withFirstRecordAsHeader().parse(in);
 
@@ -852,7 +849,7 @@ public class IOService {
 
                 try {
                     localDate = date.contains("/")
-                            ? parse(date, ofPattern("MM/dd/yyyy"))
+                            ? parse(date, ofPattern("M/d/yyyy"))
                             : parse(date, ofPattern("dd-MM-yyyy"));
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
@@ -871,20 +868,20 @@ public class IOService {
                 Map<String, String> row = new HashMap<>();
 
                 row = record.toMap();
-                
+
                 String dateString = "";
                 try {
                     dateString = localDate.format(ofPattern("MM/dd/yy"));
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
-                
+
                 row.put("Date", dateString);
                 row.put("Event Message", eventMessageTrimmed);
                 row.put("Description #3", entryType);
-                
+
                 rows.add(row);
-              
+
             }
         }
 
@@ -893,6 +890,18 @@ public class IOService {
                 .filter(row -> MapUtils.isNotEmpty(row))
                 .filter(row -> CollectionUtils.isNotEmpty(row.values()))
                 .collect(toList());
+    }
+
+    public List<Map<String, String>> fetchResourceDetails() {
+
+        List<ResourceDetails> resourceList = employeeRepo.getResourceDetailsList();
+
+        List<Map<String, String>> resourceMapList = new ArrayList();
+
+        resourceMapList = resourceList.stream().map(createMap).collect(Collectors.toList());
+
+        return resourceMapList;
+
     }
 
 }

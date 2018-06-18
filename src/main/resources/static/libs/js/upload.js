@@ -181,6 +181,65 @@ $(document).ready(function() {
 	    })
   });
   
+  
+  /**** Dpownload Resource Tracker File ****/
+  $("#resourceTracker").click((event) => {
+	  
+	  	event.preventDefault();
+	  	
+	    $(".resource-ack-msg").html('').removeClass('alert-success alert-danger').css("display", "none");
+	    
+	    var form = document.forms.namedItem("resourceTracker");
+	    var oData = new FormData(form);
+
+	    $.ajax({
+	      method: "GET",
+	      url: "/io/export/resource-tracker",
+	      data: oData,
+	      contentType: false,
+	      processData: false,
+	      success: (json, textStatus, xhr) => {
+	    	  if (xhr.status === 200) {
+
+	    		  var items = json;
+	    		  //console.log(items[0].valueOf().);
+
+	    		  const replacer = (key, value) => value === null ? '' : value;
+	    		  const header = Object.keys(items[0]);
+	    		  //items.splice(0,1);
+	    		  //var date = items[3]['Date'];
+	    		  //var dateSplit = date.split('/');
+	    		  
+	    		  var fileName = "Resource_Tracker";
+
+	    		  let csv = items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','));
+	    		  
+	    		  
+	    		  //csv.unshift(header.join(','));
+	    		  csv = csv.join('\r\n');
+
+	    		  var downloadLink = document.createElement("a");
+	    		  var blob = new Blob(["\ufeff", csv]);
+	    		  var url = URL.createObjectURL(blob);
+	                
+	    		  downloadLink.href = url;
+	    		  downloadLink.download = fileName + ".csv";
+	                
+	    		  document.body.appendChild(downloadLink);
+	    		  downloadLink.click();
+	    		  document.body.removeChild(downloadLink);
+	    	  
+	    	  } else {
+	    		  $(".resource-ack-msg").css("display", "block").html("Something went wrong. Please try again.").addClass('alert-danger');
+	    	  }
+	    	  
+	    	  $(".resource-ack-msg").fadeOut(60000, () => $(".resource-ack-msg").removeClass('alert-success alert-danger'));
+	      },
+	      error: (err) => $(".resource-ack-msg").css("display", "block").html("Error - " + err.status).addClass('alert-danger')
+	    })
+  });
+  
+  
   $(document).ajaxStart(function() {
     $(".loading").show(); // show the gif image when ajax starts
   }).ajaxStop(function() {

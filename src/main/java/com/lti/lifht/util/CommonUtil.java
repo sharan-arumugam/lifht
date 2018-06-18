@@ -16,7 +16,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -28,12 +30,14 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.lti.lifht.model.ResourceDetails;
+
 public class CommonUtil {
 
     static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public static final Function<String, LocalDate> parseAllocationDate = dateString -> isNotBlank(dateString)
-            ? parse(dateString, ofPattern("d-MMM-yy"))
+            ? parse(dateString, ofPattern("dd/MM/yy"))
             : null;
 
     public static final Function<LocalDate, String> formatAllocationDate = date -> null != date
@@ -48,6 +52,40 @@ public class CommonUtil {
             ? parseInt(intString)
             : 0;
 
+    public static final BiFunction<String, Integer, String> splitValue = (location, index) ->{
+       String[] loc =  location.split("-");
+       if(loc.length < 2 && index == 1) {
+           return "NA";
+       }else if(loc.length < 1) {
+           return "NA";
+       }
+       return loc[index];
+    };
+            
+
+    public static final Function<ResourceDetails, Map> createMap = t -> {
+        Map<String,String> resourceMap =  new LinkedHashMap();
+        
+        resourceMap.put("psNumber", t.getPsNumber());
+        resourceMap.put("deputedBu", t.getDeputedBu());
+        resourceMap.put("projectId", t.getProjectId());
+        resourceMap.put("dsId", t.getDsId());
+        resourceMap.put("imt", t.getImt());
+        resourceMap.put("imt1", t.getImt1());
+        resourceMap.put("imt2", t.getImt2());
+        resourceMap.put("psName", t.getPsName());
+        resourceMap.put("offshore", t.getOffshore());
+        resourceMap.put("grade", t.getGrade());
+        resourceMap.put("manager", t.getManager());
+        resourceMap.put("sow", t.getSow());
+        resourceMap.put("hrs", t.getHrs());
+        resourceMap.put("rate", t.getRate());
+        resourceMap.put("sow_status", t.getSow_status());
+        resourceMap.put("po", t.getPo());
+        
+        return resourceMap;
+    };
+            
     static Function<String, SimpleEntry<String, String>> crypt = base -> new SimpleEntry<>(base, encoder.encode(base));
 
     public static final DateTimeFormatter reportDateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
@@ -62,6 +100,7 @@ public class CommonUtil {
         if (splitDate[2].length() < 4) {
             splitDate[2] = "20" + splitDate[2];
         }
+        
         return LocalDate.parse(Stream.of(splitDate)
                 .collect(Collectors.joining("/")), ofPattern("M/d/yyyy"));
     };

@@ -2,16 +2,22 @@ package com.lti.lifht.entity;
 
 import static com.lti.lifht.util.CommonUtil.formatAllocationDate;
 import static com.lti.lifht.util.CommonUtil.parseAllocationDate;
+import static com.lti.lifht.util.CommonUtil.splitValue;
 
 import java.time.LocalDate;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lti.lifht.model.AllocationRaw;
+import com.lti.lifht.util.CommonUtil;
 
+import groovy.transform.ToString;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -33,17 +39,13 @@ public class Allocation {
     @JsonIgnore
     private LocalDate endDate;
     private String resourceCountry;
-    private String state;
+    private String resourceState;
     private String grade;
-    @JsonIgnore
-    private LocalDate assignmentStartDate;
-    @JsonIgnore
-    private LocalDate assignmentEndDate;
-    @JsonIgnore
-    private LocalDate projectStartDate;
-    @JsonIgnore
-    private LocalDate projectEndDate;
-
+    private String projectId;
+    private String projectName;
+    private String projectCategory;
+    private String resourceLocation;
+    
     public Allocation(AllocationRaw ref) {
         this.deliveryBu = ref.getDeliveryBu();
         this.deptId = ref.getDeptId();
@@ -52,13 +54,13 @@ public class Allocation {
         this.psName = ref.getPsName();
         this.startDate = parseAllocationDate.apply(ref.getStartDate());
         this.endDate = parseAllocationDate.apply(ref.getEndDate());
-        this.resourceCountry = ref.getResourceCountry();
-        this.state = ref.getState();
+        this.resourceCountry = splitValue.apply(ref.getResourceCountry(),0);
+        this.resourceState = splitValue.apply(ref.getResourceState(),1);
         this.grade = ref.getGrade();
-        this.assignmentStartDate = parseAllocationDate.apply(ref.getAssignmentStartDate());
-        this.assignmentEndDate = parseAllocationDate.apply(ref.getAssignmentEndDate());
-        this.projectStartDate = parseAllocationDate.apply(ref.getProjectStartDate());
-        this.projectEndDate = parseAllocationDate.apply(ref.getProjectEndDate());
+        this.projectId = ref.getProjectId();
+        this.projectName = ref.getProjectName();
+        this.projectCategory = ref.getProjectCategory();
+        this.resourceLocation = ref.getResourceLocation();
     }
 
     @JsonProperty(value = "startDate")
@@ -71,24 +73,5 @@ public class Allocation {
         return formatAllocationDate.apply(endDate);
     }
 
-    @JsonProperty(value = "assignmentStartDate")
-    public String assignmentStartDate() {
-        return formatAllocationDate.apply(assignmentStartDate);
-    }
-
-    @JsonProperty(value = "assignmentEndDate")
-    public String assignmentEndDate() {
-        return formatAllocationDate.apply(assignmentEndDate);
-    }
-
-    @JsonProperty(value = "projectStartDate")
-    public String projectStartDate() {
-        return formatAllocationDate.apply(projectStartDate);
-    }
-
-    @JsonProperty(value = "projectEndDate")
-    public String projectEndDate() {
-        return formatAllocationDate.apply(projectEndDate);
-    }
 
 }

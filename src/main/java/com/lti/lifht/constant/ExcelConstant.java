@@ -57,5 +57,5 @@ public class ExcelConstant {
         SWP_MAP.put("swipeDoor", "Description #1");
         SWP_MAP.put("psNumber", "Description #2");
     }
-
+    
 }

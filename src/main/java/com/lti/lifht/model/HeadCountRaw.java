@@ -18,6 +18,8 @@ public class HeadCountRaw {
             put("dsId", "DSID");
             put("psName", "Name");
             put("imt", "IMT");
+            put("imt1", "IMT-1");
+            put("imt2", "IMT-2");
             put("offshore", "Offshore");
             put("location", "Location");
             put("manager", "Manager");
@@ -37,6 +39,8 @@ public class HeadCountRaw {
     private String psName;
     private String psNumber;
     private String imt;
+    private String imt1;
+    private String imt2;
     private String offshore;
     private String location;
     private String manager;

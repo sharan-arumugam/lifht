@@ -14,20 +14,20 @@ public class AllocationRaw {
 	HashMap<String, String> allocationMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 		{
-			put("deliveryBu", "DELIVERY BU");
-			put("deptId", "DEPT ID");
-			put("psNumber", "EMPLID");
-			put("deputedBu", "DEPUTED BU");
-			put("psName", "NAME OF EMPLOYEE");
-			put("startDate", "START DATE");
-			put("endDate", "END DATE");
-			put("resourceCountry", "Resource Country");
-			put("state", "STATE");
-			put("grade", "GRADE");
-			put("assignmentStartDate", "ASSIGNMENT START DATE");
-			put("assignmentEndDate", "ASSIGNMENT END DATE");
-			put("projectStartDate", "Project Start Date");
-			put("projectEndDate", "Project End Date");
+			put("deliveryBu", "Base BU");
+			put("deptId", "Base Dept");
+			put("psNumber", "PS Number");
+			put("deputedBu", "Deputed BU");
+			put("psName", "Name");
+			put("startDate", "Start Date");
+			put("endDate", "End Date");
+			put("resourceCountry","Location");
+			put("resourceState", "Location");
+			put("grade", "Grade");
+			put("projectId", "Project Id");
+			put("projectName", "Project Name");
+			put("projectCategory", "Project Category");
+			put("resourceLocation", "Onsite/Offshore Allocation");
 		}
 	};
 
@@ -39,12 +39,12 @@ public class AllocationRaw {
 	private String startDate;
 	private String endDate;
 	private String resourceCountry;
-	private String state;
+	private String resourceState;
 	private String grade;
-	private String assignmentStartDate;
-	private String assignmentEndDate;
-	private String projectStartDate;
-	private String projectEndDate;
+	private String projectId;
+	private String projectName;
+	private String projectCategory;
+	private String resourceLocation;
 
 	public AllocationRaw(Map<String, String> columnMap) {
 		super();

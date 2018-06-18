@@ -1,8 +1,11 @@
 package com.lti.lifht.repository;
 
+import static com.lti.lifht.model.ResourceDetails.RESOURCE_MAP;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -12,6 +15,8 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
 import com.lti.lifht.model.EmployeeBean;
+import com.lti.lifht.model.EntryDateBean;
+import com.lti.lifht.model.ResourceDetails;
 
 @Repository
 @Transactional
@@ -82,6 +87,24 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryCustom {
                 .filter(Objects::nonNull)
                 .mapToInt(Integer::intValue)
                 .sum();
+    }
+
+    @Override
+    public List<ResourceDetails> getResourceDetailsList() {
+
+        String query = "select hc.ps_number,alloc.delivery_bu,alloc.project_id,alloc.resource_location,alloc.grade,hc.ds_id,hc.imt,hc.imt1,hc.imt2,hc.ps_name,hc.po,hc.manager from allocation alloc RIGHT JOIN head_count hc ON alloc.ps_number = hc.ps_number";
+
+        Query select = entityManager.createNativeQuery(query);
+
+        List<Object[]> objList = select.getResultList();
+
+        List<ResourceDetails> resourceList = objList.stream().map(ResourceDetails::new).collect(Collectors.toList());
+//        objList.forEach(rs -> {
+//            resourceList.add(new ResourceDetails(rs));
+//        });
+        
+         
+        return resourceList;
     }
 
 }

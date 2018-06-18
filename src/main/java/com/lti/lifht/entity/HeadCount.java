@@ -8,6 +8,8 @@ import java.time.LocalDate;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,6 +18,7 @@ import com.lti.lifht.model.HeadCountRaw;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -28,6 +31,8 @@ public class HeadCount {
     private String psName;
     private String psNumber;
     private String imt;
+    private String imt1;
+    private String imt2;
     private Boolean offshore;
     private String location;
     private String manager;
@@ -49,6 +54,8 @@ public class HeadCount {
             psName = ref.getPsName();
             psNumber = ref.getPsNumber();
             imt = ref.getImt();
+            imt1 = ref.getImt1();
+            imt2 = ref.getImt2();
             offshore = Boolean.valueOf(ref.getOffshore());
             location = ref.getLocation();
             manager = ref.getManager();

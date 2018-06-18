@@ -3,6 +3,7 @@ package com.lti.lifht.controller;
 import static com.lti.lifht.constant.ExcelConstant.SWP_MAP;
 import static com.lti.lifht.constant.PatternConstant.HAS_ANY_ROLE_ADMIN;
 import static com.lti.lifht.constant.PatternConstant.HAS_ROLE_SUPER;
+import static com.lti.lifht.model.ResourceDetails.RESOURCE_MAP;
 import static com.lti.lifht.util.CommonUtil.formatDuration2;
 import static com.lti.lifht.util.ExcelUtil.autoParse;
 import static com.lti.lifht.util.ExcelUtil.parseCsv;
@@ -19,6 +20,7 @@ import static org.springframework.http.ResponseEntity.status;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +34,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,6 +53,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lti.lifht.model.EmployeeBean;
 import com.lti.lifht.model.EntryDateBean;
 import com.lti.lifht.model.EntryRange;
+import com.lti.lifht.model.ResourceDetails;
 import com.lti.lifht.model.request.RangeMultiPs;
 import com.lti.lifht.service.AdminService;
 import com.lti.lifht.service.IOService;
@@ -68,7 +73,7 @@ public class IOController {
     @GetMapping("/reconcile/head-count")
     @PreAuthorize(HAS_ROLE_SUPER)
     public JsonNode reconcileHeadCount() {
-        return service.reconcileHeadCount();
+        return null;//service.reconcileHeadCount();
     }
 
     @GetMapping("/reconcile/allocation")
@@ -120,7 +125,7 @@ public class IOController {
         try {
             List<Map<String, String>> rows = parseCsv.apply(allocation.getInputStream());
             service.saveOrUpdateProjectAllocation(rows);
-            //service.saveAllocationForReconciliation(rows);
+            service.saveAllocationForReconciliation(rows);
             return accepted().build();
         } catch (Exception e) {
             return status(NOT_MODIFIED).build();
@@ -223,8 +228,7 @@ public class IOController {
         });
 
         datePsBeanMap.entrySet().stream().sorted(Entry.comparingByKey()).map(Entry::getValue)
-                .forEach(psEntryBeanMap ->
-        {
+                .forEach(psEntryBeanMap -> {
                     psEmpMap.forEach((ps, employee) -> {
                         reportMap.get(ps)
                                 .add(null != psEntryBeanMap.get(ps) ? formatDuration2(psEntryBeanMap.get(ps).getFilo())
@@ -282,5 +286,17 @@ public class IOController {
 
         workbook.write(response.getOutputStream());
         workbook.close();
+    }
+    
+    @GetMapping("/export/resource-tracker")
+    @PreAuthorize(HAS_ROLE_SUPER)
+    public List<Map<String, String>> generateResourceTracker(HttpServletResponse response) throws IOException {
+        
+        List<Map<String,String>> headersConsolidatedResourceMap = new ArrayList();
+        
+        headersConsolidatedResourceMap.add(RESOURCE_MAP);
+        headersConsolidatedResourceMap.addAll(service.fetchResourceDetails());
+        return headersConsolidatedResourceMap;
+        
     }
 }
